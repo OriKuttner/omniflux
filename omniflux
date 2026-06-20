@@ -5,6 +5,7 @@ use utf8;
 use lib ('.', '/usr/local/share/omniflux/lib'); # Allows Perl to find the local or global OmniFlux library directory
 use OmniFlux::Config;
 use OmniFlux::Wizard;
+use OmniFlux::Preprocessor;
 use HTTP::Tiny;
 use JSON::PP;
 use Term::ANSIColor;
@@ -214,19 +215,19 @@ sub format_markdown {
     my ($txt) = @_;
     return $txt if !$txt;
     
-    # 1. צביעת קטעי קוד תחומים (Code Blocks) - ירוק מודגש (קריא מאוד בשני הרקעים)
+    # 1. Color fenced code blocks - bold green (highly readable on both light and dark themes)
     $txt =~ s/```([a-zA-Z0-9]*)\n(.*?)\n```/color('bold green') . "\n$2\n" . color('reset')/gse;
     
-    # 2. צביעת קטעי קוד בשורה (Inline Code) - סיאן מודגש (קריא מאוד בשני הרקעים)
+    # 2. Color inline code blocks - bold cyan (highly readable on both themes)
     $txt =~ s/`([^`\n]+)`/color('bold cyan') . $1 . color('reset')/ge;
     
-    # 3. צביעת כותרות - סיאן מודגש
+    # 3. Color headers - bold cyan
     $txt =~ s/^#{1,6}\s+(.+)$/color('bold cyan') . $1 . color('reset')/gme;
     
-    # 4. צביעת טקסט מודגש (**bold**) - הדגשה בלבד (ללא שינוי צבע גופן, כדי שיתאים אוטומטית לרקע לבן/שחור)
+    # 4. Color bold text (**bold**) - bold formatting only (no color change, to fit light/dark themes naturally)
     $txt =~ s/\*\*([^*]+)\*\*/color('bold') . $1 . color('reset')/ge;
     
-    # 5. צביעת בולטים ברשימות - הדגשה בלבד של הסימן •
+    # 5. Color list bullets - bold formatting for the bullet character (•)
     $txt =~ s/^(\s*)[*\-]\s+(.+)$/$1 . color('bold') . "• " . color('reset') . $2/gme;
     
     return $txt;
@@ -260,46 +261,6 @@ sub get_file_hash {
     return $digest;
 }
 
-sub get_all_dependencies {
-    my ($file_path, $deps) = @_;
-    
-    my $abs_file = abs_path($file_path);
-    return if !$abs_file || ! -e $abs_file;
-    return if $deps->{$abs_file};
-    $deps->{$abs_file} = 1;
-    
-    open(my $fh, '<:utf8', $abs_file) or return;
-    my $content = do { local $/; <$fh> };
-    close($fh);
-    
-    my $dir = dirname($abs_file);
-    while ($content =~ /\binclude\s+["']?([^"'\s;]+)["']?;?/g) {
-        my $inc_file = $1;
-        my $full_path = $inc_file;
-        if ($full_path !~ m{^\/}) {
-            $full_path = "$dir/$inc_file";
-        }
-        get_all_dependencies($full_path, $deps);
-    }
-}
-
-sub extract_function_names {
-    my ($file) = @_;
-    return () if ! -e $file;
-    open(my $fh, '<:utf8', $file) or return ();
-    my $content = do { local $/; <$fh> };
-    close($fh);
-    
-    my %seen;
-    my @funcs;
-    while ($content =~ /\bfn\s+(\w+)/g) {
-        push @funcs, $1 if !$seen{$1}++;
-    }
-    while ($content =~ /\bdefine\s+task\s+(\w+)/g) {
-        push @funcs, $1 if !$seen{$1}++;
-    }
-    return @funcs;
-}
 
 sub compile_file_to_target {
     my ($src_file, $target_js, $all_deps) = @_;
@@ -314,6 +275,9 @@ sub compile_file_to_target {
     };
     my $source_code = do { local $/; <$src_fh> };
     close($src_fh);
+    
+    # Strip temporary comments (// and /* */) to save tokens and prevent LLM confusion
+    $source_code = strip_comments($source_code);
     
     # 1. Translate include statements to require
     $source_code =~ s{\binclude\s+["']?([^"'\s;]+)["']?;?}{

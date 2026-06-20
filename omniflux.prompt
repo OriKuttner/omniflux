@@ -11,6 +11,7 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 5. Functions/Tasks can be defined in two ways:
    - Short syntax: fn name(params) { ... }
    - Natural English syntax: define task name(params) { ... } or define task name with params { ... } (or other natural English variations).
+6. Comments: Support both '#' and '//' as single-line comments, and '/* ... */' as multi-line comments. OmniFlux supports nested block comments (e.g. /* nested /* comment */ */). Transpile or strip comments correctly based on depth.
 
 ### Frictionless Human Syntax & Interactive Protocol:
 - "every X (seconds/minutes/hours) { ... }" -> Transpile to standard JavaScript setInterval using proper millisecond calculations.
