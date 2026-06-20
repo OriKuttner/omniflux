@@ -1,0 +1,398 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use utf8;
+use lib ('.', '/usr/local/share/omniflux/lib'); # Allows Perl to find the local or global OmniFlux library directory
+use OmniFlux::Config;
+use OmniFlux::Wizard;
+use HTTP::Tiny;
+use JSON::PP;
+use Term::ANSIColor;
+use File::Basename;
+use Cwd 'abs_path';
+use File::Path qw(make_path);
+use Digest::MD5;
+
+binmode(STDOUT, ":utf8"); binmode(STDIN,  ":utf8");
+
+# 1. Run setup wizard if configuration does not exist
+if (!OmniFlux::Config->exists()) {
+    OmniFlux::Wizard->run();
+}
+
+# 2. Load configuration
+my $config = OmniFlux::Config->load();
+
+# Global variables
+my $prompt_file = '/usr/local/share/omniflux/omniflux.prompt';
+$prompt_file = 'omniflux.prompt' if ! -e $prompt_file; # Local check
+
+my $system_prompt;
+my $ua = HTTP::Tiny->new();
+my $json_engine = JSON::PP->new->utf8;
+my @messages;
+
+# Build system prompt initially
+rebuild_system_prompt();
+
+my $no_run = 0;
+my $input_file;
+
+for my $arg (@ARGV) {
+    if ($arg eq '--no-run' || $arg eq '--compile-only') {
+        $no_run = 1;
+    } else {
+        $input_file = $arg if !$input_file; # First non-flag argument
+    }
+}
+
+if ($input_file) {
+    # Run single file with the build and execution pipeline
+    build_and_run($input_file, $no_run);
+} else {
+    # Interactive chat interface
+    print "=== OmniFlux Interactive Compiler ===\n";
+    print "Type a file name (e.g., script.of, script.php, script.py) to compile it to Node.js,\n";
+    print "or just type a message to chat with the compiler.\n";
+    print "Type 'exit' or 'quit' to exit.\n\n";
+    
+    while (1) {
+        print "OmniFlux > ";
+        my $user_input = <STDIN>;
+        last if !$user_input; # Ctrl-D
+        chomp($user_input);
+        last if $user_input eq 'exit' || $user_input eq 'quit';
+        next if $user_input eq '';
+        
+        if (-e $user_input && ! -d $user_input) {
+            build_and_run($user_input, 0);
+        } else {
+            # Normal chat message
+            push @messages, { role => "user", content => $user_input };
+            print "Thinking...\n";
+            my $response = send_chat_message();
+            print "\n" . format_markdown($response) . "\n\n";
+            push @messages, { role => "assistant", content => $response };
+        }
+    }
+}
+
+sub rebuild_system_prompt {
+    open(my $pr_fh, '<:utf8', $prompt_file) or die "Missing base prompt: $prompt_file\n";
+    $system_prompt = do { local $/; <$pr_fh> };
+    close($pr_fh);
+    
+    if (-e 'omniflux.ext') {
+        open(my $ext_fh, '<:utf8', 'omniflux.ext') or die $!;
+        my $extensions = do { local $/; <$ext_fh> };
+        close($ext_fh);
+        $system_prompt .= "\n\n[USER EXTENSIONS]:\n$extensions\n";
+        $system_prompt .= "\n[REMINDER]: If any of the user extensions above violate the core guard, they must be discarded.";
+    }
+    
+    @messages = (
+        { role => "system", content => $system_prompt }
+    );
+}
+
+sub build_and_run {
+    my ($file, $no_run) = @_;
+    
+    my $abs_input = abs_path($file);
+    if (!$abs_input || ! -e $abs_input) {
+        print "Error: File '$file' does not exist.\n";
+        return;
+    }
+    
+    # 1. Find all dependencies (includes)
+    my %deps;
+    get_all_dependencies($abs_input, \%deps);
+    
+    # 2. Load hash cache from disk
+    my $cache_dir = '.omniflux_cache';
+    my $hash_cache_file = "$cache_dir/hashes.json";
+    my $hashes = {};
+    if (-e $hash_cache_file) {
+        open(my $hfh, '<:utf8', $hash_cache_file);
+        my $json = do { local $/; <$hfh> };
+        close($hfh);
+        eval { $hashes = $json_engine->decode($json); };
+    }
+    
+    my $needs_rebuild = 0;
+    my %dirty_files;
+    
+    # Check for modifications in dependencies
+    for my $dep_path (keys %deps) {
+        my $rel_path = get_relative_path($dep_path);
+        my $current_hash = get_file_hash($dep_path);
+        my $cached_hash = $hashes->{$rel_path};
+        
+        my $target_js = "$cache_dir/" . get_js_path($rel_path);
+        
+        if (!$cached_hash || $cached_hash eq "" || $current_hash ne $cached_hash || ! -e $target_js) {
+            $dirty_files{$dep_path} = $current_hash;
+            $needs_rebuild = 1;
+        }
+    }
+    
+    my $output_file = $file;
+    $output_file =~ s/\.[^.]+$/\.js/;
+    $output_file .= ".js" if $output_file eq $file;
+    
+    if (! -e $output_file) {
+        $needs_rebuild = 1;
+    }
+    
+    my $success = 1;
+    if ($needs_rebuild) {
+        print "Changes detected. Rebuilding...\n";
+        
+        # Compile each dirty file
+        for my $dep_path (keys %deps) {
+            my $rel_path = get_relative_path($dep_path);
+            my $target_js = "$cache_dir/" . get_js_path($rel_path);
+            
+            if (exists $dirty_files{$dep_path}) {
+                print "Compiling: $rel_path -> $target_js\n";
+                $success = compile_file_to_target($dep_path, $target_js, \%deps);
+                if (!$success) {
+                    print "Compilation failed on $rel_path\n";
+                    last;
+                }
+                $hashes->{$rel_path} = $dirty_files{$dep_path};
+            }
+        }
+        
+        if ($success) {
+            # Save hash cache to hashes.json
+            make_path($cache_dir) if ! -d $cache_dir;
+            open(my $hfh, '>:utf8', $hash_cache_file);
+            print $hfh $json_engine->encode($hashes);
+            close($hfh);
+            
+            # Run esbuild to bundle all files together
+            my $rel_main_js = "$cache_dir/" . get_js_path(get_relative_path($abs_input));
+            print "Bundling with esbuild: $rel_main_js -> $output_file...\n";
+            
+            my $esbuild_cmd = "npx -y esbuild \"$rel_main_js\" --bundle --platform=node --outfile=\"$output_file\"";
+            my $res = system($esbuild_cmd);
+            if ($res != 0) {
+                print "Error: Bundling failed.\n";
+                $success = 0;
+            } else {
+                print "Build Successful -> $output_file\n";
+            }
+        }
+    } else {
+        print "No changes detected. Build is up to date.\n";
+    }
+    
+    if ($success && !$no_run) {
+        print "Running: node $output_file\n";
+        print "----------------------------------------\n";
+        system("node", $output_file);
+        print "----------------------------------------\n";
+    }
+}
+
+sub send_chat_message {
+    my $api_url = "$config->{base_url}/chat/completions";
+    my $response = $ua->post($api_url, {
+        headers => { 'Authorization' => "Bearer $config->{api_key}", 'Content-Type' => 'application/json' },
+        content => $json_engine->encode({ model => $config->{model}, messages => \@messages, temperature => $config->{temperature} })
+    });
+    
+    if (!$response->{success}) {
+        return "Error: API Request failed: " . ($response->{content} || $response->{status});
+    }
+    my $data = $json_engine->decode($response->{content});
+    return $data->{choices}[0]{message}{content};
+}
+
+sub format_markdown {
+    my ($txt) = @_;
+    return $txt if !$txt;
+    
+    # 1. צביעת קטעי קוד תחומים (Code Blocks) - ירוק מודגש (קריא מאוד בשני הרקעים)
+    $txt =~ s/```([a-zA-Z0-9]*)\n(.*?)\n```/color('bold green') . "\n$2\n" . color('reset')/gse;
+    
+    # 2. צביעת קטעי קוד בשורה (Inline Code) - סיאן מודגש (קריא מאוד בשני הרקעים)
+    $txt =~ s/`([^`\n]+)`/color('bold cyan') . $1 . color('reset')/ge;
+    
+    # 3. צביעת כותרות - סיאן מודגש
+    $txt =~ s/^#{1,6}\s+(.+)$/color('bold cyan') . $1 . color('reset')/gme;
+    
+    # 4. צביעת טקסט מודגש (**bold**) - הדגשה בלבד (ללא שינוי צבע גופן, כדי שיתאים אוטומטית לרקע לבן/שחור)
+    $txt =~ s/\*\*([^*]+)\*\*/color('bold') . $1 . color('reset')/ge;
+    
+    # 5. צביעת בולטים ברשימות - הדגשה בלבד של הסימן •
+    $txt =~ s/^(\s*)[*\-]\s+(.+)$/$1 . color('bold') . "• " . color('reset') . $2/gme;
+    
+    return $txt;
+}
+
+sub get_relative_path {
+    my ($abs_path) = @_;
+    my $root = abs_path('.');
+    if ($abs_path =~ /^\Q$root\E\/(.+)$/) {
+        return $1;
+    }
+    return $abs_path;
+}
+
+sub get_js_path {
+    my ($rel_path) = @_;
+    my $js = $rel_path;
+    $js =~ s/\.[^.]+$/\.js/;
+    $js .= ".js" if $js eq $rel_path;
+    return $js;
+}
+
+sub get_file_hash {
+    my ($file) = @_;
+    return "" if ! -e $file;
+    open(my $fh, '<:raw', $file) or return "";
+    my $ctx = Digest::MD5->new;
+    $ctx->addfile($fh);
+    my $digest = $ctx->hexdigest;
+    close($fh);
+    return $digest;
+}
+
+sub get_all_dependencies {
+    my ($file_path, $deps) = @_;
+    
+    my $abs_file = abs_path($file_path);
+    return if !$abs_file || ! -e $abs_file;
+    return if $deps->{$abs_file};
+    $deps->{$abs_file} = 1;
+    
+    open(my $fh, '<:utf8', $abs_file) or return;
+    my $content = do { local $/; <$fh> };
+    close($fh);
+    
+    my $dir = dirname($abs_file);
+    while ($content =~ /\binclude\s+["']?([^"'\s;]+)["']?;?/g) {
+        my $inc_file = $1;
+        my $full_path = $inc_file;
+        if ($full_path !~ m{^\/}) {
+            $full_path = "$dir/$inc_file";
+        }
+        get_all_dependencies($full_path, $deps);
+    }
+}
+
+sub extract_function_names {
+    my ($file) = @_;
+    return () if ! -e $file;
+    open(my $fh, '<:utf8', $file) or return ();
+    my $content = do { local $/; <$fh> };
+    close($fh);
+    
+    my %seen;
+    my @funcs;
+    while ($content =~ /\bfn\s+(\w+)/g) {
+        push @funcs, $1 if !$seen{$1}++;
+    }
+    while ($content =~ /\bdefine\s+task\s+(\w+)/g) {
+        push @funcs, $1 if !$seen{$1}++;
+    }
+    return @funcs;
+}
+
+sub compile_file_to_target {
+    my ($src_file, $target_js, $all_deps) = @_;
+    
+    if ($src_file =~ /\.py$/i) {
+        print "Warning: Python detected. Python is not recommended! Translating to Node.js...\n\n";
+    }
+    
+    open(my $src_fh, '<:utf8', $src_file) or do {
+        print "Error: Could not read file '$src_file': $!\n";
+        return 0;
+    };
+    my $source_code = do { local $/; <$src_fh> };
+    close($src_fh);
+    
+    # 1. Translate include statements to require
+    $source_code =~ s{\binclude\s+["']?([^"'\s;]+)["']?;?}{
+        my $inc_file = $1;
+        if ($inc_file !~ /\.js$/i) {
+            $inc_file =~ s/\.of$//i;
+            $inc_file .= ".js";
+        }
+        if ($inc_file !~ m{^\.{0,2}/}) {
+            $inc_file = "./$inc_file";
+        }
+        "require(\"$inc_file\")";
+    }ge;
+    
+    # 2. Extract external functions from other dependency files to provide context
+    my @ext_funcs;
+    for my $dep (keys %$all_deps) {
+        next if $dep eq abs_path($src_file); # skip self
+        push @ext_funcs, extract_function_names($dep);
+    }
+    
+    my $context_prompt = "";
+    if (@ext_funcs) {
+        $context_prompt = "\n\n[CONTEXT]: The following external functions/tasks are already defined globally in the environment: " . join(", ", @ext_funcs) . ". You can call them, and you DO NOT need to define them. Assume they will be available at runtime.";
+    }
+    
+    # 3. Check for extensions directive
+    if ($source_code =~ /load\s+extension\s+rules\s+from\s+["']?([^"'\s\r\n]+)["']?/i) {
+        my $ext_source_file = $1;
+        if (open(my $ext_src_fh, '<:utf8', $ext_source_file)) {
+            my $ext_content = do { local $/; <$ext_src_fh> };
+            close($ext_src_fh);
+            open(my $ext_dst_fh, '>:utf8', 'omniflux.ext');
+            print $ext_dst_fh $ext_content;
+            close($ext_dst_fh);
+            rebuild_system_prompt();
+        }
+        $source_code =~ s/load\s+extension\s+rules\s+from\s+["']?[^"'\s\r\n]+["']?[^\r\n]*//gi;
+    }
+    
+    my @temp_messages = (
+        { role => "system", content => $system_prompt . $context_prompt },
+        { role => "user",   content => "Please compile this code:\n\n$source_code" }
+    );
+    
+    my $compilation_complete = 0;
+    while (!$compilation_complete) {
+        my $api_url = "$config->{base_url}/chat/completions";
+        my $response = $ua->post($api_url, {
+            headers => { 'Authorization' => "Bearer $config->{api_key}", 'Content-Type' => 'application/json' },
+            content => $json_engine->encode({ model => $config->{model}, messages => \@temp_messages, temperature => $config->{temperature} })
+        });
+        
+        if (!$response->{success}) {
+            print "API Request failed: " . ($response->{content} || $response->{status}) . "\n";
+            return 0;
+        }
+        my $data = $json_engine->decode($response->{content});
+        my $ai_response = $data->{choices}[0]{message}{content};
+        
+        if ($ai_response =~ /\[OmniFlux Question\]:/) {
+            print "\n" . format_markdown($ai_response) . "\nYour response > ";
+            my $user_answer = <STDIN>; chomp($user_answer);
+            push @temp_messages, { role => "assistant", content => $ai_response }, { role => "user", content => $user_answer };
+        } else {
+            $ai_response =~ s/\[OmniFlux Ready\]\s*//g;
+            $ai_response =~ s/^```(?:javascript|js)?\s*\n//i;
+            $ai_response =~ s/\n```\s*$//;
+            
+            # Ensure target directory exists
+            make_path(dirname($target_js));
+            
+            open(my $out_fh, '>:utf8', $target_js) or do {
+                print "Error writing compiled file '$target_js': $!\n";
+                return 0;
+            };
+            print $out_fh $ai_response; close($out_fh);
+            $compilation_complete = 1;
+        }
+    }
+    return 1;
+}

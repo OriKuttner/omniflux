@@ -1,0 +1,65 @@
+{
+  "Listen on Port": {
+    "prefix": "listen",
+    "body": [
+      "listen on port ${1:3000}"
+    ],
+    "description": "Initialize web server on port"
+  },
+  "GET Handler": {
+    "prefix": "get",
+    "body": [
+      "when receiving GET request to \"${1:/api/route}\":",
+      "    ${0:// Handle request}"
+    ],
+    "description": "Create a GET route handler"
+  },
+  "POST Handler": {
+    "prefix": "post",
+    "body": [
+      "when receiving POST request to \"${1:/api/route}\":",
+      "    const ${2:param} = ${2:param} from body",
+      "    ${0:// Handle request}"
+    ],
+    "description": "Create a POST route handler"
+  },
+  "Timer Loop": {
+    "prefix": "every",
+    "body": [
+      "every ${1:10} ${2|seconds,minutes,hours|} {",
+      "    ${0}",
+      "}"
+    ],
+    "description": "Define a repeating timer loop"
+  },
+  "Delay": {
+    "prefix": "wait",
+    "body": [
+      "wait ${1:2} ${2|seconds,minutes,hours|}"
+    ],
+    "description": "Wait/Delay execution"
+  },
+  "Database Query": {
+    "prefix": "db",
+    "body": [
+      "const ${1:results} = db_query(\"${2:SELECT * FROM table}\", [${3}])"
+    ],
+    "description": "Secure SQL database query"
+  },
+  "Cache Set": {
+    "prefix": "cache_set",
+    "body": [
+      "cache_set(\"${1:key}\", ${2:value}, ${3:3600})"
+    ],
+    "description": "Cache a value in Redis with TTL"
+  },
+  "On Start": {
+    "prefix": "start",
+    "body": [
+      "on start {",
+      "    ${0}",
+      "}"
+    ],
+    "description": "Code executes immediately on start"
+  }
+}
