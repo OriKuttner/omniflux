@@ -4,6 +4,10 @@
   "description": "Syntax highlighting and snippets for the OmniFlux Programming Language.",
   "version": "1.0.0",
   "publisher": "omniflux",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OriKuttner/omniflux.git"
+  },
   "engines": {
     "vscode": "^1.60.0"
   },
@@ -16,7 +20,11 @@
       "id": "omniflux",
       "aliases": ["OmniFlux", "omniflux"],
       "extensions": [".of"],
-      "configuration": "./language-configuration.json"
+      "configuration": "./language-configuration.json",
+      "icon": {
+        "light": "./assets/icon-16.png",
+        "dark": "./assets/icon-16.png"
+      }
     }],
     "grammars": [{
       "language": "omniflux",
