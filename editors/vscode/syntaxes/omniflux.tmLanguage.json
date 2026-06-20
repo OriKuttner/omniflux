@@ -1,0 +1,105 @@
+{
+  "scopeName": "source.omniflux",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#native-bindings" },
+    { "include": "#routing" },
+    { "include": "#variables" },
+    { "include": "#strings" },
+    { "include": "#numbers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.omniflux",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.omniflux",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.omniflux",
+          "match": "\\b(every|wait|seconds|minutes|hours|on start|on shutdown|return|if|else|as|int|float|string)\\b"
+        },
+        {
+          "name": "storage.type.function.omniflux",
+          "match": "\\b(fn|define task|with params)\\b"
+        }
+      ]
+    },
+    "native-bindings": {
+      "patterns": [
+        {
+          "name": "support.function.omniflux",
+          "match": "\\b(db_query|cache_set|cache_get|file_read|file_write|print)\\b"
+        }
+      ]
+    },
+    "routing": {
+      "patterns": [
+        {
+          "name": "keyword.other.routing.omniflux",
+          "match": "\\b(listen on port|start server on port|when receiving|request to|respond with status|and json|from body|from query)\\b"
+        },
+        {
+          "name": "keyword.other.http.omniflux",
+          "match": "\\b(GET|POST|PUT|DELETE)\\b"
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "storage.type.omniflux",
+          "match": "\\b(var|const)\\b"
+        },
+        {
+          "name": "variable.other.global.omniflux",
+          "match": "\\$[a-zA-Z_][a-zA-Z0-9_]*"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.omniflux",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.omniflux",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.omniflux",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.omniflux",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.omniflux",
+          "match": "\\b\\d+(\\.\\d+)?\\b"
+        }
+      ]
+    }
+  }
+}
