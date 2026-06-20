@@ -31,6 +31,7 @@ chmod +x "$BUILD_DIR/usr/local/bin/omniflux"
 mkdir -p "$BUILD_DIR/usr/local/share/omniflux/lib/OmniFlux"
 cp ./OmniFlux/Config.pm "$BUILD_DIR/usr/local/share/omniflux/lib/OmniFlux/Config.pm"
 cp ./OmniFlux/Wizard.pm "$BUILD_DIR/usr/local/share/omniflux/lib/OmniFlux/Wizard.pm"
+cp ./OmniFlux/Preprocessor.pm "$BUILD_DIR/usr/local/share/omniflux/lib/OmniFlux/Preprocessor.pm"
 
 # 3. Copy the base prompt
 cp ./omniflux.prompt "$BUILD_DIR/usr/local/share/omniflux/omniflux.prompt"
