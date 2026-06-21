@@ -93,7 +93,7 @@ function input(promptMessage) {
     return buffer.toString('utf8', 0, bytesRead).replace(/\r?\n$/, '');
 }
 
-function read_char() {
+function readchar() {
     const hasRaw = typeof process.stdin.setRawMode === 'function';
     const isRaw = process.stdin.isRaw;
     if (hasRaw) {
@@ -118,47 +118,51 @@ function read_char() {
 }
 
 // --- File System ---
-function file_read(path) {
+function fileread(path) {
     return fs.readFileSync(path, 'utf8');
 }
 
-function file_write(path, data) {
+function filewrite(path, data) {
     fs.writeFileSync(path, typeof data === 'object' ? JSON.stringify(data, null, 2) : data, 'utf8');
 }
 
-function file_exists(path) {
+function fileexists(path) {
     return fs.existsSync(path);
 }
 
 // OS level atomic operations and helpers
-function file_copy(src, dest) {
+function filecopy(src, dest) {
     fs.copyFileSync(src, dest);
 }
 
-function file_rename(src, dest) {
+function filerename(src, dest) {
     fs.renameSync(src, dest);
 }
 
-function file_append(path, data) {
+function fileappend(path, data) {
     fs.appendFileSync(path, typeof data === 'object' ? JSON.stringify(data, null, 2) : data, 'utf8');
 }
 
 // safe unlinkSync wrapper
-function file_delete(path) {
+function filedelete(path) {
     fs.unlinkSync(path);
 }
 
-function dir_list(path) {
+function dirlist(path) {
     return fs.readdirSync(path);
 }
 
-function file_stat(path) {
+function filestat(path) {
     const stats = fs.statSync(path);
     return {
         size: stats.size,
+        isdirectory: stats.isDirectory(),
         is_directory: stats.isDirectory(),
+        isfile: stats.isFile(),
         is_file: stats.isFile(),
+        createdat: stats.birthtimeMs,
         created_at: stats.birthtimeMs,
+        modifiedat: stats.mtimeMs,
         modified_at: stats.mtimeMs
     };
 }
@@ -166,7 +170,7 @@ function file_stat(path) {
 // --- Databases (Lazy Loaded) ---
 let mysqlModule = null;
 let dbPool = null;
-async function db_query(query, params) {
+async function dbquery(query, params) {
     if (!mysqlModule) {
         mysqlModule = require('mysql2/promise');
     }
@@ -196,7 +200,7 @@ async function getRedisClient() {
     return redisClient;
 }
 
-async function cache_set(key, val, ttl) {
+async function cacheset(key, val, ttl) {
     const client = await getRedisClient();
     const stringVal = typeof val === 'object' ? JSON.stringify(val) : String(val);
     if (ttl) {
@@ -206,7 +210,7 @@ async function cache_set(key, val, ttl) {
     }
 }
 
-async function cache_get(key) {
+async function cacheget(key) {
     const client = await getRedisClient();
     const val = await client.get(key);
     if (!val) return null;
@@ -223,13 +227,13 @@ function len(val) {
     return val.length || 0;
 }
 
-function array_push(arr, item) {
+function arraypush(arr, item) {
     if (Array.isArray(arr)) {
         arr.push(item);
     }
 }
 
-function array_pop(arr) {
+function arraypop(arr) {
     if (Array.isArray(arr)) {
         return arr.pop();
     }
@@ -237,21 +241,21 @@ function array_pop(arr) {
 }
 
 // OS level atomic operations and helpers
-function array_contains(arr, item) {
+function arraycontains(arr, item) {
     if (Array.isArray(arr)) {
         return arr.includes(item);
     }
     return false;
 }
 
-function array_join(arr, sep) {
+function arrayjoin(arr, sep) {
     if (Array.isArray(arr)) {
         return arr.join(sep);
     }
     return '';
 }
 
-function array_slice(arr, start, end) {
+function arrayslice(arr, start, end) {
     if (Array.isArray(arr)) {
         return arr.slice(start, end);
     }
@@ -263,32 +267,32 @@ function time() {
     return Math.floor(Date.now() / 1000);
 }
 
-function date_year(ts) {
+function dateyear(ts) {
     const d = ts ? new Date(ts * 1000) : new Date();
     return d.getFullYear();
 }
 
-function date_month(ts) {
+function datemonth(ts) {
     const d = ts ? new Date(ts * 1000) : new Date();
     return d.getMonth() + 1;
 }
 
-function date_day(ts) {
+function dateday(ts) {
     const d = ts ? new Date(ts * 1000) : new Date();
     return d.getDate();
 }
 
-function date_hour(ts) {
+function datehour(ts) {
     const d = ts ? new Date(ts * 1000) : new Date();
     return d.getHours();
 }
 
-function date_minute(ts) {
+function dateminute(ts) {
     const d = ts ? new Date(ts * 1000) : new Date();
     return d.getMinutes();
 }
 
-function date_second(ts) {
+function datesecond(ts) {
     const d = ts ? new Date(ts * 1000) : new Date();
     return d.getSeconds();
 }
@@ -298,29 +302,79 @@ global.sprintf = sprintf;
 global.print = print;
 global.printf = printf;
 global.input = input;
-global.read_char = read_char;
-global.file_read = file_read;
-global.file_write = file_write;
-global.file_exists = file_exists;
-global.file_append = file_append;
-global.file_delete = file_delete;
-global.file_copy = file_copy;
-global.file_rename = file_rename;
-global.dir_list = dir_list;
-global.file_stat = file_stat;
-global.db_query = db_query;
-global.cache_set = cache_set;
-global.cache_get = cache_get;
+
+global.readchar = readchar;
+global.read_char = readchar;
+
+global.fileread = fileread;
+global.file_read = fileread;
+
+global.filewrite = filewrite;
+global.file_write = filewrite;
+
+global.fileexists = fileexists;
+global.file_exists = fileexists;
+
+global.fileappend = fileappend;
+global.file_append = fileappend;
+
+global.filedelete = filedelete;
+global.file_delete = filedelete;
+
+global.filecopy = filecopy;
+global.file_copy = filecopy;
+
+global.filerename = filerename;
+global.file_rename = filerename;
+
+global.dirlist = dirlist;
+global.dir_list = dirlist;
+
+global.filestat = filestat;
+global.file_stat = filestat;
+
+global.dbquery = dbquery;
+global.db_query = dbquery;
+
+global.cacheset = cacheset;
+global.cache_set = cacheset;
+
+global.cacheget = cacheget;
+global.cache_get = cacheget;
+
 global.len = len;
-global.array_push = array_push;
-global.array_pop = array_pop;
-global.array_contains = array_contains;
-global.array_join = array_join;
-global.array_slice = array_slice;
+
+global.arraypush = arraypush;
+global.array_push = arraypush;
+
+global.arraypop = arraypop;
+global.array_pop = arraypop;
+
+global.arraycontains = arraycontains;
+global.array_contains = arraycontains;
+
+global.arrayjoin = arrayjoin;
+global.array_join = arrayjoin;
+
+global.arrayslice = arrayslice;
+global.array_slice = arrayslice;
+
 global.time = time;
-global.date_year = date_year;
-global.date_month = date_month;
-global.date_day = date_day;
-global.date_hour = date_hour;
-global.date_minute = date_minute;
-global.date_second = date_second;
+
+global.dateyear = dateyear;
+global.date_year = dateyear;
+
+global.datemonth = datemonth;
+global.date_month = datemonth;
+
+global.dateday = dateday;
+global.date_day = dateday;
+
+global.datehour = datehour;
+global.date_hour = datehour;
+
+global.dateminute = dateminute;
+global.date_minute = dateminute;
+
+global.datesecond = datesecond;
+global.date_second = datesecond;

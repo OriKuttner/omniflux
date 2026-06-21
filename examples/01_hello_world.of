@@ -2,7 +2,7 @@
 # A basic OmniFlux example showing variable usage, scopes, print, and printf.
 
 const APP_NAME = "OmniFlux Demo"
-$visitor_count = 0
+visitor_count = 0
 
 define task greet(name) {
     # Increment global variable

@@ -232,33 +232,33 @@ GET "/users" (req, res) {
 
 OmniFlux provides native bindings to common backend services, making setups extremely fast:
 
-* **Databases:** `db_query(query, params)` (uses secure, prepared MySQL statements under the hood).
-* **Caching:** `cache_set(key, value, ttl)` and `cache_get(key)` (backed by Redis).
+* **Databases:** `dbquery(query, params)` (uses secure, prepared MySQL statements under the hood).
+* **Caching:** `cacheset(key, value, ttl)` and `cacheget(key)` (backed by Redis).
 * **File I/O:** Core file system operations:
-  * `file_read(path)`: Reads file contents as a UTF-8 string.
-  * `file_write(path, data)`: Writes data (string or object) to a file.
-  * `file_exists(path)`: Returns `true` if the file or directory exists, `false` otherwise.
-  * `file_append(path, data)`: Appends data (string or object) to the end of a file.
-  * `file_delete(path)`: Deletes the specified file.
-  * `file_copy(src, dest)`: Copies a file from `src` to `dest`.
-  * `file_rename(src, dest)`: Renames or moves a file from `src` to `dest`.
-  * `dir_list(path)`: Lists the contents of a directory (returns an array of strings).
-  * `file_stat(path)`: Returns an object containing file metadata: `{ size, is_directory, is_file, created_at, modified_at }`.
+  * `fileread(path)`: Reads file contents as a UTF-8 string.
+  * `filewrite(path, data)`: Writes data (string or object) to a file.
+  * `fileexists(path)`: Returns `true` if the file or directory exists, `false` otherwise.
+  * `fileappend(path, data)`: Appends data (string or object) to the end of a file.
+  * `filedelete(path)`: Deletes the specified file.
+  * `filecopy(src, dest)`: Copies a file from `src` to `dest`.
+  * `filerename(src, dest)`: Renames or moves a file from `src` to `dest`.
+  * `dirlist(path)`: Lists the contents of a directory (returns an array of strings).
+  * `filestat(path)`: Returns an object containing file metadata: `{ size, isdirectory, isfile, createdat, modifiedat }`.
 * **Arrays & Lists:** Procedural array and string operations:
   * `len(val)`: Returns the length of an array or string.
-  * `array_push(arr, item)`: Appends an item to the end of the array.
-  * `array_pop(arr)`: Removes and returns the last item of the array.
-  * `array_contains(arr, item)`: Returns `true` if the item is present in the array, `false` otherwise.
-  * `array_join(arr, sep)`: Joins array elements into a string separated by `sep`.
-  * `array_slice(arr, start, end)`: Returns a slice of the array from `start` (inclusive) to `end` (exclusive).
+  * `arraypush(arr, item)`: Appends an item to the end of the array.
+  * `arraypop(arr)`: Removes and returns the last item of the array.
+  * `arraycontains(arr, item)`: Returns `true` if the item is present in the array, `false` otherwise.
+  * `arrayjoin(arr, sep)`: Joins array elements into a string separated by `sep`.
+  * `arrayslice(arr, start, end)`: Returns a slice of the array from `start` (inclusive) to `end` (exclusive).
 * **Date & Time:** Procedural time and date components:
   * `time()`: Returns the current Unix timestamp in seconds.
-  * `date_year(ts)`: Returns the year of the given Unix timestamp `ts` (or the current year if `ts` is not provided).
-  * `date_month(ts)`: Returns the month (1-12) of the given Unix timestamp `ts`.
-  * `date_day(ts)`: Returns the day of the month (1-31) of the given Unix timestamp `ts`.
-  * `date_hour(ts)`: Returns the hour (0-23) of the given Unix timestamp `ts`.
-  * `date_minute(ts)`: Returns the minute (0-59) of the given Unix timestamp `ts`.
-  * `date_second(ts)`: Returns the second (0-59) of the given Unix timestamp `ts`.
+  * `dateyear(ts)`: Returns the year of the given Unix timestamp `ts` (or the current year if `ts` is not provided).
+  * `datemonth(ts)`: Returns the month (1-12) of the given Unix timestamp `ts`.
+  * `dateday(ts)`: Returns the day of the month (1-31) of the given Unix timestamp `ts`.
+  * `datehour(ts)`: Returns the hour (0-23) of the given Unix timestamp `ts`.
+  * `dateminute(ts)`: Returns the minute (0-59) of the given Unix timestamp `ts`.
+  * `datesecond(ts)`: Returns the second (0-59) of the given Unix timestamp `ts`.
 
 ---
 

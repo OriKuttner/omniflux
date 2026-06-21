@@ -15,8 +15,11 @@ sub compile_locally {
     # Pre-scan for all async tasks
     my %async_tasks = (
         db_query => 1,
+        dbquery => 1,
         cache_set => 1,
+        cacheset => 1,
         cache_get => 1,
+        cacheget => 1,
     );
     if ($ext_funcs_ref) {
         for my $f (@$ext_funcs_ref) {
@@ -75,8 +78,8 @@ sub compile_locally {
         # Convert # comments to // comments so they are valid JS
         $line =~ s/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|#(.*)/$1 ? $1 : "\/\/$2"/ge;
         
-        # Replace global variables
-        $line =~ s/\$([a-zA-Z_]\w*)/global.\$$1/g;
+        # Replace global variables (strip $ prefix so it maps to parent lexical scope)
+        $line =~ s/\$([a-zA-Z_]\w*)/$1/g;
         
         # print and printf are handled via injected helper functions when needed
         
