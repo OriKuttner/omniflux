@@ -5,12 +5,12 @@ const LOG_FILE = "activity.log"
 
 define task get_timestamp() {
     var ts = time()
-    var year = date_year(ts)
-    var month = date_month(ts)
-    var day = date_day(ts)
-    var hours = date_hour(ts)
-    var minutes = date_minute(ts)
-    var seconds = date_second(ts)
+    var year = dateyear(ts)
+    var month = datemonth(ts)
+    var day = dateday(ts)
+    var hours = datehour(ts)
+    var minutes = dateminute(ts)
+    var seconds = datesecond(ts)
     
     return sprintf("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hours, minutes, seconds)
 }
@@ -20,15 +20,15 @@ define task log_event(message) {
     var line = "[" + timestamp + "] " + message + "\n"
     
     # Native bindings for file operations
-    file_append(LOG_FILE, line)
+    fileappend($LOG_FILE, line)
     print("Logged: %s", message)
 }
 
 on start {
     print("Initializing async monitoring task...")
     
-    if file_exists(LOG_FILE) {
-        file_delete(LOG_FILE)
+    if fileexists($LOG_FILE) {
+        filedelete($LOG_FILE)
     }
     
     # Tasks are automatically awaited by default.
@@ -49,9 +49,9 @@ on start {
 # On shutdown, show the accumulated logs and clean up
 on shutdown {
     print("\nShutting down. Log contents:")
-    if file_exists(LOG_FILE) {
-        var content = file_read(LOG_FILE)
+    if fileexists($LOG_FILE) {
+        var content = fileread($LOG_FILE)
         print("%s", content)
-        file_delete(LOG_FILE)
+        filedelete($LOG_FILE)
     }
 }
