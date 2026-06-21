@@ -252,3 +252,4 @@ The `omniflux` command line tool provides options to control how your code is co
 * `omniflux <filename>`: Compiles and runs the specified file.
 * `--compile-only` (or `--no-run`): Compiles the code to JavaScript without running the output file.
 * `--strict` (or `--no-llm`): Disables the AI self-healing fallback. If the local compiler encounters syntax it doesn't recognize or if there is a syntax error, the compilation fails immediately and displays the errors. This is ideal for offline development and CI/CD pipelines.
+* `--verbose` (or `-v`): Prints detailed usage statistics when communicating with the AI backend, such as the exact model used, request duration, input tokens, output tokens, and reasoning tokens.
