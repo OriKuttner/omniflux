@@ -19,7 +19,7 @@ Section: devel
 Priority: optional
 Architecture: all
 Depends: perl (>= 5.30.0), libjson-pp-perl
-Maintainer: Ori <ori@omniflux.org>
+Maintainer: Ori Kuttner <ori@helicontech.co.il>
 Description: OmniFlux minimalist backend language compiler and VS Code support.
 EOF
 

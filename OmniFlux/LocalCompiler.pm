@@ -10,7 +10,27 @@ use Term::ANSIColor;
 our @EXPORT = qw(compile_locally);
 
 sub compile_locally {
-    my ($source_code, $src_file, $target_js, $strict) = @_;
+    my ($source_code, $src_file, $target_js, $strict, $ext_funcs_ref) = @_;
+    
+    # Pre-scan for all async tasks
+    my %async_tasks = (
+        db_query => 1,
+        cache_set => 1,
+        cache_get => 1,
+    );
+    if ($ext_funcs_ref) {
+        for my $f (@$ext_funcs_ref) {
+            $async_tasks{$f} = 1;
+        }
+    }
+    for my $line (split(/\n/, $source_code)) {
+        my $clean_line = $line;
+        # Strip comments
+        $clean_line =~ s/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|#(.*)/$1 ? $1 : ""/ge;
+        if ($clean_line =~ /\bdefine\s+task\s+(\w+)/i || $clean_line =~ /\bfn\s+(\w+)/i) {
+            $async_tasks{$1} = 1;
+        }
+    }
     
     my @lines = split(/\n/, $source_code);
     my @output_lines;
@@ -60,10 +80,16 @@ sub compile_locally {
         
         # print and printf are handled via injected helper functions when needed
         
-        # Replace await modifiers for native bindings
-        $line =~ s/\b(?<!await\s)db_query\b/await db_query/g;
-        $line =~ s/\b(?<!await\s)cache_set\b/await cache_set/g;
-        $line =~ s/\b(?<!await\s)cache_get\b/await cache_get/g;
+        # Handle 'background' keyword to make task call non-blocking
+        $line =~ s/\bbackground\s+(\w+)\b/NONBLOCKING_$1/gi;
+        
+        # Replace await modifiers for async tasks (native, local, and external)
+        for my $task (keys %async_tasks) {
+            $line =~ s/\b(?<!await\s)(?<!NONBLOCKING_)(?<!task\s)(?<!fn\s)(?<!global\.)$task\b/await $task/g;
+        }
+        
+        # Clean up NONBLOCKING_ prefix
+        $line =~ s/NONBLOCKING_//g;
         
         # Replace type casting
         $line =~ s/\b(.*?)\s+as\s+int\b/parseInt($1, 10)/g;

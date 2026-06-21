@@ -347,8 +347,15 @@ sub compile_file_to_target {
     # Strip temporary comments (// and /* */) to save tokens and prevent LLM confusion
     $source_code = strip_comments($source_code);
     
+    # Extract external functions from other dependency files to provide context
+    my @ext_funcs;
+    for my $dep (keys %$all_deps) {
+        next if $dep eq abs_path($src_file); # skip self
+        push @ext_funcs, extract_function_names($dep);
+    }
+    
     # Try compiling locally first
-    my $local_ok = compile_locally($source_code, $src_file, $target_js, $strict);
+    my $local_ok = compile_locally($source_code, $src_file, $target_js, $strict, \@ext_funcs);
     if ($local_ok) {
         print "Local compilation successful (0ms, offline).\n";
         return 1;
@@ -373,13 +380,6 @@ sub compile_file_to_target {
         }
         "require(\"$inc_file\")";
     }ge;
-    
-    # 2. Extract external functions from other dependency files to provide context
-    my @ext_funcs;
-    for my $dep (keys %$all_deps) {
-        next if $dep eq abs_path($src_file); # skip self
-        push @ext_funcs, extract_function_names($dep);
-    }
     
     my $context_prompt = "";
     if (@ext_funcs) {

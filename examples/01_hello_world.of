@@ -1,0 +1,23 @@
+# 01_hello_world.of
+# A basic OmniFlux example showing variable usage, scopes, print, and printf.
+
+const APP_NAME = "OmniFlux Demo"
+$visitor_count = 0
+
+define task greet(name) {
+    # Increment global variable
+    $visitor_count = $visitor_count + 1
+    
+    # Print with C-style formatting (adds a trailing newline)
+    print("Hello, %s! You are visitor number %d.", name, $visitor_count)
+}
+
+on start {
+    # Using printf (does NOT add a trailing newline automatically)
+    printf("Initializing %s...", APP_NAME)
+    printf(" Done!\n")
+    
+    greet("Alice")
+    greet("Bob")
+    greet("Charlie")
+}

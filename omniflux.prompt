@@ -21,7 +21,10 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
   - "on start { ... }" -> Transpile to an immediately invoked async function expression (IIFE) so it runs on script startup.
   - "on shutdown { ... }" or "on end { ... }" -> Map to process cleanup handlers (process.on('SIGTERM'), process.on('SIGINT'), and process.on('exit')).
   - "on error (err) { ... }" -> Map to global uncaught error listeners (process.on('uncaughtException') and process.on('unhandledRejection')).
-  - "on request (req, res) { ... }" -> If an Express app is initialized, register this as global middleware (app.use((req, res, next) => { ... })).
+- **Async Task Execution (Auto-Await & Non-Blocking)**:
+  - In OmniFlux, tasks (and async bindings) are automatically awaited when called. The user NEVER writes `await` in OmniFlux code.
+  - You must automatically prepend `await` to all calls to user-defined tasks and native async bindings (`db_query`, `cache_set`, `cache_get`) in the generated JavaScript.
+  - To execute a task call in a non-blocking/asynchronous way (so it runs in the background and returns immediately), prepend the call with the keyword `background` (e.g., `background log_event("message")`). In the generated JavaScript, transpile this to a normal function call *without* prepending `await`.
 
 - **API Server & Routing**:
   - "listen on port X" or "start server on port X" -> Initialize an Express app (require `express`, parse JSON body/urlencoded middleware) and listen on port X.
