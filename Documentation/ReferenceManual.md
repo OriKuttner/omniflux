@@ -37,20 +37,15 @@ var local_counter = 1      // Block-scoped local variable
 ```
 
 ### 1.3 Tasks (Functions)
-Functions in OmniFlux can be declared using two equivalent syntaxes:
-* **Short Syntax:**
-  ```omniflux
-  fn calculate(a, b) {
-      return a + b
-  }
-  ```
-* **Natural Syntax:**
+Tasks (or functions) in OmniFlux are declared using the `define task` syntax. There are two simple variations:
+
+* **Standard task definition:**
   ```omniflux
   define task calculate(a, b) {
       return a + b
   }
   ```
-  Or with parameter descriptions:
+* **Natural English task definition:**
   ```omniflux
   define task calculate with a, b {
       return a + b
@@ -151,7 +146,7 @@ OmniFlux provides several lifecycle hooks to manage application state and events
 
 * **`on start { ... }`**
   Executes immediately when the application starts. This is the main entry point of your program.
-* **`on shutdown { ... }`** (or **`on end { ... }`**)
+* **`on shutdown { ... }`**
   Guaranteed to run when the application terminates gracefully (e.g. when receiving a stop signal or system exit). Use this to close database connections or save final state.
 * **`on error (err) { ... }`**
   A global error hook that catches any unexpected runtime errors or background failures, preventing the application from crashing silently.
@@ -170,19 +165,12 @@ listen on port 3000
 ```
 
 ### 3.2 Route Handlers
-* **Short Route Handler:**
-  ```omniflux
-  GET "/users" (req, res) {
-      respond with status 200 and json { "status": "ok" }
-  }
-  ```
-* **Natural Route Handler:**
-  ```omniflux
-  when receiving GET request to "/profile": {
-      var user_id = id from query
-      respond with status 200 and json { "user": user_id }
-  }
-  ```
+Define route handlers to respond to HTTP requests. The syntax specifies the HTTP method (like `GET` or `POST`), the URL path, and a block containing the response:
+```omniflux
+GET "/users" (req, res) {
+    respond with status 200 and json { "status": "ok" }
+}
+```
 
 ---
 
