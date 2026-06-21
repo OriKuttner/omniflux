@@ -1,0 +1,98 @@
+include "test_inc.of"
+
+/*
+  This is a block comment
+  /*
+    And here is a nested block comment!
+    Everything in here is safely ignored.
+  */
+  The compiler handles this like a charm.
+*/
+
+on start {
+    sayHello();
+    sayHello();
+    
+    # Test print with format string
+    print("User %s has %d points", "Alice", 95)
+    
+    # Test %02d and %.2f formatting
+    print("Padding test: %02d, float test: %.2f", 5, 3.14159)
+    
+    # Test printf (no automatic trailing newline)
+    printf("No newline: %d", 42)
+    printf(" -> Now newline!\n")
+    
+    # Test args array
+    if args.length > 0 {
+        print("Arguments received: %j", args)
+    } else {
+        print("No args received.")
+    }
+    
+    # Test read_char if requested
+    var has_key_flag = false
+    for arg of args {
+        if arg == "--test-read-char" {
+            has_key_flag = true
+        }
+    }
+    if has_key_flag {
+        print("Press any key...")
+        var key = read_char()
+        print("Key pressed was: %s", key)
+    }
+    # Test new file core utilities
+    var tmp_file = "test_temp.txt"
+    if file_exists(tmp_file) {
+        file_delete(tmp_file)
+    }
+    
+    file_write(tmp_file, "First line\n")
+    file_append(tmp_file, "Second line\n")
+    
+    if file_exists(tmp_file) {
+        var content = file_read(tmp_file)
+        print("Temp file content:\n%s", content)
+        
+        var stats = file_stat(tmp_file)
+        print("Temp file size: %d bytes, is_file: %j", stats.size, stats.is_file)
+        
+        file_delete(tmp_file)
+    }
+    
+    # Test directory listing on test folder
+    var files = dir_list("test")
+    print("Files in test directory: %j", files)
+    
+    # Test copy and rename
+    var copy_src = "test_copy_src.txt"
+    var copy_dest = "test_copy_dest.txt"
+    var copy_renamed = "test_copy_renamed.txt"
+    
+    file_write(copy_src, "Copy test content")
+    file_copy(copy_src, copy_dest)
+    file_rename(copy_dest, copy_renamed)
+    
+    if file_exists(copy_renamed) {
+        print("Copy and rename test successful! Content: %s", file_read(copy_renamed))
+        file_delete(copy_src)
+        file_delete(copy_renamed)
+    } else {
+        print("Copy/rename test failed!")
+    }
+    
+    # Test procedural array helpers
+    var fruits = ["apple", "banana"]
+    array_push(fruits, "cherry")
+    
+    print("Array len: %d", len(fruits))
+    print("Array contains banana: %j", array_contains(fruits, "banana"))
+    print("Array joined: %s", array_join(fruits, " - "))
+    
+    var removed = array_pop(fruits)
+    print("Removed item: %s, new len: %d", removed, len(fruits))
+    
+    var sliced = array_slice(fruits, 0, 1)
+    print("Sliced array: %j", sliced)
+}
