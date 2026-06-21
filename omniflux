@@ -14,6 +14,7 @@ use File::Basename;
 use Cwd 'abs_path';
 use File::Path qw(make_path);
 use Digest::MD5;
+use Time::HiRes qw(time);
 
 binmode(STDOUT, ":utf8"); binmode(STDIN,  ":utf8");
 
@@ -39,6 +40,7 @@ rebuild_system_prompt();
 
 my $no_run = 0;
 our $strict = 0;
+our $verbose = 0;
 my $input_file;
 my @run_args;
 
@@ -47,6 +49,8 @@ for my $arg (@ARGV) {
         $no_run = 1;
     } elsif ($arg eq '--strict' || $arg eq '--no-llm') {
         $strict = 1;
+    } elsif ($arg eq '--verbose' || $arg eq '-v') {
+        $verbose = 1;
     } else {
         if (!$input_file) {
             $input_file = $arg;
@@ -80,8 +84,11 @@ if ($input_file) {
             # Normal chat message
             push @messages, { role => "user", content => $user_input };
             print "Thinking...\n";
-            my $response = send_chat_message();
+            my ($response, $verbose_data, $elapsed) = send_chat_message();
             print "\n" . format_markdown($response) . "\n\n";
+            if ($verbose && $verbose_data) {
+                print_verbose_usage($verbose_data, $elapsed);
+            }
             push @messages, { role => "assistant", content => $response };
         }
     }
@@ -212,18 +219,64 @@ sub build_and_run {
     }
 }
 
+sub print_verbose_usage {
+    my ($data, $elapsed) = @_;
+    return if !$verbose;
+    
+    my $usage = $data->{usage} || {};
+    my $prompt_tokens = $usage->{prompt_tokens} // 0;
+    my $completion_tokens = $usage->{completion_tokens} // 0;
+    my $total_tokens = $usage->{total_tokens} // 0;
+    
+    my $reasoning_tokens = '0';
+    if ($usage->{completion_tokens_details} && ref $usage->{completion_tokens_details} eq 'HASH') {
+        $reasoning_tokens = $usage->{completion_tokens_details}{reasoning_tokens} // '0';
+    }
+    
+    # Calculate difference as suggested by the user
+    my $diff_tokens = 0;
+    if ($total_tokens =~ /^\d+$/ && $prompt_tokens =~ /^\d+$/ && $completion_tokens =~ /^\d+$/) {
+        $diff_tokens = $total_tokens - $prompt_tokens - $completion_tokens;
+    }
+    
+    # If the API returned a specific reasoning token count, use it, otherwise fall back to the calculated difference if > 0
+    my $thinking_tokens = $reasoning_tokens;
+    if ($thinking_tokens eq '0' && $diff_tokens > 0) {
+        $thinking_tokens = $diff_tokens;
+    }
+    
+    my $resp_model = $data->{model} // $config->{model};
+    
+    print color('bold yellow') . "\n[Verbose - AI Usage Details]:\n" . color('reset');
+    print "  Model Used:          $resp_model\n";
+    print "  Input (Prompt):      $prompt_tokens tokens\n";
+    print "  Output (Completion): $completion_tokens tokens\n";
+    if ($thinking_tokens ne '0' && $thinking_tokens ne 'unknown') {
+        print "  Thinking (Reasoning):$thinking_tokens tokens\n";
+    }
+    print "  Total Tokens:        $total_tokens tokens\n";
+    if (defined $elapsed) {
+        printf "  Request Duration:    %.2fs\n", $elapsed;
+    }
+    print color('bold yellow') . "----------------------------------------\n\n" . color('reset');
+}
+
 sub send_chat_message {
     my $api_url = "$config->{base_url}/chat/completions";
+    my $t0 = time();
     my $response = $ua->post($api_url, {
         headers => { 'Authorization' => "Bearer $config->{api_key}", 'Content-Type' => 'application/json' },
         content => $json_engine->encode({ model => $config->{model}, messages => \@messages, temperature => $config->{temperature} })
     });
+    my $elapsed = time() - $t0;
     
     if (!$response->{success}) {
-        return "Error: API Request failed: " . ($response->{content} || $response->{status});
+        return wantarray ? ("Error: API Request failed: " . ($response->{content} || $response->{status}), undef, 0) : "Error: API Request failed: " . ($response->{content} || $response->{status});
     }
     my $data = $json_engine->decode($response->{content});
-    return $data->{choices}[0]{message}{content};
+    my $content = $data->{choices}[0]{message}{content};
+    
+    return wantarray ? ($content, $data, $elapsed) : $content;
 }
 
 sub format_markdown {
@@ -355,16 +408,23 @@ sub compile_file_to_target {
     my $compilation_complete = 0;
     while (!$compilation_complete) {
         my $api_url = "$config->{base_url}/chat/completions";
+        my $t0 = time();
         my $response = $ua->post($api_url, {
             headers => { 'Authorization' => "Bearer $config->{api_key}", 'Content-Type' => 'application/json' },
             content => $json_engine->encode({ model => $config->{model}, messages => \@temp_messages, temperature => $config->{temperature} })
         });
+        my $elapsed = time() - $t0;
         
         if (!$response->{success}) {
             print "API Request failed: " . ($response->{content} || $response->{status}) . "\n";
             return 0;
         }
         my $data = $json_engine->decode($response->{content});
+        
+        if ($verbose) {
+            print_verbose_usage($data, $elapsed);
+        }
+        
         my $ai_response = $data->{choices}[0]{message}{content};
         
         if ($ai_response =~ /\[OmniFlux Question\]:/) {
