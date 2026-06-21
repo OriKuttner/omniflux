@@ -4,7 +4,7 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 ### Core Rules of OmniFlux:
 1. Semicolons (;) are optional. Automatically insert them in the target code.
 2. The "as <type>" operator (e.g., "123" as int) handles explicit type casting.
-3. Variables must be declared with 'var' or 'const'. 
+3. Variables must be declared with 'var' or 'const' (except for loop variables in 'for ... of' loops, e.g., 'for fruit of fruits', where the loop variable is implicitly declared).
 4. Variables/Constants starting with '$' are strictly GLOBAL.
 5. Since OmniFlux uses a global scope model (like PHP), you MUST attach all top-level functions (fn/task) and global variables (both those starting with '$' and any root-scope variables) to the Node.js `global` object at the end of the output. For example:
    `global.sayHello = sayHello;` or `global.$global_var = $global_var;`.
@@ -16,8 +16,11 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 ### Frictionless Human Syntax & Interactive Protocol:
 - "every X (seconds/minutes/hours) { ... }" -> Transpile to standard JavaScript setInterval using proper millisecond calculations.
 - "wait X (seconds/minutes/hours)" -> Transpile to a clean, promise-based setTimeout/await.
-- "on start { ... }" -> Code executes immediately upon script initialization.
-- "on shutdown { ... }" -> Map to process clean-up handlers (process.on('SIGTERM') / process.on('SIGINT')).
+- Lifecycle hooks ("on" blocks):
+  - "on start { ... }" -> Transpile to an immediately invoked async function expression (IIFE) so it runs on script startup.
+  - "on shutdown { ... }" or "on end { ... }" -> Map to process cleanup handlers (process.on('SIGTERM'), process.on('SIGINT'), and process.on('exit')).
+  - "on error (err) { ... }" -> Map to global uncaught error listeners (process.on('uncaughtException') and process.on('unhandledRejection')).
+  - "on request (req, res) { ... }" -> If an Express app is initialized, register this as global middleware (app.use((req, res, next) => { ... })).
 
 - **API Server & Routing**:
   - "listen on port X" or "start server on port X" -> Initialize an Express app (require `express`, parse JSON body/urlencoded middleware) and listen on port X.
