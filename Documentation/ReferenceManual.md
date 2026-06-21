@@ -52,6 +52,15 @@ Tasks (or functions) in OmniFlux are declared using the `define task` syntax. Th
   }
   ```
 
+* **Async Execution & Non-Blocking (`background`):**
+  By default, all tasks and async bindings in OmniFlux are automatically awaited when called—you never write `await` in OmniFlux.
+  
+  If you want a task to execute in a non-blocking/asynchronous way (so it runs in the background and returns immediately), prepend the call with the keyword `background`:
+  ```omniflux
+  # Runs in the background (non-blocking)
+  background log_event("Service started")
+  ```
+
 ### 1.4 Printing to the Screen 📺
 OmniFlux provides built-in options for outputting text to the screen:
 
@@ -242,6 +251,14 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `array_contains(arr, item)`: Returns `true` if the item is present in the array, `false` otherwise.
   * `array_join(arr, sep)`: Joins array elements into a string separated by `sep`.
   * `array_slice(arr, start, end)`: Returns a slice of the array from `start` (inclusive) to `end` (exclusive).
+* **Date & Time:** Procedural time and date components:
+  * `time()`: Returns the current Unix timestamp in seconds.
+  * `date_year(ts)`: Returns the year of the given Unix timestamp `ts` (or the current year if `ts` is not provided).
+  * `date_month(ts)`: Returns the month (1-12) of the given Unix timestamp `ts`.
+  * `date_day(ts)`: Returns the day of the month (1-31) of the given Unix timestamp `ts`.
+  * `date_hour(ts)`: Returns the hour (0-23) of the given Unix timestamp `ts`.
+  * `date_minute(ts)`: Returns the minute (0-59) of the given Unix timestamp `ts`.
+  * `date_second(ts)`: Returns the second (0-59) of the given Unix timestamp `ts`.
 
 ---
 

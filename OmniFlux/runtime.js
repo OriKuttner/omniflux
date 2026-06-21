@@ -258,6 +258,41 @@ function array_slice(arr, start, end) {
     return [];
 }
 
+// --- Date & Time ---
+function time() {
+    return Math.floor(Date.now() / 1000);
+}
+
+function date_year(ts) {
+    const d = ts ? new Date(ts * 1000) : new Date();
+    return d.getFullYear();
+}
+
+function date_month(ts) {
+    const d = ts ? new Date(ts * 1000) : new Date();
+    return d.getMonth() + 1;
+}
+
+function date_day(ts) {
+    const d = ts ? new Date(ts * 1000) : new Date();
+    return d.getDate();
+}
+
+function date_hour(ts) {
+    const d = ts ? new Date(ts * 1000) : new Date();
+    return d.getHours();
+}
+
+function date_minute(ts) {
+    const d = ts ? new Date(ts * 1000) : new Date();
+    return d.getMinutes();
+}
+
+function date_second(ts) {
+    const d = ts ? new Date(ts * 1000) : new Date();
+    return d.getSeconds();
+}
+
 // Bind helper functions to global scope
 global.sprintf = sprintf;
 global.print = print;
@@ -282,3 +317,10 @@ global.array_pop = array_pop;
 global.array_contains = array_contains;
 global.array_join = array_join;
 global.array_slice = array_slice;
+global.time = time;
+global.date_year = date_year;
+global.date_month = date_month;
+global.date_day = date_day;
+global.date_hour = date_hour;
+global.date_minute = date_minute;
+global.date_second = date_second;

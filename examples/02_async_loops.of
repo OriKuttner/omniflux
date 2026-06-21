@@ -1,0 +1,57 @@
+# 02_async_loops.of
+# Demonstrating non-blocking async loops, delays, and native file operations.
+
+const LOG_FILE = "activity.log"
+
+define task get_timestamp() {
+    var ts = time()
+    var year = date_year(ts)
+    var month = date_month(ts)
+    var day = date_day(ts)
+    var hours = date_hour(ts)
+    var minutes = date_minute(ts)
+    var seconds = date_second(ts)
+    
+    return sprintf("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hours, minutes, seconds)
+}
+
+define task log_event(message) {
+    var timestamp = get_timestamp()
+    var line = "[" + timestamp + "] " + message + "\n"
+    
+    # Native bindings for file operations
+    file_append(LOG_FILE, line)
+    print("Logged: %s", message)
+}
+
+on start {
+    print("Initializing async monitoring task...")
+    
+    if file_exists(LOG_FILE) {
+        file_delete(LOG_FILE)
+    }
+    
+    # Tasks are automatically awaited by default.
+    # To run a task in the background (non-blocking), use the 'background' keyword.
+    background log_event("Service started")
+    
+    # Wait 2 seconds asynchronously before starting the loop
+    wait 2 seconds
+    
+    log_event("Monitoring active")
+    
+    # Trigger a task every 3 seconds
+    every 3 seconds {
+        log_event("Heartbeat ping")
+    }
+}
+
+# On shutdown, show the accumulated logs and clean up
+on shutdown {
+    print("\nShutting down. Log contents:")
+    if file_exists(LOG_FILE) {
+        var content = file_read(LOG_FILE)
+        print("%s", content)
+        file_delete(LOG_FILE)
+    }
+}
