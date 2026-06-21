@@ -6,6 +6,7 @@ use lib ('.', '/usr/local/share/omniflux/lib'); # Allows Perl to find the local 
 use OmniFlux::Config;
 use OmniFlux::Wizard;
 use OmniFlux::Preprocessor;
+use OmniFlux::LocalCompiler;
 use HTTP::Tiny;
 use JSON::PP;
 use Term::ANSIColor;
@@ -37,19 +38,27 @@ my @messages;
 rebuild_system_prompt();
 
 my $no_run = 0;
+our $strict = 0;
 my $input_file;
+my @run_args;
 
 for my $arg (@ARGV) {
     if ($arg eq '--no-run' || $arg eq '--compile-only') {
         $no_run = 1;
+    } elsif ($arg eq '--strict' || $arg eq '--no-llm') {
+        $strict = 1;
     } else {
-        $input_file = $arg if !$input_file; # First non-flag argument
+        if (!$input_file) {
+            $input_file = $arg;
+        } else {
+            push @run_args, $arg;
+        }
     }
 }
 
 if ($input_file) {
     # Run single file with the build and execution pipeline
-    build_and_run($input_file, $no_run);
+    build_and_run($input_file, $no_run, \@run_args);
 } else {
     # Interactive chat interface
     print "=== OmniFlux Interactive Compiler ===\n";
@@ -97,7 +106,8 @@ sub rebuild_system_prompt {
 }
 
 sub build_and_run {
-    my ($file, $no_run) = @_;
+    my ($file, $no_run, $run_args_ref) = @_;
+    my @run_args = $run_args_ref ? @$run_args_ref : ();
     
     my $abs_input = abs_path($file);
     if (!$abs_input || ! -e $abs_input) {
@@ -131,7 +141,7 @@ sub build_and_run {
         
         my $target_js = "$cache_dir/" . get_js_path($rel_path);
         
-        if (!$cached_hash || $cached_hash eq "" || $current_hash ne $cached_hash || ! -e $target_js) {
+        if (!$cached_hash || $cached_hash eq "" || $current_hash ne $cached_hash || ! -e $target_js || $strict) {
             $dirty_files{$dep_path} = $current_hash;
             $needs_rebuild = 1;
         }
@@ -156,6 +166,10 @@ sub build_and_run {
             
             if (exists $dirty_files{$dep_path}) {
                 print "Compiling: $rel_path -> $target_js\n";
+                # Delete target JS and cache entry first to ensure a clean build
+                unlink($target_js) if -e $target_js;
+                delete $hashes->{$rel_path};
+                
                 $success = compile_file_to_target($dep_path, $target_js, \%deps);
                 if (!$success) {
                     print "Compilation failed on $rel_path\n";
@@ -176,7 +190,7 @@ sub build_and_run {
             my $rel_main_js = "$cache_dir/" . get_js_path(get_relative_path($abs_input));
             print "Bundling with esbuild: $rel_main_js -> $output_file...\n";
             
-            my $esbuild_cmd = "npx -y esbuild \"$rel_main_js\" --bundle --platform=node --outfile=\"$output_file\"";
+            my $esbuild_cmd = "npx -y esbuild \"$rel_main_js\" --bundle --platform=node --external:mysql2/promise --external:redis --outfile=\"$output_file\"";
             my $res = system($esbuild_cmd);
             if ($res != 0) {
                 print "Error: Bundling failed.\n";
@@ -190,9 +204,10 @@ sub build_and_run {
     }
     
     if ($success && !$no_run) {
-        print "Running: node $output_file\n";
+        my $args_str = @run_args ? " " . join(" ", @run_args) : "";
+        print "Running: node $output_file$args_str\n";
         print "----------------------------------------\n";
-        system("node", $output_file);
+        system("node", $output_file, @run_args);
         print "----------------------------------------\n";
     }
 }
@@ -278,6 +293,20 @@ sub compile_file_to_target {
     
     # Strip temporary comments (// and /* */) to save tokens and prevent LLM confusion
     $source_code = strip_comments($source_code);
+    
+    # Try compiling locally first
+    my $local_ok = compile_locally($source_code, $src_file, $target_js, $strict);
+    if ($local_ok) {
+        print "Local compilation successful (0ms, offline).\n";
+        return 1;
+    }
+    
+    if ($strict) {
+        print color('bold red') . "Strict Mode Error: Local compilation failed on $src_file. AI compilation is disabled.\n" . color('reset');
+        return 0;
+    }
+    
+    print "Local compilation failed. Falling back to AI Compiler...\n";
     
     # 1. Translate include statements to require
     $source_code =~ s{\binclude\s+["']?([^"'\s;]+)["']?;?}{

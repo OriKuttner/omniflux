@@ -52,6 +52,51 @@ Tasks (or functions) in OmniFlux are declared using the `define task` syntax. Th
   }
   ```
 
+### 1.4 Printing to the Screen 📺
+OmniFlux provides built-in options for outputting text to the screen:
+
+* **`print(...)`**: Prints the given message to the console, automatically appending a trailing newline.
+  ```omniflux
+  print("Hello, World!")
+  print("User score is " + score)
+  ```
+  It also natively supports format strings:
+  ```omniflux
+  print("User %s has score %d", username, score)
+  ```
+* **`printf(format, ...args)`**: Similar to C's `printf`, this function formats a string and prints it to the console **without** automatically appending a trailing newline.
+  ```omniflux
+  printf("Processing: %d%% completed\r", percent)
+  ```
+
+Supported format specifiers include:
+* `%s`: String (supports precision truncation, e.g., `%.3s`)
+* `%d`, `%i`: Integer (supports padding width and leading zeros, e.g., `%02d`, `%5d`)
+* `%f`: Float (supports width and decimal precision, e.g., `%.2f`, `%06.2f`)
+* `%j`: JSON serialization of objects
+* `%%`: A single percent sign (`%`)
+
+### 1.5 Input & CLI Arguments 📥
+OmniFlux provides simple tools to read input and arguments when building command line interfaces:
+
+* **`input(prompt)`**: Prints an optional prompt message and blocks execution synchronously, waiting for user input in the terminal. When the user presses Enter, it returns the input as a string (with the trailing newline stripped).
+  ```omniflux
+  var username = input("Enter username: ")
+  print("Hello, %s!", username)
+  ```
+* **`read_char()`**: Synchronously reads a single keypress from standard input without waiting for Enter. Returns the captured character as a string. If the user presses Ctrl+C, it terminates the script immediately with a standard SIGINT code (130).
+  ```omniflux
+  print("Press any key to continue...")
+  var key = read_char()
+  print("You pressed: %s", key)
+  ```
+* **`args`**: A globally available array that contains all CLI arguments passed to the script (excluding the compiler/node command and the script file name itself).
+  ```omniflux
+  if args.length > 0 {
+      print("First CLI argument: %s", args[0])
+  }
+  ```
+
 ---
 
 ## 2. Control Flow & Conditionals
@@ -180,4 +225,30 @@ OmniFlux provides native bindings to common backend services, making setups extr
 
 * **Databases:** `db_query(query, params)` (uses secure, prepared MySQL statements under the hood).
 * **Caching:** `cache_set(key, value, ttl)` and `cache_get(key)` (backed by Redis).
-* **File I/O:** `file_read(path)` and `file_write(path, data)`.
+* **File I/O:** Core file system operations:
+  * `file_read(path)`: Reads file contents as a UTF-8 string.
+  * `file_write(path, data)`: Writes data (string or object) to a file.
+  * `file_exists(path)`: Returns `true` if the file or directory exists, `false` otherwise.
+  * `file_append(path, data)`: Appends data (string or object) to the end of a file.
+  * `file_delete(path)`: Deletes the specified file.
+  * `file_copy(src, dest)`: Copies a file from `src` to `dest`.
+  * `file_rename(src, dest)`: Renames or moves a file from `src` to `dest`.
+  * `dir_list(path)`: Lists the contents of a directory (returns an array of strings).
+  * `file_stat(path)`: Returns an object containing file metadata: `{ size, is_directory, is_file, created_at, modified_at }`.
+* **Arrays & Lists:** Procedural array and string operations:
+  * `len(val)`: Returns the length of an array or string.
+  * `array_push(arr, item)`: Appends an item to the end of the array.
+  * `array_pop(arr)`: Removes and returns the last item of the array.
+  * `array_contains(arr, item)`: Returns `true` if the item is present in the array, `false` otherwise.
+  * `array_join(arr, sep)`: Joins array elements into a string separated by `sep`.
+  * `array_slice(arr, start, end)`: Returns a slice of the array from `start` (inclusive) to `end` (exclusive).
+
+---
+
+## 5. Compiler CLI Options 🛠️
+
+The `omniflux` command line tool provides options to control how your code is compiled and executed:
+
+* `omniflux <filename>`: Compiles and runs the specified file.
+* `--compile-only` (or `--no-run`): Compiles the code to JavaScript without running the output file.
+* `--strict` (or `--no-llm`): Disables the AI self-healing fallback. If the local compiler encounters syntax it doesn't recognize or if there is a syntax error, the compilation fails immediately and displays the errors. This is ideal for offline development and CI/CD pipelines.
