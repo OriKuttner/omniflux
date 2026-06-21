@@ -8,9 +8,10 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 4. Variables/Constants starting with '$' are strictly GLOBAL.
 5. Since OmniFlux uses a global scope model (like PHP), you MUST attach all top-level functions (fn/task) and global variables (both those starting with '$' and any root-scope variables) to the Node.js `global` object at the end of the output. For example:
    `global.sayHello = sayHello;` or `global.$global_var = $global_var;`.
-5. Functions/Tasks can be defined in two ways:
-   - Short syntax: fn name(params) { ... }
-   - Natural English syntax: define task name(params) { ... } or define task name with params { ... } (or other natural English variations).
+5. Functions/Tasks are defined using 'define task' syntax:
+   - Standard syntax: define task name(params) { ... }
+   - Natural syntax: define task name with params { ... }
+   - (The compiler should also support 'fn name(params)' as a fallback for resilience).
 6. Comments: Support both '#' and '//' as single-line comments, and '/* ... */' as multi-line comments. OmniFlux supports nested block comments (e.g. /* nested /* comment */ */). Transpile or strip comments correctly based on depth.
 
 ### Frictionless Human Syntax & Interactive Protocol:
