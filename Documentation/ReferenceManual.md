@@ -59,12 +59,72 @@ Functions in OmniFlux can be declared using two equivalent syntaxes:
 
 ---
 
-## 2. Control Flow & Asynchronous Loops
+## 2. Control Flow & Conditionals
 
-OmniFlux simplifies asynchronous logic and background execution into simple, clean statements.
+OmniFlux provides simple structures for making decisions and handling execution flow.
 
-### 2.1 Delayed Execution (`wait`)
-Allows delaying execution without blocking the main event loop.
+### 2.1 Conditionals (`if` and `switch`)
+
+#### Making Decisions with `if` / `else`
+Use `if`, `else if`, and `else` to execute code based on conditions. Parentheses around conditions are optional.
+```omniflux
+var score = 85
+
+if score >= 90 {
+    print("Excellent!")
+} else if score >= 70 {
+    print("Good job!")
+} else {
+    print("Keep trying!")
+}
+```
+
+#### Multi-way Branching with `switch`
+When you need to compare a variable against multiple values, a `switch` statement is cleaner than multiple `if` conditions.
+```omniflux
+var role = "admin"
+
+switch role {
+    case "admin":
+        print("Welcome, Administrator!")
+        break
+    case "editor":
+        print("Welcome, Editor!")
+        break
+    default:
+        print("Welcome, User!")
+}
+```
+
+---
+
+### 2.2 Loops
+
+Loops are used to execute a block of code multiple times. OmniFlux provides two simple loop constructs:
+
+#### The `for` Loop (Iterating over Lists)
+Used to step through items in an array or list. The loop variable (like `fruit` in the example below) is created automatically for you without needing the `var` keyword.
+```omniflux
+var fruits = ["apple", "banana", "cherry"]
+
+for fruit of fruits {
+    print("I like " + fruit)
+}
+```
+
+#### The `while` Loop (Iterating with Conditions)
+Repeats a block of code as long as a specific condition remains true. This is also perfect for counter-based loops.
+```omniflux
+var count = 1
+
+while count <= 5 {
+    print("Count is " + count)
+    count = count + 1
+}
+```
+
+### 2.3 Delayed Execution (`wait`)
+Allows delaying execution without blocking.
 ```omniflux
 on start {
     print("Initializing...")
@@ -73,7 +133,7 @@ on start {
 }
 ```
 
-### 2.2 Periodic Execution (`every`)
+### 2.4 Periodic Execution (`every`)
 Runs a code block periodically.
 ```omniflux
 every 5 minutes {
@@ -81,9 +141,22 @@ every 5 minutes {
 }
 ```
 
-### 2.3 Lifecycle Hooks
-* `on start { ... }`: Executes immediately when the script runs.
-* `on shutdown { ... }`: Executes when the script receives a shutdown signal (e.g., SIGTERM or SIGINT).
+### 2.5 Lifecycle Hooks & Execution Order
+
+> [!WARNING]
+> **Root-Level Execution & Order of Operations:**
+> Any code written at the root level (outside of any function or `on` block) executes immediately when the file is loaded. However, if root-level code contains asynchronous operations (like `wait`), the order of operations cannot be guaranteed. Subsequent synchronous lines will continue executing while the asynchronous task runs in the background. Always place your main execution logic inside `on start` or functions to ensure predictable, sequential execution.
+
+OmniFlux provides several lifecycle hooks to manage application state and events cleanly:
+
+* **`on start { ... }`**
+  Executes immediately when the application starts. This is the main entry point of your program.
+* **`on shutdown { ... }`** (or **`on end { ... }`**)
+  Guaranteed to run when the application terminates gracefully (e.g. when receiving a stop signal or system exit). Use this to close database connections or save final state.
+* **`on error (err) { ... }`**
+  A global error hook that catches any unexpected runtime errors or background failures, preventing the application from crashing silently.
+* **`on request (req, res) { ... }`**
+  A global event hook that runs on **every single incoming HTTP request**, regardless of the URL path. Unlike specific route handlers (which only run for a specific path like `/users`), `on request` is perfect for global tasks like logging requests, checking user authentication, or adding security headers before a request reaches its specific route.
 
 ---
 
