@@ -220,7 +220,26 @@ OmniFlux provides several lifecycle hooks to manage application state and events
 * **`on error (err) { ... }`**
   A global error hook that catches any unexpected runtime errors or background failures, preventing the application from crashing silently.
 * **`on request (req, res) { ... }`**
-  A global event hook that runs on **every single incoming HTTP request**, regardless of the URL path. Unlike specific route handlers (which only run for a specific path like `/users`), `on request` is perfect for global tasks like logging requests, checking user authentication, or adding security headers before a request reaches its specific route.
+  A global middleware event hook that runs on **every incoming HTTP request**, prior to specific route matching. 
+  
+  ##### Parameters & Structure:
+  * **`req` (Request Object):** An object containing the incoming HTTP request details:
+    * `req.method`: The HTTP verb (e.g., `"GET"`, `"POST"`).
+    * `req.path` / `req.url`: The request URL path (e.g., `"/dashboard"`).
+    * `req.query`: A JSON object of query parameters (e.g., `req.query.id`).
+    * `req.body`: A JSON object containing parsed POST/PUT request body parameters.
+    * `req.headers`: An object containing the request headers (e.g., `req.headers["user-agent"]`).
+  * **`res` (Response Object):** An object used to manipulate and send the HTTP response:
+    * `res.status(code)`: Sets the HTTP status code (e.g., `res.status(403)`).
+    * `res.send(html_or_text)`: Sends raw HTML or plain text content.
+    * `res.json(object)`: Serializes and sends a JSON object.
+    * `res.redirect(url)`: Redirects the client to another URL.
+    * `res.setHeader(name, value)`: Sets an HTTP response header.
+
+  ##### Execution Lifecycle:
+  If `on request` sends a response to the client (e.g., calling `res.send(...)` or `respond with ...`), the request execution stops immediately, and the matched route handler (like `GET "/users"`) **will not be executed**. If no response is sent, the server automatically passes control to the matching route handler (`next()`).
+  
+  This hook is ideal for global tasks like request logging, CORS headers, API authentication checks, or rate limiting.
 
 ---
 
