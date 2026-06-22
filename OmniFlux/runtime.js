@@ -334,6 +334,140 @@ function datesecond(ts) {
     return d.getSeconds();
 }
 
+// --- Template Engine (Angular-style) ---
+function template(source, context = {}) {
+    if (typeof source !== 'string') return '';
+    
+    let html = source;
+    try {
+        // 1. Auto-detect if source is a file path that exists
+        if (fs.existsSync(source)) {
+            html = fs.readFileSync(source, 'utf8');
+        }
+        
+        // 2. Resolve includes recursively
+        let includeDepth = 0;
+        const maxIncludeDepth = 10;
+        while (/@include\s*\(\s*["'](.*?)["']\s*\)/.test(html) && includeDepth < maxIncludeDepth) {
+            html = html.replace(/@include\s*\(\s*["'](.*?)["']\s*\)/g, (match, filepath) => {
+                if (!fs.existsSync(filepath)) {
+                    throw new Error(`Include file not found: '${filepath}'`);
+                }
+                return fs.readFileSync(filepath, 'utf8');
+            });
+            includeDepth++;
+        }
+        
+        // Clean up whitespace between @} and @else / @else if to avoid JS syntax errors
+        html = html.replace(/@\}\s*(?=@else)/g, '@}');
+        
+        // Inject AJAX Form/Link SPA client script if it's a full page
+        if (html.includes('</body>')) {
+            const clientScript = `
+<script>
+function _of_exec_scripts(container) {
+    const scripts = container.querySelectorAll('script');
+    for (let oldScript of scripts) {
+        const newScript = document.createElement('script');
+        for (let attr of oldScript.attributes) {
+            newScript.setAttribute(attr.name, attr.value);
+        }
+        newScript.textContent = oldScript.textContent;
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    }
+}
+
+document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    const targetSelector = form.getAttribute('of-target');
+    if (!targetSelector) return;
+    
+    e.preventDefault();
+    try {
+        const response = await fetch(form.action || window.location.href, {
+            method: form.method || 'POST',
+            body: new URLSearchParams(new FormData(form))
+        });
+        const htmlResult = await response.text();
+        const targetEl = document.querySelector(targetSelector);
+        if (targetEl) {
+            targetEl.innerHTML = htmlResult;
+            _of_exec_scripts(targetEl);
+        }
+    } catch (err) {
+        console.error('OmniFlux Form Submission Error:', err);
+    }
+});
+
+document.addEventListener('click', async (e) => {
+    const link = e.target.closest('a');
+    if (!link) return;
+    const targetSelector = link.getAttribute('of-target');
+    if (!targetSelector) return;
+    
+    e.preventDefault();
+    try {
+        const response = await fetch(link.href);
+        const htmlResult = await response.text();
+        const targetEl = document.querySelector(targetSelector);
+        if (targetEl) {
+            targetEl.innerHTML = htmlResult;
+            _of_exec_scripts(targetEl);
+        }
+    } catch (err) {
+        console.error('OmniFlux Link Navigation Error:', err);
+    }
+});
+</script>
+`;
+            html = html.replace('</body>', clientScript + '</body>');
+        }
+        
+        // 3. Regex to split HTML by control tags
+        const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
+        const parts = html.split(tokenRegex);
+        
+        let jsCode = "let _out = '';\n";
+        
+        for (let part of parts) {
+            if (!part) continue;
+            
+            if (part.startsWith('@if')) {
+                const cond = part.match(/@if\s*\((.*?)\)\s*\{/)[1];
+                jsCode += `if (${cond}) {\n`;
+            } else if (part.startsWith('@else if')) {
+                const cond = part.match(/@else\s*if\s*\((.*?)\)\s*\{/)[1];
+                jsCode += `} else if (${cond}) {\n`;
+            } else if (part.startsWith('@else')) {
+                jsCode += `} else {\n`;
+            } else if (part.startsWith('@for')) {
+                const loopMatch = part.match(/@for\s*\(\s*(?:let|var)?\s*(\w+)\s+of\s+(.*?)\)\s*\{/);
+                if (loopMatch) {
+                    const item = loopMatch[1];
+                    const list = loopMatch[2];
+                    jsCode += `for (let ${item} of ${list}) {\n`;
+                }
+            } else if (part === '@}') {
+                jsCode += `}\n`;
+            } else {
+                // Escape backticks, backslashes, and $ symbols in template literals
+                let text = part.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$');
+                // Replace {{ expression }} with ${ expression }
+                text = text.replace(/\{\{\s*([\s\S]+?)\s*\}\}/g, '${$1}');
+                jsCode += `_out += \`${text}\`;\n`;
+            }
+        }
+        
+        jsCode += "return _out;";
+        
+        const keys = ['context', ...Object.keys(context)];
+        const values = [context, ...Object.values(context)];
+        return new Function(...keys, jsCode)(...values);
+    } catch (e) {
+        return `<!-- Template Error: ${e.message} -->`;
+    }
+}
+
 // Bind helper functions to global scope
 global.sprintf = sprintf;
 global.print = print;
@@ -420,3 +554,5 @@ global.date_minute = dateminute;
 
 global.datesecond = datesecond;
 global.date_second = datesecond;
+
+global.template = template;
