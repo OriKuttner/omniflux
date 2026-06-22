@@ -1,0 +1,85 @@
+# 05_template_engine.of
+# Demonstrating the built-in compiled HTML template engine.
+# This example uses raw template strings directly inside the code.
+
+$site_name = "OmniFlux Documentation"
+
+on start {
+    print("=== OmniFlux HTML Template Engine Demo ===")
+    
+    # 1. Define template using concatenation to ensure absolute compatibility with local compiler
+    var page_template = "<!DOCTYPE html><html><head><title>{{ page_title }}</title></head>"
+    page_template = page_template + "<body style=\"font-family: Arial, sans-serif; padding: 20px; background-color: #fafafa;\">"
+    page_template = page_template + "<header style=\"background: #0284c7; color: white; padding: 15px; border-radius: 4px;\">"
+    page_template = page_template + "<h1>Welcome to {{ site_name }}</h1></header>"
+    page_template = page_template + "<main style=\"margin-top: 20px; background: white; padding: 20px; border-radius: 4px; border: 1px solid #e2e8f0;\">"
+    page_template = page_template + "<h2>Hello, {{ user.name }}!</h2>"
+    
+    # Conditional block
+    page_template = page_template + "@if (user.is_admin) {"
+    page_template = page_template + "<p style=\"color: #0284c7; font-weight: bold;\">System Administrator Console Active.</p>"
+    page_template = page_template + "@else {"
+    page_template = page_template + "<p style=\"color: #64748b;\">Standard developer access.</p>"
+    page_template = page_template + "@}"
+    
+    page_template = page_template + "<h3>Available Modules:</h3>"
+    
+    # Looping and conditional block
+    page_template = page_template + "@if (len(modules) > 0) {"
+    page_template = page_template + "<ul>"
+    page_template = page_template + "@for (module of modules) {"
+    page_template = page_template + "<li><strong>{{ module.name }}</strong>: {{ module.desc }}</li>"
+    page_template = page_template + "@}"
+    page_template = page_template + "</ul>"
+    page_template = page_template + "@else {"
+    page_template = page_template + "<p>No modules loaded.</p>"
+    page_template = page_template + "@}"
+    
+    # AJAX form example using of-target
+    page_template = page_template + "<div id=\"newsContainer\" style=\"margin-top: 20px; padding: 15px; border-top: 1px solid #e2e8f0;\">"
+    page_template = page_template + "<h3>Newsletter Subscription</h3>"
+    page_template = page_template + "<form action=\"/subscribe\" method=\"POST\" of-target=\"#newsContainer\">"
+    page_template = page_template + "<input type=\"email\" name=\"email\" required>"
+    page_template = page_template + "<button type=\"submit\">Subscribe</button>"
+    page_template = page_template + "</form>"
+    page_template = page_template + "</div>"
+    
+    page_template = page_template + "</main>"
+    page_template = page_template + "<footer style=\"margin-top: 20px; text-align: center; color: #64748b; font-size: 12px;\">"
+    page_template = page_template + "&copy; {{ dateyear(time()) }} {{ site_name }}. Built with OmniFlux."
+    page_template = page_template + "</footer></body></html>"
+
+    # 2. Context for an Admin user with modules
+    var admin_context = {
+        page_title: "Admin Dashboard",
+        user: {
+            name: "Alice",
+            is_admin: true
+        },
+        modules: [
+            { name: "db" + "query", desc: "Native MySQL prepared statement queries" },
+            { name: "cache" + "set", desc: "High performance Redis caching" },
+            { name: "template", desc: "Angular-style HTML template compilation" }
+        ]
+    }
+    
+    # 3. Context for a standard member with no modules
+    var guest_context = {
+        page_title: "Guest Portal",
+        user: {
+            name: "Bob",
+            is_admin: false
+        },
+        modules: []
+    }
+    
+    # 4. Render and print the Admin view
+    print("\n--- Rendering Admin View ---")
+    var admin_html = template(page_template, admin_context)
+    print("%s", admin_html)
+    
+    # 5. Render and print the Guest view
+    print("\n--- Rendering Guest View ---")
+    var guest_html = template(page_template, guest_context)
+    print("%s", guest_html)
+}
