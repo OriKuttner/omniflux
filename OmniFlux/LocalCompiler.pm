@@ -111,10 +111,11 @@ sub compile_locally {
         }
         
         # Match define task with parameters (using 'with')
-        if ($line =~ /^\s*define\s+task\s+(\w+)\s+with\s+([\w\s,]+)\s*\{/i) {
+        if ($line =~ /^\s*define\s+task\s+(\w+)\s+with\s+([^\{]+)\s*\{/i) {
             my $name = $1;
             my $params_str = $2;
-            my @params = split(/\s*,\s*|\s+/, $params_str);
+            $params_str =~ s/^\s+|\s+$//g;
+            my @params = split(/\s*,\s*/, $params_str);
             my $params_joined = join(', ', @params);
             push @tasks, $name;
             $push_out->("async function $name($params_joined) {", $orig_num);

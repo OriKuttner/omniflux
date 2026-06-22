@@ -12,7 +12,9 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
    - Standard syntax: define task name(params) { ... }
    - Natural syntax: define task name with params { ... }
    - (The compiler should also support 'fn name(params)' as a fallback for resilience).
+   - Tasks support default parameter values in all syntaxes (e.g. `define task greet(name = "Guest")` or `define task greet with name = "Guest"`).
 6. Comments: Support both '#' and '//' as single-line comments, and '/* ... */' as multi-line comments. OmniFlux supports nested block comments (e.g. /* nested /* comment */ */). Transpile or strip comments correctly based on depth.
+7. Strictly Procedural: OmniFlux is a strictly procedural language. Never use object-oriented methods or properties (e.g., do NOT use `str.split()`, `arr.length`, or `str.replace()`). All operations must be written as procedural function calls using native bindings (e.g., use `strsplit(str, sep)` instead of `str.split(sep)`, and `len(arr)` instead of `arr.length`).
 
 ### Frictionless Human Syntax & Interactive Protocol:
 - "every X (seconds/minutes/hours) { ... }" -> Transpile to standard JavaScript setInterval using proper millisecond calculations.
@@ -68,6 +70,8 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 - readchar() (also read_char) -> Synchronous single keypress reader from terminal (returns single character string immediately without waiting for Enter).
 - args -> Global array containing the command line arguments passed to the script (process.argv.slice(2)).
 - len(val) -> Returns the length of an array or string.
+- strsplit(str, sep) (also str_split) -> Splits a string into an array of substrings using the separator.
+- match(str, regex) -> Performs a regular expression match. Returns true if matched (with no capturing groups), false if no match, or an array of captured groups (excluding the full match, so index 0 is the first captured group) if capturing groups exist in the regex and it matches. The regex parameter supports RegExp objects or strings. Strings can use standard delimiters like / (e.g. "/\\d+/i") or alternative delimiters like ~ (e.g. "~\\d+~i") or #.
 - arraypush(arr, item) (also array_push) -> Pushes an item to the end of an array.
 - arraypop(arr) (also array_pop) -> Removes and returns the last item from an array.
 - arraycontains(arr, item) (also array_contains) -> Returns true if array contains item, false otherwise.

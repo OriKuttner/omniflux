@@ -52,6 +52,21 @@ Tasks (or functions) in OmniFlux are declared using the `define task` syntax. Th
   }
   ```
 
+* **Default Parameter Values:**
+  OmniFlux supports default values for parameters in both syntaxes. If an argument is omitted when calling the task, the default value is used:
+  
+  ```omniflux
+  # Standard syntax with default values
+  define task greet(name = "Guest", greeting = "Hello") {
+      print(greeting + ", " + name)
+  }
+
+  # Natural English syntax with default values
+  define task create_user with username, role = "user", active = true {
+      print("User: " + username + " (Role: " + role + ", Active: " + active + ")")
+  }
+  ```
+
 * **Async Execution & Non-Blocking (`background`):**
   By default, all tasks and async bindings in OmniFlux are automatically awaited when called—you never write `await` in OmniFlux.
   
@@ -246,6 +261,8 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `filestat(path)`: Returns an object containing file metadata: `{ size, isdirectory, isfile, createdat, modifiedat }`.
 * **Arrays & Lists:** Procedural array and string operations:
   * `len(val)`: Returns the length of an array or string.
+  * `strsplit(str, sep)`: Splits a string into an array of substrings using the specified separator.
+  * `match(str, regex)`: Performs a regular expression match on `str`. Returns `true` if there is a match (without capturing groups), `false` if there is no match, or an array of captured groups (excluding the full match, so index 0 is the first captured group) if capturing groups exist in the `regex` and the match succeeds. The `regex` parameter supports `RegExp` objects or string-based patterns. When using strings, you can use standard delimiters like `/` (e.g. `"/\\d+/i"`) or alternate delimiters like `~` (e.g. `"~\\d+~i"`) or `#`.
   * `arraypush(arr, item)`: Appends an item to the end of the array.
   * `arraypop(arr)`: Removes and returns the last item of the array.
   * `arraycontains(arr, item)`: Returns `true` if the item is present in the array, `false` otherwise.

@@ -65,6 +65,10 @@ if ($input_file) {
     build_and_run($input_file, $no_run, \@run_args);
 } else {
     # Interactive chat interface
+    if (@messages && $messages[0]{role} eq 'system') {
+        $messages[0]{content} .= "\n\n[INTERACTIVE CHAT MODE]: You are in interactive chat mode with the developer. Do NOT transpile or compile the code to Javascript yourself, and do not output [OmniFlux Ready]. Instead, write clean, raw OmniFlux code within ```omniflux code blocks. Help the developer design and write OmniFlux programs. IMPORTANT: When explaining code or concepts, do NOT assume the developer knows JavaScript. Do NOT mention JavaScript-specific concepts such as 'importing modules', 'asynchronous execution', or 'auto-await'. Explain the logic purely using OmniFlux syntax and native functions.";
+    }
+    
     print "=== OmniFlux Interactive Compiler ===\n";
     print "Type a file name (e.g., script.of, script.php, script.py) to compile it to Node.js,\n";
     print "or just type a message to chat with the compiler.\n";
@@ -78,6 +82,15 @@ if ($input_file) {
         last if $user_input eq 'exit' || $user_input eq 'quit';
         next if $user_input eq '';
         
+        if ($user_input eq 'run') {
+            if (-e 'sandbox.of') {
+                build_and_run('sandbox.of', 0);
+            } else {
+                print "Error: No code found in sandbox.of. Please ask the compiler to generate some code first!\n\n";
+            }
+            next;
+        }
+        
         if (-e $user_input && ! -d $user_input) {
             build_and_run($user_input, 0);
         } else {
@@ -89,6 +102,17 @@ if ($input_file) {
             if ($verbose && $verbose_data) {
                 print_verbose_usage($verbose_data, $elapsed);
             }
+            
+            # Extract first code block (if any) and save to sandbox.of
+            if ($response =~ /```(?:omniflux|of|[a-zA-Z0-9]*)\s*\n(.*?)\n```/s) {
+                my $code_block = $1;
+                if (open(my $sfh, '>:utf8', 'sandbox.of')) {
+                    print $sfh $code_block;
+                    close($sfh);
+                    print color('bold green') . "[Code saved to sandbox.of. Type 'run' to execute it!]\n\n" . color('reset');
+                }
+            }
+            
             push @messages, { role => "assistant", content => $response };
         }
     }

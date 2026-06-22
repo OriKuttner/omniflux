@@ -227,6 +227,43 @@ function len(val) {
     return val.length || 0;
 }
 
+function strsplit(str, sep) {
+    if (typeof str === 'string') {
+        return str.split(sep);
+    }
+    return [];
+}
+
+function match(str, regex) {
+    if (str === null || str === undefined) return false;
+    let regexObj;
+    if (regex instanceof RegExp) {
+        regexObj = regex;
+    } else if (typeof regex === 'string') {
+        const firstChar = regex.charAt(0);
+        if (/^[^a-zA-Z0-9\s\\]/.test(firstChar)) {
+            const lastDelim = regex.lastIndexOf(firstChar);
+            if (lastDelim > 0) {
+                const pattern = regex.substring(1, lastDelim);
+                const flags = regex.substring(lastDelim + 1);
+                regexObj = new RegExp(pattern, flags);
+            } else {
+                regexObj = new RegExp(regex);
+            }
+        } else {
+            regexObj = new RegExp(regex);
+        }
+    } else {
+        return false;
+    }
+    const res = String(str).match(regexObj);
+    if (!res) return false;
+    if (res.length > 1) {
+        return res.slice(1);
+    }
+    return true;
+}
+
 function arraypush(arr, item) {
     if (Array.isArray(arr)) {
         arr.push(item);
@@ -343,6 +380,11 @@ global.cacheget = cacheget;
 global.cache_get = cacheget;
 
 global.len = len;
+
+global.strsplit = strsplit;
+global.str_split = strsplit;
+
+global.match = match;
 
 global.arraypush = arraypush;
 global.array_push = arraypush;

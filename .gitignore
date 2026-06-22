@@ -1,2 +1,4 @@
 test/
 .omniflux_cache/
+sandbox.of
+sandbox.js
