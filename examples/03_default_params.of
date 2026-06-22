@@ -1,0 +1,38 @@
+# 03_default_params.of
+# Demonstrating default parameter values in OmniFlux tasks/functions.
+
+# 1. Standard syntax with default parameters
+define task greet(name = "Guest", greeting = "Hello") {
+    print(greeting + ", " + name + "!")
+}
+
+# 2. Natural English syntax with default parameters
+define task create_user with username, role = "member", active = true {
+    print("User: %s (Role: %s, Active: %s)", username, role, active)
+}
+
+on start {
+    print("=== Testing Default Parameters ===")
+    
+    # Test standard syntax
+    print("Calling greet() with no arguments:")
+    greet()
+    
+    print("\nCalling greet() with only one argument:")
+    greet("Alice")
+    
+    print("\nCalling greet() with all arguments:")
+    greet("Bob", "Good morning")
+    
+    print("\n----------------------------------------")
+    
+    # Test natural English syntax
+    print("Calling create_user with only required argument:")
+    create_user("charlie")
+    
+    print("\nCalling create_user overriding the role:")
+    create_user("david", "admin")
+    
+    print("\nCalling create_user overriding all arguments:")
+    create_user("eve", "moderator", false)
+}

@@ -1,0 +1,13 @@
+// 04_ambiguous.of
+// This file triggers the AI compiler because of the natural language line,
+// and triggers an interactive question due to the ambiguous variable name.
+// Since we use '//', these comments will be stripped before the code is sent to the AI,
+// proving that the AI detects the ambiguity purely from the code.
+
+on start {
+    var greeting_name = "Alice"
+    
+    gret_name = "Bob"
+    
+    find the first number in "User ID: 9876" and print it
+}
