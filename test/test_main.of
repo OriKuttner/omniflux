@@ -10,8 +10,15 @@ include "test_inc.of"
 */
 
 on start {
-    sayHello();
-    sayHello();
+    sayHello
+    sayHello
+    greet_user with "Charlie", 30
+    
+    var callback = ref sayHello
+    call callback
+    
+    var callback_with_params = ref greet_user
+    call callback_with_params with "Dave", 35
     
     # Test print with format string
     print("User %s has %d points", "Alice", 95)
@@ -24,15 +31,15 @@ on start {
     printf(" -> Now newline!\n")
     
     # Test args array
-    if args.length > 0 {
-        print("Arguments received: %j", args)
+    if len($args) > 0 {
+        print("Arguments received: %j", $args)
     } else {
         print("No args received.")
     }
     
     # Test read_char if requested
     var has_key_flag = false
-    for arg of args {
+    for arg of $args {
         if arg == "--test-read-char" {
             has_key_flag = true
         }

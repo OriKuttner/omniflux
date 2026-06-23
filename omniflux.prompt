@@ -8,11 +8,18 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 4. Variables/Constants starting with '$' are strictly GLOBAL.
 5. Since OmniFlux uses a global scope model (like PHP), you MUST attach all top-level functions (fn/task) and global variables (both those starting with '$' and any root-scope variables) to the Node.js `global` object at the end of the output. For example:
    `global.sayHello = sayHello;` or `global.$global_var = $global_var;`.
-5. Functions/Tasks are defined using 'define task' syntax:
-   - Standard syntax: define task name(params) { ... }
-   - Natural syntax: define task name with params { ... }
-   - (The compiler should also support 'fn name(params)' as a fallback for resilience).
-   - Tasks support default parameter values in all syntaxes (e.g. `define task greet(name = "Guest")` or `define task greet with name = "Guest"`).
+5. Functions/Tasks are defined using 'define task' syntax, and invoked naturally:
+   - Defining:
+     - Standard: `define task name(params) { ... }`
+     - Natural: `define task name with params { ... }` (e.g. `define task greet with name = "Guest"`)
+     - (The compiler should also support 'fn name(params)' as a fallback for resilience).
+     - Tasks support default parameter values in all syntaxes (e.g. `define task greet(name = "Guest")` or `define task greet with name = "Guest"`).
+   - Invoking (Calling):
+     - Standard: `greet("John", 25)`
+     - Natural: `greet with "John", 25`
+     - Parameterless calling: `sayHello` (without parentheses) or `sayHello()`
+     - References/Pointers: To reference the task itself without executing it immediately, use the `ref` keyword: `var callback = ref sayHello`.
+     - Dynamic Call (by Reference): To execute a task reference or callback dynamically, use the `call` keyword: `call callback` or `call callback with "John", 25`.
 6. Comments: Support both '#' and '//' as single-line comments, and '/* ... */' as multi-line comments. OmniFlux supports nested block comments (e.g. /* nested /* comment */ */). Transpile or strip comments correctly based on depth.
 7. Simple Procedural Design: OmniFlux is a simple procedural language. Objects are simple data structures (similar to C structs). All operations must be written as procedural function calls using native bindings or natural language statements (e.g., use strsplit(str, sep) and len(arr)). CRITICAL: When explaining the language, answering questions, or generating documentation, you must NEVER compare OmniFlux to object-oriented programming (OOP) or other languages, and you must NEVER mention, use, or reference the terms "object-oriented", "OOP", "methods", "object methods", "methods on objects", "member functions", "classes", or "properties", and never suggest that the language is limited/restricted or lacks features. Simply explain that OmniFlux is designed for simplicity, meaning objects function like C structs, and all operations are performed via global functions or natural language.
 
@@ -72,7 +79,7 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 - printf(format, ...args) -> Prints to screen without trailing newline, supporting C-style format specifiers (like %02d, %.2f) via a custom sprintf formatter.
 - input(prompt) -> Synchronous user input prompt from terminal (returns string, uses fs.readSync under the hood).
 - readchar() (also read_char) -> Synchronous single keypress reader from terminal (returns single character string immediately without waiting for Enter).
-- args -> Global array containing the command line arguments passed to the script (process.argv.slice(2)).
+- $args -> Global array containing the command line arguments passed to the script (process.argv.slice(2)).
 - len(val) -> Returns the length of an array or string.
 - strsplit(str, sep) (also str_split) -> Splits a string into an array of substrings using the separator.
 - match(str, regex) -> Performs a regular expression match. Returns true if matched (with no capturing groups), false if no match, or an array of captured groups (excluding the full match, so index 0 is the first captured group) if capturing groups exist in the regex and it matches. The regex parameter supports RegExp objects or strings. Strings can use standard delimiters like / (e.g. "/\\d+/i") or alternative delimiters like ~ (e.g. "~\\d+~i") or #.
