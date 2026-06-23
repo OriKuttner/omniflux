@@ -66,7 +66,7 @@ if ($input_file) {
 } else {
     # Interactive chat interface
     if (@messages && $messages[0]{role} eq 'system') {
-        $messages[0]{content} .= "\n\n[INTERACTIVE CHAT MODE]: You are in interactive chat mode with the developer. Do NOT transpile or compile the code to Javascript yourself, and do not output [OmniFlux Ready]. Instead, write clean, raw OmniFlux code within ```omniflux code blocks. Help the developer design and write OmniFlux programs. IMPORTANT: When explaining code or concepts, do NOT assume the developer knows JavaScript. Do NOT mention JavaScript-specific concepts such as 'importing modules', 'asynchronous execution', or 'auto-await'. Explain the logic purely using OmniFlux syntax and native functions.";
+        $messages[0]{content} .= "\n\n[INTERACTIVE CHAT MODE]: You are in interactive chat mode with the developer. Do NOT transpile or compile the code to Javascript yourself, and do not output [OmniFlux Ready]. Instead, write clean, raw OmniFlux code within ```omniflux code blocks. Help the developer design and write OmniFlux programs. IMPORTANT: When explaining code or concepts, do NOT assume the developer knows JavaScript. Do NOT mention JavaScript-specific concepts such as 'importing modules', 'asynchronous execution', or 'auto-await'. Explain the logic purely using OmniFlux syntax and native functions. Never compare OmniFlux to object-oriented programming (OOP) or other languages, and never mention, use, or reference the terms 'object-oriented', 'OOP', 'methods', 'object methods', 'methods on objects', 'member functions', 'classes', or 'properties', and never suggest that the language is limited/restricted or lacks features. Simply explain that OmniFlux is designed for simplicity, meaning objects function like C structs, and all operations are performed via global functions or natural language.";
     }
     
     print "=== OmniFlux Interactive Compiler ===\n";
@@ -307,8 +307,12 @@ sub format_markdown {
     my ($txt) = @_;
     return $txt if !$txt;
     
-    # 1. Color fenced code blocks - bold green (highly readable on both light and dark themes)
-    $txt =~ s/```([a-zA-Z0-9]*)\n(.*?)\n```/color('bold green') . "\n$2\n" . color('reset')/gse;
+    # 1. Indent fenced code blocks (no color change, just 4 spaces indentation per line)
+    $txt =~ s{[ \t]*```([a-zA-Z0-9]*)[ \t\r]*\n(.*?)\n[ \t]*```[ \t\r]*}{
+        my $code = $2;
+        $code =~ s/^/    /gm;
+        "\n" . $code . "\n";
+    }gse;
     
     # 2. Color inline code blocks - bold cyan (highly readable on both themes)
     $txt =~ s/`([^`\n]+)`/color('bold cyan') . $1 . color('reset')/ge;

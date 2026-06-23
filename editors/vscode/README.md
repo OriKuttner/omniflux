@@ -65,6 +65,46 @@ OmniFlux requires **Perl** and **Node.js** to be installed on your system.
 
 ---
 
+## 🔌 Editor Support (VS Code & Antigravity)
+
+OmniFlux includes a VS Code extension for syntax highlighting and code snippets. This extension is compatible with both the original **VS Code** and the **Antigravity** editor.
+
+### Option 1: Graphical Interface (GUI) Installation (via VSIX)
+1. Open your editor (**VS Code** or **Antigravity**).
+2. Open the **Extensions** view (`Ctrl+Shift+X` or via the left sidebar).
+3. Click the **`...`** (More Actions / Views) menu button at the top-right corner of the Extensions panel.
+4. Select **Install from VSIX...** from the dropdown.
+5. Locate and select the `.vsix` package:
+   * **If installed via the Debian package:** `/usr/share/omniflux/extensions/omniflux-support/omniflux-support-1.0.0.vsix`
+   * **If cloned from the Git repository:** `editors/vscode/omniflux-support-1.0.0.vsix` inside the cloned directory.
+6. Click **Install**.
+
+### Option 2: Command Line (CLI) Installation
+Run the command corresponding to your editor to install the pre-packaged extension:
+* **VS Code:**
+  ```bash
+  code --install-extension /usr/share/omniflux/extensions/omniflux-support
+  ```
+* **Antigravity:**
+  ```bash
+  antigravity --install-extension /usr/share/omniflux/extensions/omniflux-support
+  ```
+
+### Option 3: Manual Directory Linking
+Alternatively, you can link the extension directory directly to your editor's extension folder:
+* **VS Code:**
+  ```bash
+  mkdir -p ~/.vscode/extensions
+  ln -sf /usr/share/omniflux/extensions/omniflux-support ~/.vscode/extensions/omniflux-support
+  ```
+* **Antigravity:**
+  ```bash
+  mkdir -p ~/.antigravity/extensions
+  ln -sf /usr/share/omniflux/extensions/omniflux-support ~/.antigravity/extensions/omniflux-support
+  ```
+
+---
+
 ## ✍️ Language Syntax At a Glance
 
 OmniFlux keeps it simple.
