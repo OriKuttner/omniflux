@@ -3,7 +3,7 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 
 ### Core Rules of OmniFlux:
 1. Semicolons (;) are optional. Automatically insert them in the target code.
-2. The "as <type>" operator (e.g., "123" as int) handles explicit type casting.
+2. Type Casting & Inspection: The "as <type>" operator (e.g., "123" as int) handles explicit type casting. The `describe` keyword (e.g., `describe v`) inspects the runtime type and returns a string (such as `"string"`, `"number"`, `"boolean"`, `"array"`, `"null"`, `"undefined"`, `"function"`, or `"object"`). Note that uninitialized and non-existent variables return `"undefined"` under `describe` (any operations on non-existent/undeclared variables like `non_existent + 1` should throw a ReferenceError at runtime, which the developer/AI compiler must handle).
 3. Variables must be declared with 'var' or 'const' (except for loop variables in 'for ... of' loops, e.g., 'for fruit of fruits', where the loop variable is implicitly declared).
 4. Variables/Constants starting with '$' are strictly GLOBAL.
 5. Since OmniFlux uses a global scope model (like PHP), you MUST attach all top-level functions (fn/task) and global variables (both those starting with '$' and any root-scope variables) to the Node.js `global` object at the end of the output. For example:

@@ -37,6 +37,91 @@ sub compile_locally {
         }
     }
     
+    # 1. Identify all declared variables and functions
+    my %declared;
+    for my $g (qw(
+        print printf fprint fprintf readchar read_char fileread file_read filewrite file_write fileexists file_exists
+        fileappend file_append filedelete file_delete filecopy file_copy filerename file_rename
+        dirlist dir_list filestat file_stat dbquery db_query cacheset cache_set cacheget cache_get
+        len strsplit str_split match arraypush array_push arraypop array_pop arraycontains array_contains
+        arrayjoin array_join arrayslice array_slice time dateyear date_year datemonth date_month
+        dateday date_day datehour date_hour dateminute date_minute datesecond date_second template describe
+        args global console require module process Math JSON Array Object String Number Boolean Error
+        setTimeout setInterval clearTimeout clearInterval NaN
+    )) {
+        $declared{$g} = 1;
+    }
+    for my $t (keys %async_tasks) {
+        $declared{$t} = 1;
+    }
+    
+    # Pre-scan for local variable declarations, parameters, and loop variables
+    for my $line (split(/\n/, $source_code)) {
+        my $clean_line = $line;
+        # Strip comments and strings
+        $clean_line =~ s/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')//g;
+        $clean_line =~ s/#.*//g;
+        $clean_line =~ s/\/\/.*//g;
+        
+        # Strip global $ prefix for declaration matching
+        $clean_line =~ s/\$([a-zA-Z_]\w*)/$1/g;
+        
+        # Match var or const declarations
+        while ($clean_line =~ /\b(?:var|const)\s+([a-zA-Z_]\w*)/g) {
+            $declared{$1} = 1;
+        }
+        
+        # Match loop variables
+        while ($clean_line =~ /\bfor\s+(?:var\s+|const\s+)?([a-zA-Z_]\w*)\s+of\b/g) {
+            $declared{$1} = 1;
+        }
+        
+        # Match standard task/fn params: task name(a, b)
+        if ($clean_line =~ /\b(?:task|fn)\s+\w+\s*\((.*?)\)/) {
+            my $params = $1;
+            for my $p (split(/,/, $params)) {
+                $p =~ s/^\s+|\s+$//g;
+                $p =~ s/=.*//g;
+                $p =~ s/^\s+|\s+$//g;
+                if ($p =~ /^([a-zA-Z_]\w*)$/) {
+                    $declared{$1} = 1;
+                }
+            }
+        }
+        # Match natural task params: task name with a, b = value {
+        if ($clean_line =~ /\b(?:task|fn)\s+\w+\s+with\s+(.*?)(?:\{|$)/) {
+            my $params = $1;
+            for my $p (split(/,/, $params)) {
+                $p =~ s/^\s+|\s+$//g;
+                $p =~ s/=.*//g;
+                $p =~ s/^\s+|\s+$//g;
+                if ($p =~ /^([a-zA-Z_]\w*)$/) {
+                    $declared{$1} = 1;
+                }
+            }
+        }
+        # Match lifecycle hook params: on error (err)
+        if ($clean_line =~ /\bon\s+(?:start|shutdown|error|request)\b.*?\((.*?)\)\s*\{/i) {
+            my $params = $1;
+            for my $p (split(/,/, $params)) {
+                $p =~ s/^\s+|\s+$//g;
+                if ($p =~ /^([a-zA-Z_]\w*)$/) {
+                    $declared{$1} = 1;
+                }
+            }
+        }
+        # Match routing params: GET "/" (req, res) {
+        if ($clean_line =~ /\b(?:GET|POST|PUT|DELETE|PATCH|use)\b.*?\((.*?)\)\s*\{/i) {
+            my $params = $1;
+            for my $p (split(/,/, $params)) {
+                $p =~ s/^\s+|\s+$//g;
+                if ($p =~ /^([a-zA-Z_]\w*)$/) {
+                    $declared{$1} = 1;
+                }
+            }
+        }
+    }
+    
     my @lines = split(/\n/, $source_code);
     my @output_lines;
     my @line_map;
@@ -55,8 +140,16 @@ sub compile_locally {
     my $has_server = 0;
     my $server_port = 0;
     
+    my @strings;
+    my $comment = "";
     my $push_out = sub {
         my ($out_line, $orig_num) = @_;
+        if ($orig_num > 0) {
+            $out_line =~ s/__STR_PLACEHOLDER_(\d+)__/$strings[$1]/g;
+            $out_line .= $comment;
+            my $fn = basename($src_file);
+            $out_line .= " //! OF_LINE: $fn:$orig_num";
+        }
         push @output_lines, $out_line;
         push @line_map, $orig_num;
     };
@@ -81,11 +174,50 @@ sub compile_locally {
         my $orig_line = $line;
         my $orig_num = $line_idx + 1;
         
-        # Convert # comments to // comments so they are valid JS
+        # 1. Detect global variables and register them dynamically
+        while ($line =~ /\$([a-zA-Z_]\w*)/g) {
+            $declared{$1} = 1;
+        }
+        
+        # 2. Convert # comments to // comments so they are valid JS
         $line =~ s/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')|#(.*)/$1 ? $1 : "\/\/$2"/ge;
         
-        # Replace global variables (strip $ prefix so it maps to parent lexical scope)
-        $line =~ s/\$([a-zA-Z_]\w*)/$1/g;
+        # Extract comment
+        $comment = "";
+        if ($line =~ s/(\/\/.*)$//) {
+            $comment = $1;
+        }
+        
+        # Extract string literals and replace them with placeholders
+        @strings = ();
+        $line =~ s/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/push(@strings, $1), "__STR_PLACEHOLDER_" . ($#strings) . "__"/ge;
+        
+        # 3. Replace global variables (strip $ prefix so it maps to global.vars namespace)
+        $line =~ s/\$([a-zA-Z_]\w*)/global.vars.$1/g;
+        
+        # 4. Check for undeclared variables
+        my $clean_for_check = $line;
+        $clean_for_check =~ s/__STR_PLACEHOLDER_\d+__//g; # strip string placeholders
+        
+        my @refs = extract_referenced_variables($clean_for_check);
+        for my $r (@refs) {
+            if (!$declared{$r}) {
+                print "\n";
+                print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
+                print "$orig_line\n";
+                my $pos = index($orig_line, $r);
+                if ($pos >= 0) {
+                    print " " x $pos . "^\n";
+                } else {
+                    print "^\n";
+                }
+                print color('bold yellow') . "ReferenceError: '$r' is not defined (undeclared variable)\n" . color('reset');
+                print "\n";
+                
+                unlink($target_js) if -e $target_js;
+                return undef;
+            }
+        }
         
         # print and printf are handled via injected helper functions when needed
         
@@ -128,14 +260,17 @@ sub compile_locally {
         $line =~ s/REFERENCE_//g;
         
         # Replace type casting
-        $line =~ s/\b(.*?)\s+as\s+int\b/parseInt($1, 10)/g;
-        $line =~ s/\b(.*?)\s+as\s+string\b/String($1)/g;
+        $line =~ s/\b([^=]+?)\s+as\s+int\b/parseInt($1, 10)/g;
+        $line =~ s/\b([^=]+?)\s+as\s+string\b/String($1)/g;
+        $line =~ s/\bdescribe\s+([^,)]+)/(typeof $1 !== 'undefined' ? describe($1) : 'undefined')/g;
         
         # Replace var with let
         $line =~ s/\bvar\b/let/g;
         
         # Match includes
-        if ($line =~ /^\s*include\s+["']?([^"'\s;]+)["']?;?/i) {
+        my $line_for_includes = $line;
+        $line_for_includes =~ s/__STR_PLACEHOLDER_(\d+)__/$strings[$1]/g;
+        if ($line_for_includes =~ /^\s*include\s+["']?([^"'\s;]+)["']?;?/i) {
             my $inc = $1;
             my $resolved_path;
             my $src_dir = dirname($src_file);
@@ -190,7 +325,7 @@ sub compile_locally {
         }
         
         # Match define task with parameters (using 'with')
-        if ($line =~ /^\s*define\s+task\s+(\w+)\s+with\s+([^\{]+)\s*\{/i) {
+        if ($line =~ /^\s*(?:define\s+task|fn)\s+(\w+)\s+with\s+([^\{]+)\s*\{/i) {
             my $name = $1;
             my $params_str = $2;
             $params_str =~ s/^\s+|\s+$//g;
@@ -202,7 +337,7 @@ sub compile_locally {
             next;
         }
         # Match standard or parameterless define task (using parentheses or no parameters)
-        elsif ($line =~ /^\s*define\s+task\s+(\w+)\s*(?:\((.*?)\))?\s*\{/i) {
+        elsif ($line =~ /^\s*(?:define\s+task|fn)\s+(\w+)\s*(?:\((.*?)\))?\s*\{/i) {
             my $name = $1;
             my $params = $2 || "";
             push @tasks, $name;
@@ -358,7 +493,7 @@ sub compile_locally {
         }
         
         # Match loops and conditionals
-        if ($line =~ /^\s*for\s+(\w+)\s+of\s+(\w+)\s*\{/i) {
+        if ($line =~ /^\s*for\s+(\w+)\s+of\s+(.*?)\s*\{/i) {
             $push_out->("for (let $1 of $2) {", $orig_num);
             push @block_stack, { type => 'normal' };
             next;
@@ -574,6 +709,37 @@ EOF
         unlink($target_js); # Delete invalid file
         return undef; # Failed compilation
     }
+}
+
+sub extract_referenced_variables {
+    my ($clean_line) = @_;
+    my @refs;
+    
+    my %keywords = map { $_ => 1 } qw(
+        if else while for of return define task fn var const background call with as int string ref true false null undefined
+        try catch throw new class this function let void delete typeof instanceof in switch case default break continue debugger
+        include load extension rules from on start shutdown error request server port get post put patch use
+        GET POST PUT DELETE PATCH listen respond html json redirect to wait second seconds
+    );
+    
+    while ($clean_line =~ /\b([a-zA-Z_]\w*)\b/g) {
+        my $word = $1;
+        next if $keywords{$word};
+        next if $word =~ /^__STR_PLACEHOLDER_/;
+        
+        my $pos = pos($clean_line) - length($word);
+        if ($pos > 0 && substr($clean_line, $pos - 1, 1) eq '.') {
+            next;
+        }
+        
+        my $after = substr($clean_line, pos($clean_line));
+        if ($after =~ /^\s*:/) {
+            next;
+        }
+        
+        push @refs, $word;
+    }
+    return @refs;
 }
 
 1;

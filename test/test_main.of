@@ -102,4 +102,19 @@ on start {
     
     var sliced = array_slice(fruits, 0, 1)
     print("Sliced array: %j", sliced)
+    
+    # Test describe keyword
+    var num_val = 42
+    var str_val = "hello"
+    var bool_val = true
+    var arr_val = [1, 2, 3]
+    var null_val = null
+    
+    print("num_val type: %s", describe num_val)
+    print("str_val type: %s", describe str_val)
+    print("bool_val type: %s", describe bool_val)
+    print("arr_val type: %s", describe arr_val)
+    print("null_val type: %s", describe null_val)
+    var uninitialized_val
+    print("uninitialized_val type: %s", describe uninitialized_val)
 }
