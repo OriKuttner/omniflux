@@ -74,13 +74,32 @@ sub get_all_dependencies {
     $content = strip_comments($content);
     
     my $dir = dirname($abs_file);
+    my $project_root = abs_path('.');
+    
     while ($content =~ /\binclude\s+["']?([^"'\s;]+)["']?;?/g) {
         my $inc_file = $1;
-        my $full_path = $inc_file;
-        if ($full_path !~ m{^\/}) {
-            $full_path = "$dir/$inc_file";
+        my $full_path;
+        
+        # Search paths
+        my @search_paths = (
+            "$dir/$inc_file",
+            "$project_root/$inc_file",
+            "/usr/local/share/omniflux/$inc_file",
+            "/usr/share/omniflux/$inc_file",
+        );
+        
+        for my $p (@search_paths) {
+            if (-e $p) {
+                $full_path = abs_path($p);
+                last;
+            }
         }
-        get_all_dependencies($full_path, $deps);
+        
+        if ($full_path) {
+            get_all_dependencies($full_path, $deps);
+        } else {
+            get_all_dependencies("$dir/$inc_file", $deps);
+        }
     }
 }
 

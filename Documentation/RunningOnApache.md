@@ -117,5 +117,64 @@ sudo a2ensite yourdomain.conf
 sudo systemctl reload apache2
 ```
 
+## Deploying Updates (Zero-Downtime Reload)
+
+You do **not** need to restart or reload the Apache web server when deploying updates to your OmniFlux application.
+
+Phusion Passenger supports hot-reloading using a `restart.txt` file. When you compile a new version of your application into `main.js`, run the following command to instruct Passenger to reload the application on the next request:
+
+```bash
+mkdir -p /var/www/my-omniflux-app/tmp
+touch /var/www/my-omniflux-app/tmp/restart.txt
+```
+
+Passenger will detect that the modification time of `restart.txt` has changed, gracefully shutdown the old Node.js process, and spawn a new one with your updated code.
+
 ## How it Works under the Hood
 When Passenger starts, it automatically intercepts calls to Node's `http.Server.listen()` (which is compiled from `listen on port` in OmniFlux). It overrides the port number and forces the application to listen on a dynamically generated, secure Unix domain socket or private TCP port. Passenger then automatically forwards traffic from Apache to this socket, eliminating port conflicts and manual port configuration.
+
+## Troubleshooting & Common Issues
+
+Deploying Node.js applications on legacy Linux environments (like Ubuntu 18.04) running older versions of Phusion Passenger can lead to server compatibility issues. Below are solutions to the most common problems:
+
+### 1. HTTP 403 Forbidden on the Home Directory
+If accessing your domain returns a `403 Forbidden` error and Passenger does not start:
+* **Cause:** Apache (running as `www-data`) does not have execute (`+x`) permissions to navigate the parent directories of your application (e.g., `/home/rlcpa`).
+* **Solution:** Grant traverse/read permissions to Apache for your project structure:
+  ```bash
+  chmod o+x /home/USERNAME
+  chmod o+x /home/USERNAME/APP_DIR
+  chmod -R o+rx /home/USERNAME/APP_DIR/public
+  ```
+
+### 2. SyntaxError: Unexpected token . (Optional Chaining)
+If Passenger crashes during startup with a `SyntaxError` referencing `options?.parameters` or similar modern JS syntax:
+* **Cause:** Apache/Passenger is using an outdated system Node.js version (like Node.js 8 or 10) which does not support modern JavaScript syntax (such as optional chaining `?.` or nullish coalescing `??`).
+* **Solution:** Find the path to a modern Node.js version (v16+) on your server:
+  ```bash
+  which node
+  ```
+  Then explicitly specify that binary in your Apache Virtual Host configuration using the `PassengerNodejs` directive:
+  ```apache
+  PassengerNodejs /usr/bin/node
+  ```
+  Reload Apache:
+  ```bash
+  sudo systemctl reload apache2
+  ```
+
+### 3. ReferenceError: GLOBAL is not defined
+If Passenger fails to start with a traceback inside its internal files:
+```
+ReferenceError: GLOBAL is not defined
+    at Object.<anonymous> (/usr/share/passenger/helper-scripts/node-loader.js:41:1)
+```
+* **Cause:** Passenger (specifically older versions like 5.x) has hardcoded usage of `GLOBAL` in its internal loader scripts, but modern Node.js versions (v16+) removed this deprecated keyword in favor of `global`.
+* **Solution:** Replace the deprecated `GLOBAL` keyword with `global` in Passenger's loader script using `sed`:
+  ```bash
+  sudo sed -i 's/\bGLOBAL\b/global/g' /usr/share/passenger/helper-scripts/node-loader.js
+  ```
+  Reload Apache:
+  ```bash
+  sudo systemctl reload apache2
+  ```

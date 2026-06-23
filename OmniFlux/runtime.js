@@ -143,6 +143,16 @@ function fileappend(path, data) {
     fs.appendFileSync(path, typeof data === 'object' ? JSON.stringify(data, null, 2) : data, 'utf8');
 }
 
+function fprintf(path, format, ...args) {
+    const data = sprintf(format, ...args);
+    fs.appendFileSync(path, data, 'utf8');
+}
+
+function fprint(path, format, ...args) {
+    const data = sprintf(format, ...args) + '\n';
+    fs.appendFileSync(path, data, 'utf8');
+}
+
 // safe unlinkSync wrapper
 function filedelete(path) {
     fs.unlinkSync(path);
@@ -472,6 +482,10 @@ document.addEventListener('click', async (e) => {
 global.sprintf = sprintf;
 global.print = print;
 global.printf = printf;
+global.fprint = fprint;
+global.f_print = fprint;
+global.fprintf = fprintf;
+global.f_printf = fprintf;
 global.input = input;
 
 global.readchar = readchar;

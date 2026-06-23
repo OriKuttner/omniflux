@@ -299,6 +299,8 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `filewrite(path, data)`: Writes data (string or object) to a file.
   * `fileexists(path)`: Returns `true` if the file or directory exists, `false` otherwise.
   * `fileappend(path, data)`: Appends data (string or object) to the end of a file.
+  * `fprint(path, format, ...args)`: Formats a string (using the same format specifiers as `print`) and appends it to the end of a file, automatically appending a trailing newline.
+  * `fprintf(path, format, ...args)`: Formats a string and appends it to the end of a file **without** automatically appending a trailing newline.
   * `filedelete(path)`: Deletes the specified file.
   * `filecopy(src, dest)`: Copies a file from `src` to `dest`.
   * `filerename(src, dest)`: Renames or moves a file from `src` to `dest`.

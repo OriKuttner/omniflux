@@ -61,6 +61,8 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 - fileread(path) / filewrite(path, data) (also file_read/file_write) -> Native File System I/O.
 - fileexists(path) (also file_exists) -> Check if file or directory exists (returns boolean).
 - fileappend(path, data) (also file_append) -> Append data to a file.
+- fprint(path, format, ...args) (also f_print) -> Format and append data to a file with trailing newline.
+- fprintf(path, format, ...args) (also f_printf) -> Format and append data to a file without trailing newline.
 - filedelete(path) (also file_delete) -> Delete a file.
 - filecopy(src, dest) (also file_copy) -> Copy a file.
 - filerename(src, dest) (also file_rename) -> Rename or move a file.
