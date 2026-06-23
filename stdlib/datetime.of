@@ -1,0 +1,49 @@
+# datetime.of - OmniFlux Datetime Standard Library
+
+define task datetime_now() {
+    return time()
+}
+
+define task datetime_format(ts, fmt) {
+    y = dateyear(ts) as string
+    
+    m_val = datemonth(ts)
+    m = m_val as string
+    if (m_val < 10) {
+        m = "0" + m
+    }
+    
+    d_val = dateday(ts)
+    d = d_val as string
+    if (d_val < 10) {
+        d = "0" + d
+    }
+    
+    h_val = datehour(ts)
+    h = h_val as string
+    if (h_val < 10) {
+        h = "0" + h
+    }
+    
+    i_val = dateminute(ts)
+    i = i_val as string
+    if (i_val < 10) {
+        i = "0" + i
+    }
+    
+    s_val = datesecond(ts)
+    s = s_val as string
+    if (s_val < 10) {
+        s = "0" + s
+    }
+    
+    res = fmt
+    res = res.replace("YYYY", y)
+    res = res.replace("MM", m)
+    res = res.replace("DD", d)
+    res = res.replace("HH", h)
+    res = res.replace("mm", i)
+    res = res.replace("ss", s)
+    
+    return res
+}

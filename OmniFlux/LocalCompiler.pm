@@ -6,6 +6,8 @@ use Exporter 'import';
 use File::Basename;
 use File::Path qw(make_path);
 use Term::ANSIColor;
+use Cwd 'abs_path';
+use File::Spec;
 
 our @EXPORT = qw(compile_locally);
 
@@ -108,9 +110,55 @@ sub compile_locally {
         # Match includes
         if ($line =~ /^\s*include\s+["']?([^"'\s;]+)["']?;?/i) {
             my $inc = $1;
-            $inc =~ s/\.[^.]+$/\.js/;
-            $inc = "./$inc" if $inc !~ m{^\.};
-            $push_out->("require('$inc');", $orig_num);
+            my $resolved_path;
+            my $src_dir = dirname($src_file);
+            my $project_root = abs_path('.');
+            
+            # Search paths
+            my @search_paths = (
+                "$src_dir/$inc",
+                "$project_root/$inc",
+                "/usr/local/share/omniflux/$inc",
+                "/usr/share/omniflux/$inc",
+            );
+            
+            for my $p (@search_paths) {
+                if (-e $p) {
+                    $resolved_path = abs_path($p);
+                    last;
+                }
+            }
+            
+            if ($resolved_path) {
+                my $abs_target_dir = File::Spec->rel2abs(dirname($target_js));
+                
+                # Get relative path from project root (or absolute if outside project)
+                my $dep_rel_path;
+                if ($resolved_path =~ /^\Q$project_root\E\/(.+)$/) {
+                    $dep_rel_path = $1;
+                } else {
+                    $dep_rel_path = $resolved_path;
+                }
+                
+                # Determine local cache JS path
+                my $dep_js_path = $dep_rel_path;
+                $dep_js_path =~ s/\.[^.]+$/\.js/;
+                $dep_js_path .= ".js" if $dep_js_path eq $dep_rel_path;
+                
+                my $dep_cache_js = "$project_root/.omniflux_cache/$dep_js_path";
+                $dep_cache_js =~ s{/+}{/}g;
+                
+                # Compute relative require path from compiled file to cached dependency
+                my $rel_require_path = File::Spec->abs2rel($dep_cache_js, $abs_target_dir);
+                $rel_require_path = "./$rel_require_path" if $rel_require_path !~ m{^\.};
+                
+                $push_out->("require('$rel_require_path');", $orig_num);
+            } else {
+                my $inc_js = $inc;
+                $inc_js =~ s/\.[^.]+$/\.js/;
+                $inc_js = "./$inc_js" if $inc_js !~ m{^\.};
+                $push_out->("require('$inc_js');", $orig_num);
+            }
             next;
         }
         
@@ -205,6 +253,23 @@ sub compile_locally {
             $push_out->("const app = express();", $orig_num);
             $push_out->("app.use(express.json());", $orig_num);
             $push_out->("app.use(express.urlencoded({ extended: true }));", $orig_num);
+            
+            # Register general request middleware here so it runs before any route handlers!
+            $push_out->("app.use(async (req, res, next) => {", $orig_num);
+            $push_out->("    try {", $orig_num);
+            $push_out->("        const hooks = global.__on_request_hooks || [];", $orig_num);
+            $push_out->("        for (const hook of hooks) {", $orig_num);
+            $push_out->("            if (!res.headersSent) {", $orig_num);
+            $push_out->("                await hook(req, res);", $orig_num);
+            $push_out->("            }", $orig_num);
+            $push_out->("        }", $orig_num);
+            $push_out->("        if (!res.headersSent) {", $orig_num);
+            $push_out->("            next();", $orig_num);
+            $push_out->("        }", $orig_num);
+            $push_out->("    } catch (e) {", $orig_num);
+            $push_out->("        next(e);", $orig_num);
+            $push_out->("    }", $orig_num);
+            $push_out->("});", $orig_num);
             next;
         }
         
@@ -397,29 +462,6 @@ EOF
         }
     }
     
-    # Register global request middleware (only on the file initializing the server)
-    if ($has_server) {
-        my $mw = <<'EOF';
-app.use(async (req, res, next) => {
-    try {
-        const hooks = global.__on_request_hooks || [];
-        for (const hook of hooks) {
-            if (!res.headersSent) {
-                await hook(req, res);
-            }
-        }
-        if (!res.headersSent) {
-            next();
-        }
-    } catch (e) {
-        next(e);
-    }
-});
-EOF
-        for my $l (split(/\n/, $mw)) {
-            $push_out->($l, 0);
-        }
-    }
     
     # Start server
     if ($has_server && $server_port) {
