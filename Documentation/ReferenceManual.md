@@ -252,13 +252,39 @@ OmniFlux has built-in primitives for setting up web servers and HTTP routing.
 listen on port 3000
 ```
 
-### 3.2 Route Handlers
+### 3.2 Route Handlers & Responses
 Define route handlers to respond to HTTP requests. The syntax specifies the HTTP method (like `GET` or `POST`), the URL path, and a block containing the response:
 ```omniflux
 GET "/users" (req, res) {
+    # Send a JSON response with status code
     respond with status 200 and json { "status": "ok" }
 }
 ```
+
+#### Procedural Response Primitives
+OmniFlux provides simple, procedural statements for sending HTTP responses, fully hiding Node.js/Express objects. The keyword `with` is optional in all `respond` statements:
+
+* **JSON Responses:**
+  * `respond json { "status": "ok" }` (or `respond with json ...`)
+  * `respond status 200 and json { "status": "ok" }`
+
+* **HTML & Text Responses:**
+  * `respond html "<h1>Welcome</h1>"`
+  * `respond status 404 and html "<h1>Not Found</h1>"`
+  * `respond text "Hello World"`
+  * `respond status 200 and text "Hello World"`
+
+* **File Responses (for sending local files):**
+  * `respond file "/path/to/file.png"`
+  * `respond status 200 and file "/path/to/file.png"`
+
+* **Redirects:**
+  * `redirect to "/login"`
+  * `redirect to "/login" with status 301` (for permanent redirects)
+
+* **Template Responses (renders and sends HTML templates):**
+  * `respond template("views/index.html", { "title": "Home" })`
+  * `respond status 200 and template("views/index.html")`
 
 ---
 
