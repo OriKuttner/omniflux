@@ -10,7 +10,7 @@ This guide explains how to deploy and run an OmniFlux application on a server ru
 ## Step 1: Compile the OmniFlux Application
 Before deploying, compile your OmniFlux entry file (e.g., `main.of`) into a single, bundled JavaScript file without running it:
 ```bash
-perl ./omniflux main.of --compile-only
+omniflux main.of --compile-only
 ```
 This command generates the bundled `main.js` file in your application directory.
 
