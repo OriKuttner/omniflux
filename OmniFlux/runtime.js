@@ -597,7 +597,11 @@ function formatRuntimeError(err, label = 'OmniFlux Runtime Error') {
     console.error('\x1b[33m' + err.message + '\x1b[0m');
     if (err.stack) {
         const stackLines = err.stack.split('\n');
-        const lineMatch = stackLines.find(line => line.includes('.js:'));
+        const lineMatch = stackLines.find(line => 
+            line.includes('/') && 
+            !line.includes('node:internal') && 
+            !line.includes('node_modules')
+        );
         if (lineMatch) {
             const match = lineMatch.match(/\(([^)]+):(\d+):(\d+)\)/) || lineMatch.match(/at\s+(.+?):(\d+):(\d+)/);
             if (match) {

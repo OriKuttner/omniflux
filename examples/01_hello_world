@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+
+// .omniflux_cache/examples/01_hello_world.js
+function sprintf(format, ...args) {
+  let i = 0;
+  return format.replace(/%([0-9.-]*)([dfisxX])/g, (match, width, type) => {
+    let val = args[i++];
+    if (val === void 0)
+      return match;
+    if (type === "d") {
+      let num = parseInt(val, 10);
+      if (isNaN(num))
+        num = 0;
+      let str = num.toString();
+      if (width && width.startsWith("0")) {
+        let len = parseInt(width, 10);
+        while (str.length < len)
+          str = "0" + str;
+      }
+      return str;
+    }
+    if (type === "f") {
+      let num = parseFloat(val);
+      if (isNaN(num))
+        num = 0;
+      if (width && width.startsWith(".")) {
+        let precision = parseInt(width.substring(1), 10);
+        return num.toFixed(precision);
+      }
+      return num.toString();
+    }
+    if (type === "s") {
+      return String(val);
+    }
+    return String(val);
+  });
+}
+function print(format, ...args) {
+  if (args.length === 0) {
+    console.log(format);
+  } else {
+    console.log(sprintf(format, ...args));
+  }
+}
+function printf(format, ...args) {
+  if (args.length === 0) {
+    process.stdout.write(format);
+  } else {
+    process.stdout.write(sprintf(format, ...args));
+  }
+}
+var APP_NAME = "OmniFlux Demo";
+var $visitor_count = 0;
+async function greet(name) {
+  $visitor_count = $visitor_count + 1;
+  print("Hello, %s! You are visitor number %d.", name, $visitor_count);
+}
+(async () => {
+  printf("Initializing %s...", APP_NAME);
+  printf(" Done!\n");
+  await greet("Alice");
+  await greet("Bob");
+  await greet("Charlie");
+})();
+global.APP_NAME = APP_NAME;
+global.$visitor_count = $visitor_count;
+global.greet = greet;
+global.print = print;
+global.printf = printf;
