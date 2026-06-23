@@ -221,7 +221,7 @@ sub build_and_run {
             my $rel_main_js = "$cache_dir/" . get_js_path(get_relative_path($abs_input));
             print "Bundling with esbuild: $rel_main_js -> $output_file...\n";
             
-            my $esbuild_cmd = "npx -y esbuild \"$rel_main_js\" --bundle --platform=node --external:mysql2/promise --external:redis --outfile=\"$output_file\"";
+            my $esbuild_cmd = "npx -y esbuild \"$rel_main_js\" --bundle --platform=node --external:mysql2/promise --external:redis --legal-comments=inline --outfile=\"$output_file\"";
             my $res = system($esbuild_cmd);
             if ($res != 0) {
                 print "Error: Bundling failed.\n";

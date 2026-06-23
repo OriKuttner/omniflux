@@ -30,6 +30,13 @@ OmniFlux supports multiple comment styles with a clear distinction to give you f
 * **Block-scoped variables:** Declared with `var` or `const` to scope variables to their local block.
 * **Global variables:** Prefixed with `$` (e.g. `$app_name`). These are globally accessible across all included files.
 * **Semicolons:** Semicolons are optional. The compiler automatically inserts them where appropriate in the target output.
+* **Type Inspection (`describe`):**
+  OmniFlux is dynamically typed. To inspect the type of any variable or expression at runtime, use the `describe` keyword. It returns a string representing the type (e.g., `"string"`, `"number"`, `"boolean"`, `"array"`, `"null"`, `"undefined"`, `"function"`, or `"object"`):
+  ```omniflux
+  var v = [1, 2, 3]
+  var type_name = describe v  # Returns "array"
+  ```
+  Note that uninitialized and non-existent variables return `"undefined"` under `describe`.
 
 ```omniflux
 $app_name = "OmniFlux App"  # Global variable

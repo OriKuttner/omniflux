@@ -1,8 +1,20 @@
 const fs = require('fs');
 const util = require('util');
+const path = require('path');
 
 // Initialize global args
 global.args = process.argv.slice(2);
+
+// Initialize global vars proxy (similar to PHP, returns null/0 for undefined variables to prevent ReferenceErrors)
+global.vars = new Proxy({ args: global.args }, {
+    get(target, prop) {
+        return prop in target ? target[prop] : null;
+    },
+    set(target, prop, value) {
+        target[prop] = value;
+        return true;
+    }
+});
 
 // --- Print & Formatting ---
 function sprintf(format, ...args) {
@@ -230,6 +242,14 @@ async function cacheget(key) {
         return val;
     }
 }
+// --- Type Utilities ---
+function describe(val) {
+    if (val === null) return 'null';
+    if (val === undefined) return 'undefined';
+    if (Array.isArray(val)) return 'array';
+    return typeof val;
+}
+global.describe = describe;
 
 // --- Arrays & Lists ---
 function len(val) {
@@ -570,3 +590,65 @@ global.datesecond = datesecond;
 global.date_second = datesecond;
 
 global.template = template;
+
+// --- Default Process Error Interception for Friendly Messages ---
+function formatRuntimeError(err, label = 'OmniFlux Runtime Error') {
+    console.error('\n\x1b[1m\x1b[31m' + label + ':\x1b[0m');
+    console.error('\x1b[33m' + err.message + '\x1b[0m');
+    if (err.stack) {
+        const stackLines = err.stack.split('\n');
+        const lineMatch = stackLines.find(line => line.includes('.js:'));
+        if (lineMatch) {
+            const match = lineMatch.match(/\(([^)]+):(\d+):(\d+)\)/) || lineMatch.match(/at\s+(.+?):(\d+):(\d+)/);
+            if (match) {
+                const filePath = match[1];
+                const lineNum = parseInt(match[2], 10);
+                try {
+                    const content = fs.readFileSync(filePath, 'utf8');
+                    const fileLines = content.split('\n');
+                    
+                    // Search next line first (where esbuild splits inline comments), then current, then previous
+                    const indicesToCheck = [lineNum, lineNum - 1, lineNum - 2];
+                    for (const i of indicesToCheck) {
+                        if (i >= 0 && i < fileLines.length) {
+                            const targetLine = fileLines[i];
+                            const ofLineMatch = targetLine.match(/\/\/\! OF_LINE: (.+?)(?:\r?\n|$)/) || targetLine.match(/\/\/ OF_LINE: (.+?)(?:\r?\n|$)/);
+                            if (ofLineMatch) {
+                                console.error('\x1b[1m\x1b[32mAt: ' + ofLineMatch[1] + '\x1b[0m');
+                                console.error();
+                                return;
+                            }
+                        }
+                    }
+                } catch (e) {}
+                console.error('\x1b[2mAt: ' + path.basename(filePath) + ':' + lineNum + '\x1b[0m');
+            }
+        }
+    }
+    console.error();
+}
+
+process.on('uncaughtException', (err) => {
+    const hooks = global.__on_error_hooks || [];
+    if (hooks.length > 0) {
+        for (const hook of hooks) {
+            hook(err).catch(() => {});
+        }
+        return;
+    }
+    formatRuntimeError(err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+    const hooks = global.__on_error_hooks || [];
+    if (hooks.length > 0) {
+        for (const hook of hooks) {
+            hook(reason).catch(() => {});
+        }
+        return;
+    }
+    const err = reason instanceof Error ? reason : new Error(String(reason));
+    formatRuntimeError(err, 'OmniFlux Runtime Error (Unhandled Rejection)');
+    process.exit(1);
+});
