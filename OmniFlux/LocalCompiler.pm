@@ -89,8 +89,32 @@ sub compile_locally {
         
         # print and printf are handled via injected helper functions when needed
         
+        # Handle function references (ref task_name -> REFERENCE_task_name)
+        for my $task (keys %async_tasks) {
+            $line =~ s/\bref\s+$task\b/REFERENCE_$task/gi;
+        }
+        
+        # Handle task calls with 'with' (task_name with args -> task_name(args))
+        for my $task (keys %async_tasks) {
+            $line =~ s/\b(?<!task\s)(?<!fn\s)(?<!call\s)(?<!NONBLOCKING_call\s)$task\s+with\s+(.*?)(?=\s*(?:\/\/|#|;|$))/$task($1)/gi;
+        }
+        
+        # Handle task calls without parentheses (task_name -> task_name())
+        # We must not match when it's part of a definition, reference, or explicit call
+        for my $task (keys %async_tasks) {
+            $line =~ s/\b(?<!task\s)(?<!fn\s)(?<!REFERENCE_)(?<!call\s)(?<!NONBLOCKING_call\s)$task\b(?!\s*\()/$task()/gi;
+        }
+        
         # Handle 'background' keyword to make task call non-blocking
         $line =~ s/\bbackground\s+(\w+)\b/NONBLOCKING_$1/gi;
+        
+        # Handle 'call with' syntax for both defined tasks and references
+        $line =~ s/\bcall\s+(\S+?)(?<!\))\s+with\s+(.*?)(?=\s*(?:\/\/|#|;|$))/await $1($2)/gi;
+        $line =~ s/\bNONBLOCKING_call\s+(\S+?)(?<!\))\s+with\s+(.*?)(?=\s*(?:\/\/|#|;|$))/$1($2)/gi;
+        
+        # Handle 'call' without parameters
+        $line =~ s/\bcall\s+(\S+?)(?<!\))\s*(?=\s*(?:\/\/|#|;|$))/await $1()/gi;
+        $line =~ s/\bNONBLOCKING_call\s+(\S+?)(?<!\))\s*(?=\s*(?:\/\/|#|;|$))/$1()/gi;
         
         # Replace await modifiers for async tasks (native, local, and external)
         for my $task (keys %async_tasks) {
@@ -99,6 +123,9 @@ sub compile_locally {
         
         # Clean up NONBLOCKING_ prefix
         $line =~ s/NONBLOCKING_//g;
+        
+        # Clean up REFERENCE_ prefix
+        $line =~ s/REFERENCE_//g;
         
         # Replace type casting
         $line =~ s/\b(.*?)\s+as\s+int\b/parseInt($1, 10)/g;

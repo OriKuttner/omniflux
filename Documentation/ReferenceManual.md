@@ -76,6 +76,41 @@ Tasks (or functions) in OmniFlux are declared using the `define task` syntax. Th
   background log_event("Service started")
   ```
 
+* **Task Invocation (Calling Tasks):**
+  OmniFlux supports multiple natural ways to call (invoke) tasks:
+  
+  * **Natural Call with Parameters (`with`):**
+    You can call a task using the `with` keyword followed by arguments:
+    ```omniflux
+    greet_user with "Charlie", 30
+    ```
+  * **Standard Call with Parameters:**
+    Traditional call syntax with parentheses is also supported:
+    ```omniflux
+    greet_user("Charlie", 30)
+    ```
+  * **Call without Parameters (Parentheses-free):**
+    To invoke a task that takes no arguments, you can write its name directly without parentheses:
+    ```omniflux
+    sayHello
+    ```
+    (Writing `sayHello()` is also valid).
+  * **Function Pointers & References (`ref` and `call`):**
+    To get a reference to the task itself (e.g., to pass it as a callback or store it in a variable) without executing it immediately, prefix the task name with `ref`:
+    ```omniflux
+    var callback = ref sayHello
+    ```
+    To execute a task reference (callback) dynamically, you can use the `call` keyword:
+    ```omniflux
+    # Call without parameters
+    call callback
+
+    # Call with parameters
+    var greet_callback = ref greet_user
+    call greet_callback with "Dave", 35
+    ```
+    (Using traditional parentheses like `callback()` or `callback("Dave", 35)` is also supported).
+
 ### 1.4 Printing to the Screen 📺
 OmniFlux provides built-in options for outputting text to the screen:
 
@@ -114,10 +149,10 @@ OmniFlux provides simple tools to read input and arguments when building command
   var key = read_char()
   print("You pressed: %s", key)
   ```
-* **`args`**: A globally available array that contains all CLI arguments passed to the script (excluding the compiler/node command and the script file name itself).
+* **`$args`**: A globally available array that contains all CLI arguments passed to the script (excluding the compiler/node command and the script file name itself).
   ```omniflux
-  if args.length > 0 {
-      print("First CLI argument: %s", args[0])
+  if len($args) > 0 {
+      print("First CLI argument: %s", $args[0])
   }
   ```
 
