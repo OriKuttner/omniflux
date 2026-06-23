@@ -42,10 +42,14 @@ sub compile_locally {
     # State tracking
     my @block_stack;
     my @tasks;
-    my $has_on_start = 0;
-    my $has_on_shutdown = 0;
-    my $has_on_error = 0;
-    my $has_on_request = 0;
+    my @local_on_start_funcs;
+    my @local_on_shutdown_funcs;
+    my @local_on_error_funcs;
+    my @local_on_request_funcs;
+    my $on_start_count = 0;
+    my $on_shutdown_count = 0;
+    my $on_error_count = 0;
+    my $on_request_count = 0;
     my $has_server = 0;
     my $server_port = 0;
     
@@ -134,26 +138,36 @@ sub compile_locally {
         
         # Match lifecycle hooks
         if ($line =~ /^\s*on\s+start\s*\{/i) {
-            $has_on_start = 1;
-            $push_out->("async function __on_start() {", $orig_num);
+            $on_start_count++;
+            my $func_name = "__on_start_$on_start_count";
+            push @local_on_start_funcs, $func_name;
+            $push_out->("async function $func_name() {", $orig_num);
             push @block_stack, { type => 'normal' };
             next;
         }
         elsif ($line =~ /^\s*on\s+shutdown\s*\{/i) {
-            $has_on_shutdown = 1;
-            $push_out->("async function __on_shutdown() {", $orig_num);
+            $on_shutdown_count++;
+            my $func_name = "__on_shutdown_$on_shutdown_count";
+            push @local_on_shutdown_funcs, $func_name;
+            $push_out->("async function $func_name() {", $orig_num);
             push @block_stack, { type => 'normal' };
             next;
         }
         elsif ($line =~ /^\s*on\s+error\s*\((.*?)\)\s*\{/i) {
-            $has_on_error = 1;
-            $push_out->("async function __on_error($1) {", $orig_num);
+            $on_error_count++;
+            my $func_name = "__on_error_$on_error_count";
+            my $param = $1;
+            push @local_on_error_funcs, { name => $func_name, param => $param };
+            $push_out->("async function $func_name($param) {", $orig_num);
             push @block_stack, { type => 'normal' };
             next;
         }
         elsif ($line =~ /^\s*on\s+request\s*\((.*?)\)\s*\{/i) {
-            $has_on_request = 1;
-            $push_out->("async function __on_request($1) {", $orig_num);
+            $on_request_count++;
+            my $func_name = "__on_request_$on_request_count";
+            my $param = $1;
+            push @local_on_request_funcs, { name => $func_name, param => $param };
+            $push_out->("async function $func_name($param) {", $orig_num);
             push @block_stack, { type => 'normal' };
             next;
         }
@@ -200,13 +214,54 @@ sub compile_locally {
             my $path = $2;
             my $params = $3;
             $push_out->("app.$method(\"$path\", async ($params) => {", $orig_num);
-            push @block_stack, { type => 'normal' };
+            push @block_stack, { type => 'route' };
             next;
         }
         
-        # Match respond statement
-        if ($line =~ /^\s*respond\s+with\s+status\s+(\S+)\s+and\s+json\s+(.*)/i) {
-            $push_out->("res.status($1).json($2);", $orig_num);
+        # Match redirect statement
+        if ($line =~ /^\s*redirect\s+to\s+["']?([^"'\s]+)["']?\s*(?:with\s+status\s+(\d+))?/i) {
+            my $url = $1;
+            my $status = $2;
+            if ($status) {
+                $push_out->("res.status($status).redirect('$url');", $orig_num);
+            } else {
+                $push_out->("res.redirect('$url');", $orig_num);
+            }
+            next;
+        }
+        
+        # Match respond statement with status and multiple content types (json|html|text|file|template)
+        if ($line =~ /^\s*respond\s+(?:with\s+)?status\s+(\S+)\s+and\s+(json|html|text|file|template)\b\s*(.*)/i) {
+            my $status = $1;
+            my $type = lc($2);
+            my $content = $3;
+            if ($type eq 'json') {
+                $push_out->("res.status($status).json($content);", $orig_num);
+            } elsif ($type eq 'file') {
+                $push_out->("res.status($status).sendFile($content);", $orig_num);
+            } elsif ($type eq 'template') {
+                my $tpl_call = ($content =~ /^\s*\(/) ? "template$content" : "template($content)";
+                $push_out->("res.status($status).send($tpl_call);", $orig_num);
+            } else { # html or text
+                $push_out->("res.status($status).send($content);", $orig_num);
+            }
+            next;
+        }
+        
+        # Match respond statement without status (default status 200 or direct response)
+        if ($line =~ /^\s*respond\s+(?:with\s+)?(json|html|text|file|template)\b\s*(.*)/i) {
+            my $type = lc($1);
+            my $content = $2;
+            if ($type eq 'json') {
+                $push_out->("res.json($content);", $orig_num);
+            } elsif ($type eq 'file') {
+                $push_out->("res.sendFile($content);", $orig_num);
+            } elsif ($type eq 'template') {
+                my $tpl_call = ($content =~ /^\s*\(/) ? "template$content" : "template($content)";
+                $push_out->("res.send($tpl_call);", $orig_num);
+            } else { # html or text
+                $push_out->("res.send($content);", $orig_num);
+            }
             next;
         }
         
@@ -248,6 +303,9 @@ sub compile_locally {
             if ($block && $block->{type} eq 'every') {
                 $line =~ s/\}/\}, $block->{ms}\)/;
             }
+            elsif ($block && $block->{type} eq 'route') {
+                $line =~ s/\}/\});/;
+            }
         }
         
         $push_out->($line, $orig_num);
@@ -258,12 +316,98 @@ sub compile_locally {
         $push_out->("global.$task = $task;", 0);
     }
     
-    # Register global middleware if needed
-    if ($has_server && $has_on_request) {
+    # Register local on_start functions to global registry
+    if (@local_on_start_funcs) {
+        $push_out->("global.__on_start_hooks = global.__on_start_hooks || [];", 0);
+        for my $f (@local_on_start_funcs) {
+            $push_out->("global.__on_start_hooks.push($f);", 0);
+        }
+    }
+    
+    # Register local on_shutdown functions to global registry
+    if (@local_on_shutdown_funcs) {
+        $push_out->("global.__on_shutdown_hooks = global.__on_shutdown_hooks || [];", 0);
+        for my $f (@local_on_shutdown_funcs) {
+            $push_out->("global.__on_shutdown_hooks.push($f);", 0);
+        }
+    }
+    
+    # Register local on_error functions to global registry
+    if (@local_on_error_funcs) {
+        $push_out->("global.__on_error_hooks = global.__on_error_hooks || [];", 0);
+        for my $h (@local_on_error_funcs) {
+            my $f = $h->{name};
+            $push_out->("global.__on_error_hooks.push($f);", 0);
+        }
+    }
+    
+    # Register local on_request functions to global registry
+    if (@local_on_request_funcs) {
+        $push_out->("global.__on_request_hooks = global.__on_request_hooks || [];", 0);
+        for my $h (@local_on_request_funcs) {
+            my $f = $h->{name};
+            $push_out->("global.__on_request_hooks.push($f);", 0);
+        }
+    }
+
+    # Register global process shutdown listeners (if any exist in this bundle)
+    if (@local_on_shutdown_funcs) {
+        my $sd_hooks = <<'EOF';
+if (!global.__on_shutdown_registered) {
+    global.__on_shutdown_registered = true;
+    const __shutdown_wrapper = async () => {
+        try {
+            const hooks = global.__on_shutdown_hooks || [];
+            for (const hook of hooks) {
+                await hook();
+            }
+        } catch(e) {}
+        process.exit(0);
+    };
+    process.on('SIGTERM', __shutdown_wrapper);
+    process.on('SIGINT', __shutdown_wrapper);
+}
+EOF
+        for my $l (split(/\n/, $sd_hooks)) {
+            $push_out->($l, 0);
+        }
+    }
+
+    # Register global process error listeners (if any exist in this bundle)
+    if (@local_on_error_funcs) {
+        my $err_hooks = <<'EOF';
+if (!global.__on_error_registered) {
+    global.__on_error_registered = true;
+    process.on('uncaughtException', (err) => {
+        const hooks = global.__on_error_hooks || [];
+        for (const hook of hooks) {
+            hook(err).catch(() => {});
+        }
+    });
+    process.on('unhandledRejection', (reason) => {
+        const hooks = global.__on_error_hooks || [];
+        for (const hook of hooks) {
+            hook(reason).catch(() => {});
+        }
+    });
+}
+EOF
+        for my $l (split(/\n/, $err_hooks)) {
+            $push_out->($l, 0);
+        }
+    }
+    
+    # Register global request middleware (only on the file initializing the server)
+    if ($has_server) {
         my $mw = <<'EOF';
 app.use(async (req, res, next) => {
     try {
-        await __on_request(req, res);
+        const hooks = global.__on_request_hooks || [];
+        for (const hook of hooks) {
+            if (!res.headersSent) {
+                await hook(req, res);
+            }
+        }
         if (!res.headersSent) {
             next();
         }
@@ -277,46 +421,24 @@ EOF
         }
     }
     
-    # Register error hooks
-    if ($has_on_error) {
-        my $err_hooks = <<'EOF';
-process.on('uncaughtException', (err) => {
-    __on_error(err).catch(() => {});
-});
-process.on('unhandledRejection', (reason) => {
-    __on_error(reason).catch(() => {});
-});
-EOF
-        for my $l (split(/\n/, $err_hooks)) {
-            $push_out->($l, 0);
-        }
-    }
-    
-    # Register shutdown hooks
-    if ($has_on_shutdown) {
-        my $sd_hooks = <<'EOF';
-const __shutdown_wrapper = async () => {
-    try {
-        await __on_shutdown();
-    } catch(e) {}
-    process.exit(0);
-};
-process.on('SIGTERM', __shutdown_wrapper);
-process.on('SIGINT', __shutdown_wrapper);
-EOF
-        for my $l (split(/\n/, $sd_hooks)) {
-            $push_out->($l, 0);
-        }
-    }
-    
     # Start server
     if ($has_server && $server_port) {
         $push_out->("app.listen($server_port, () => console.log('Server started on port ' + $server_port));", 0);
     }
     
-    # Run on start hook
-    if ($has_on_start) {
-        $push_out->("__on_start().catch(console.error);", 0);
+    # Run all accumulated start hooks at the entry module
+    my $start_runner = <<'EOF';
+if (require.main === module) {
+    (async () => {
+        const hooks = global.__on_start_hooks || [];
+        for (const hook of hooks) {
+            await hook();
+        }
+    })().catch(console.error);
+}
+EOF
+    for my $l (split(/\n/, $start_runner)) {
+        $push_out->($l, 0);
     }
     
     # Join output

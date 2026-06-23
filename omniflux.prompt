@@ -33,7 +33,9 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
   - Route Handlers:
     - Short syntax: `GET "/path" (req, res) { ... }`, `POST "/path" (req, res) { ... }`
     - Natural syntax: `when receiving GET/POST request to "/path": { ... }` or `on GET "/path" { ... }`
-    - Within route handlers, support reading from query/body parameters naturally (e.g., `id from query` -> `req.query.id`, `name from body` -> `req.body.name`) and sending JSON responses (e.g., `respond with status 200 and json data` or `res.json(200, data)`).
+    - Within route handlers, support reading from query/body parameters naturally (e.g., `id from query` -> `req.query.id`, `name from body` -> `req.body.name`) and sending responses/redirects procedurally:
+      * `respond [with] status X and (json/html/text/file/template) Y` or `respond [with] (json/html/text/file/template) Y` (the word `with` after `respond` is optional) -> Transpile to corresponding Express response calls (`res.json()`, `res.send()`, `res.sendFile()`, or `res.send(template(Y))`).
+      * `redirect to X` or `redirect to X with status Y` -> Transpile to `res.redirect()` or `res.status(Y).redirect()`.
 
 - **Natural Logic & Common Tasks**:
   - Support high-level natural English statements for common operations (e.g., file reading/writing, regex search and replace, date formatting, array filtering). 
