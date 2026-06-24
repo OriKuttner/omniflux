@@ -487,6 +487,7 @@ To import another file's variables and tasks into your script, use `include` fol
 ```omniflux
 include "stdlib/datetime.of"
 include "stdlib/network.of"
+include "stdlib/system.of"
 ```
 
 ### 7.1 Date & Time Library (`stdlib/datetime.of`)
@@ -519,5 +520,27 @@ on start {
     # Submit data to an API
     var response = networkpost("https://httpbin.org/post", { username: "Alice" })
     print("Response status: %s", response.url)
+}
+```
+
+### 7.3 System Commands Library (`stdlib/system.of`)
+Provides tasks for executing commands in the host OS shell:
+* `system(command)`: Runs a command in the shell and returns its full output (stdout and stderr merged) as a string.
+* `exec(command)`: Runs a command in the shell and returns its exit status code (0 for success, non-zero for failure).
+```omniflux
+include "stdlib/system.of"
+
+on start {
+    # 1. Run a command and capture output
+    var folder_contents = system("ls -la")
+    print("Files:\n%s", folder_contents)
+    
+    # 2. Run a command and check success status
+    var status = exec("git status")
+    if status == 0 {
+        print("Git command completed successfully!")
+    } else {
+        print("Git command failed with status code: %d", status)
+    }
 }
 ```
