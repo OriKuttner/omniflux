@@ -25,3 +25,22 @@ define task exec(cmd) {
         });
     @}
 }
+
+define task spawn(cmd, args) {
+    @{
+        const { spawn } = require('child_process');
+        const child = spawn(cmd, args || [], { stdio: 'inherit', shell: true });
+        return child.pid;
+    @}
+}
+
+define task kill(pid, signal) {
+    @{
+        try {
+            process.kill(pid, signal || 'SIGTERM');
+            return true;
+        } catch (e) {
+            return false;
+        }
+    @}
+}
