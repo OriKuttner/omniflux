@@ -682,8 +682,10 @@ sub compile_locally {
             next;
         }
         
-        # Match route handlers
-        if ($line =~ /^\s*(GET|POST|PUT|DELETE)\s+["']([^"']+)["']\s*\((.*?)\)\s*\{/i) {
+        # Match route handlers (restore strings first since paths are in placeholders)
+        my $line_for_routes = $line;
+        $line_for_routes =~ s/__STR_PLACEHOLDER_(\d+)__/$strings[$1]/g;
+        if ($line_for_routes =~ /^\s*(GET|POST|PUT|DELETE)\s+["']([^"']+)["']\s*\((.*?)\)\s*\{/i) {
             my $method = lc($1);
             my $path = $2;
             my $params = $3;
@@ -709,6 +711,20 @@ sub compile_locally {
             my $status = $1;
             my $type = lc($2);
             my $content = $3;
+            # Collect multi-line content if braces are unbalanced
+            my $depth = ($content =~ tr/\{//) - ($content =~ tr/\}//);
+            while ($depth > 0 && $line_idx + 1 < scalar(@lines)) {
+                $line_idx++;
+                my $next = $lines[$line_idx];
+                $next =~ s/(\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*')|#(.*)/$1 ? $1 : ""/ge;
+                $next =~ s/\/\/.*$//;
+                $next =~ s/("(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*')/push(@strings, $1), "__STR_PLACEHOLDER_" . ($#strings) . "__"/ge;
+                $next =~ s/\$([a-zA-Z_]\w*)/global.vars.$1/g;
+                $next =~ s/^\s+//;
+                $content .= " " . $next;
+                $depth += ($next =~ tr/\{//) - ($next =~ tr/\}//);
+            }
+            $content =~ s/__STR_PLACEHOLDER_(\d+)__/$strings[$1]/g;
             if ($type eq 'json') {
                 $push_out->("res.status($status).json($content);", $orig_num);
             } elsif ($type eq 'file') {
@@ -726,6 +742,20 @@ sub compile_locally {
         if ($line =~ /^\s*respond\s+(?:with\s+)?(json|html|text|file|template)\b\s*(.*)/i) {
             my $type = lc($1);
             my $content = $2;
+            # Collect multi-line content if braces are unbalanced
+            my $depth = ($content =~ tr/\{//) - ($content =~ tr/\}//);
+            while ($depth > 0 && $line_idx + 1 < scalar(@lines)) {
+                $line_idx++;
+                my $next = $lines[$line_idx];
+                $next =~ s/(\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*')|#(.*)/$1 ? $1 : ""/ge;
+                $next =~ s/\/\/.*$//;
+                $next =~ s/("(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*')/push(@strings, $1), "__STR_PLACEHOLDER_" . ($#strings) . "__"/ge;
+                $next =~ s/\$([a-zA-Z_]\w*)/global.vars.$1/g;
+                $next =~ s/^\s+//;
+                $content .= " " . $next;
+                $depth += ($next =~ tr/\{//) - ($next =~ tr/\}//);
+            }
+            $content =~ s/__STR_PLACEHOLDER_(\d+)__/$strings[$1]/g;
             if ($type eq 'json') {
                 $push_out->("res.json($content);", $orig_num);
             } elsif ($type eq 'file') {
@@ -740,6 +770,40 @@ sub compile_locally {
         }
         
         # Match loops and conditionals
+        # Match single-line loops and conditionals
+        if ($line =~ /^\s*for\s+(\w+)\s+of\s+([^{]+)\s*\{\s*(.*?)\s*\}\s*$/i) {
+            my $var = $1;
+            my $list = $2;
+            my $body = $3;
+            $list =~ s/^\s+|\s+$//g;
+            $push_out->("for (let $var of $list) { $body }", $orig_num);
+            next;
+        }
+        if ($line =~ /^\s*while\s+([^{]+)\s*\{\s*(.*?)\s*\}\s*$/i) {
+            my $cond = $1;
+            my $body = $2;
+            $cond =~ s/^\s+|\s+$//g;
+            $cond = "($cond)" if $cond !~ /^\(.*\)$/;
+            $push_out->("while $cond { $body }", $orig_num);
+            next;
+        }
+        if ($line =~ /^\s*if\s+([^{]+)\s*\{\s*(.*?)\s*\}\s*$/i) {
+            my $cond = $1;
+            my $body = $2;
+            $cond =~ s/^\s+|\s+$//g;
+            $cond = "($cond)" if $cond !~ /^\(.*\)$/;
+            $push_out->("if $cond { $body }", $orig_num);
+            next;
+        }
+        if ($line =~ /^\s*else\s+if\s+([^{]+)\s*\{\s*(.*?)\s*\}\s*$/i) {
+            my $cond = $1;
+            my $body = $2;
+            $cond =~ s/^\s+|\s+$//g;
+            $cond = "($cond)" if $cond !~ /^\(.*\)$/;
+            $push_out->("else if $cond { $body }", $orig_num);
+            next;
+        }
+
         if ($line =~ /^\s*for\s+(\w+)\s+of\s+(.*?)\s*\{/i) {
             $push_out->("for (let $1 of $2) {", $orig_num);
             push @block_stack, { type => 'normal' };
@@ -974,6 +1038,7 @@ sub extract_referenced_variables {
         try catch throw new class this function let void delete typeof instanceof in switch case default break continue debugger
         include load extension rules from on start shutdown error request server port get post put patch use
         GET POST PUT DELETE PATCH listen respond html json redirect to wait second seconds
+        status and text file template every minute minutes hour hours describe do
     );
     
     while ($clean_line =~ /\b([a-zA-Z_]\w*)\b/g) {
