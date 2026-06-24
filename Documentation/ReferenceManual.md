@@ -334,7 +334,7 @@ OmniFlux provides simple, procedural statements for sending HTTP responses, full
 
 OmniFlux provides native bindings to common backend services, making setups extremely fast:
 
-* **Databases:** `dbquery(query, params)` (uses secure, prepared MySQL statements under the hood).
+* **Databases (Local JSON DB):** Built-in NoSQL document store functions (`dbinsert`, `dbselect`, `dbupdate`, `dbdelete`) that save to a local `db.json` file. Runs in memory for maximum read speed.
 * **Caching:** `cacheset(key, value, ttl)` and `cacheget(key)` (backed by Redis).
 * **File I/O:** Core file system operations:
   * `fileread(path)`: Reads file contents as a UTF-8 string.
@@ -372,6 +372,64 @@ OmniFlux provides native bindings to common backend services, making setups extr
     * **Static Inclusions:** `@include("templates/header.html")`
     * **SPA Interceptors:** Automatically injects a lightweight client-side script before `</body>` to intercept links and forms with `of-target="selector"`, enabling flicker-free SPA updates and server-driven script execution.
 
+
+### 4.1 Local JSON Database 🗄️
+
+OmniFlux includes a built-in, zero-setup database that stores your data in a local file (`db.json`). It runs entirely in memory for lightning-fast reads, making it perfect for blogs, catalogs, and basic websites.
+
+#### Core Concepts for Beginners
+* **Collection (אוסף):** Think of this as a category or a folder of records. For example, `"users"` or `"posts"`. Each collection contains a list of individual items.
+* **Document (מסמך):** A single record in a collection, represented as an object with key-value pairs (like `{ "name": "Alice", "role": "admin" }`).
+* **Filter (סינון):** A simple object used to search for matching records. For example, passing `{ "role": "admin" }` will find only those records where the role is `"admin"`. Passing an empty filter `{}` or `null` will retrieve everything.
+
+#### 1. Inserting Data (`dbinsert`)
+Adds a new item to a collection. It automatically generates a unique `id` for the record if you don't provide one.
+```omniflux
+# Save a new user to the "users" collection
+var new_user = dbinsert("users", { name: "Alice", email: "alice@example.com", age: 30 })
+
+# The returned object contains the auto-generated unique ID
+print("New user created with ID: %s", new_user.id)
+```
+
+#### 2. Querying & Finding Data (`dbselect`)
+Retrieves records matching a filter. **It always returns an array (a list) of items.**
+```omniflux
+# Find all users who are admins (using a filter)
+var admins = dbselect("users", { role: "admin" })
+
+# Loop through the list to print names
+for (var admin of admins) {
+    print("Admin: %s", admin.name)
+}
+
+# Find a single user by ID
+var results = dbselect("users", { id: "mqrlgor5eywc" })
+if len(results) > 0 {
+    var user = results[0]
+    print("Found user: %s", user.name)
+}
+
+# Retrieve everything in the collection (no filter)
+var all_users = dbselect("users")
+```
+
+#### 3. Updating Data (`dbupdate`)
+Modifies existing records in a collection matching a filter. Returns the number of updated items.
+```omniflux
+# Update age for the user with a specific ID
+var updated_count = dbupdate("users", { id: "mqrlgor5eywc" }, { age: 31 })
+print("Updated %d users.", updated_count)
+```
+
+#### 4. Deleting Data (`dbdelete`)
+Removes matching records from a collection. Returns the number of deleted items.
+```omniflux
+# Delete all users who are under 18
+var deleted_count = dbdelete("users", { age: 17 })
+print("Deleted %d users.", deleted_count)
+```
+
 ---
 
 ## 5. Compiler CLI Options 🛠️
@@ -382,3 +440,84 @@ The `omniflux` command line tool provides options to control how your code is co
 * `--compile-only` (or `--no-run`): Compiles the code to JavaScript without running the output file.
 * `--strict` (or `--no-llm`): Disables the AI self-healing fallback. If the local compiler encounters syntax it doesn't recognize or if there is a syntax error, the compilation fails immediately and displays the errors. This is ideal for offline development and CI/CD pipelines.
 * `--verbose` (or `-v`): Prints detailed usage statistics when communicating with the AI backend, such as the exact model used, request duration, input tokens, output tokens, and reasoning tokens.
+
+---
+
+## 6. Direct Node.js / JavaScript Integration (`@{ ... @}`) ⚡
+
+OmniFlux is designed to keep development simple and clean. However, when you need direct access to the Node.js ecosystem, npm modules, or raw JavaScript APIs, you can write JavaScript code directly inside an escape block using the `@{` and `@}` markers.
+
+### How it works
+* Everything written between `@{` and `@}` is copied **verbatim** (exactly as written) to the output JavaScript file.
+* The OmniFlux compiler does not parse or validate the contents of the block, meaning you can write complex JavaScript syntax (loops, objects, async code) without triggering compiler warnings.
+* You can access and return variables defined in the surrounding OmniFlux code.
+
+### 1. Reading a file using Node's standard `fs` library
+```omniflux
+define task read_config_file {
+    # Escape to Node.js to read a file using the native fs module
+    @{
+        const fs = require('fs');
+        const data = fs.readFileSync('config.json', 'utf8');
+        return JSON.parse(data);
+    @}
+}
+```
+
+### 2. Performing native JavaScript calculations or operations
+```omniflux
+define task get_js_time {
+    @{
+        return new Date().toISOString();
+    @}
+}
+```
+
+### 3. Error Handling and Line Mapping
+If an error occurs inside your `@{ ... @}` block at runtime, the OmniFlux runtime automatically catches the error and maps the line number back to the exact line in your `.of` source file, making debugging extremely easy!
+
+---
+
+## 7. Standard Libraries & Inclusions (`include`) 📦
+
+OmniFlux allows modularizing your code using the `include` directive. The standard library (`stdlib/`) contains pre-built tasks for common activities.
+
+### The `include` Directive
+To import another file's variables and tasks into your script, use `include` followed by the relative path of the file:
+```omniflux
+include "stdlib/datetime.of"
+include "stdlib/network.of"
+```
+
+### 7.1 Date & Time Library (`stdlib/datetime.of`)
+Provides simplified tasks for reading and formatting dates:
+* `datetime_now()`: Returns the current Unix timestamp.
+* `datetime_format(timestamp, format_string)`: Formats a Unix timestamp. Supported tokens are `YYYY` (year), `MM` (month), `DD` (day), `HH` (hour), `mm` (minute), and `ss` (seconds).
+```omniflux
+include "stdlib/datetime.of"
+
+on start {
+    var now = datetime_now()
+    var pretty_date = datetime_format(now, "YYYY-MM-DD HH:mm:ss")
+    print("Current time: %s", pretty_date)
+}
+```
+
+### 7.2 Network Library (`stdlib/network.of`)
+Provides tasks for sending HTTP requests and talking to public APIs:
+* `networkget(url)`: Performs an HTTP GET request to the specified URL. Automatically parses and returns JSON if the response is JSON, otherwise returns plain text.
+* `networkpost(url, data)`: Performs an HTTP POST request to the specified URL, sending the data payload (either an object or a raw string).
+```omniflux
+include "stdlib/network.of"
+
+on start {
+    # Fetch a joke from a public API
+    var joke = networkget("https://official-joke-api.appspot.com/random_joke")
+    print("Joke: %s", joke.setup)
+    print("Answer: %s", joke.punchline)
+    
+    # Submit data to an API
+    var response = networkpost("https://httpbin.org/post", { username: "Alice" })
+    print("Response status: %s", response.url)
+}
+```
