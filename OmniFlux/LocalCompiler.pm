@@ -122,6 +122,242 @@ sub compile_locally {
         }
     }
     
+    # Syntax Validation and Node Block Detection Pass
+    my %node_block_lines;
+    my @brace_stack;   # stores { line => X, type => Y }
+    my @paren_stack;   # stores { line => X }
+    my @bracket_stack; # stores { line => X }
+    my $in_multiline_comment = 0;
+    my $multiline_comment_start_line = 0;
+    my $in_node_block = 0;
+    my $node_block_start_line = 0;
+    my $node_block_brace_depth = 0;
+    my $last_word = "";
+    my $in_definition_state = 0;
+    my %closed_blocks;
+    
+    my @validation_lines = split(/\n/, $source_code);
+    for (my $line_idx = 0; $line_idx < @validation_lines; $line_idx++) {
+        my $line = $validation_lines[$line_idx];
+        my $orig_line = $line;
+        my $orig_num = $line_idx + 1;
+        
+        my $len = length($line);
+        my $i = 0;
+        my $in_string = 0; # 0, ' or "
+        my $escaped = 0;
+        
+        while ($i < $len) {
+            my $char = substr($line, $i, 1);
+            
+            if ($escaped) {
+                $escaped = 0;
+                $i++;
+                next;
+            }
+            if ($in_string) {
+                if ($char eq '\\') {
+                    $escaped = 1;
+                } elsif ($char eq $in_string) {
+                    $in_string = 0;
+                }
+                $i++;
+                next;
+            }
+            if ($in_multiline_comment) {
+                if ($char eq '*' && $i + 1 < $len && substr($line, $i + 1, 1) eq '/') {
+                    $in_multiline_comment = 0;
+                    $i += 2;
+                } else {
+                    $i++;
+                }
+                next;
+            }
+            if ($char eq '"' || $char eq "'") {
+                $in_string = $char;
+                $i++;
+                $last_word = "";
+                next;
+            }
+            if ($char eq '/' && $i + 1 < $len && substr($line, $i + 1, 1) eq '*') {
+                $in_multiline_comment = 1;
+                $multiline_comment_start_line = $orig_num;
+                $i += 2;
+                $last_word = "";
+                next;
+            }
+            if ($char eq '#' || ($char eq '/' && $i + 1 < $len && substr($line, $i + 1, 1) eq '/')) {
+                last;
+            }
+            
+            if ($char =~ /\s/) {
+                $i++;
+                next;
+            }
+            
+            if (substr($line, $i) =~ /^([a-zA-Z_]\w*)/) {
+                my $word = $1;
+                $last_word = $word;
+                if ($word =~ /^(?:define|task|fn|on|GET|POST|PUT|DELETE|PATCH)$/) {
+                    $in_definition_state = 1;
+                }
+                $i += length($word);
+                next;
+            }
+            
+            if ($char eq '{') {
+                if ($last_word eq 'node') {
+                    $in_node_block = 1;
+                    $node_block_start_line = $orig_num;
+                    $node_block_brace_depth = 1;
+                    $node_block_lines{$orig_num} = 1;
+                } else {
+                    if ($in_definition_state && @brace_stack > 0) {
+                        my $parent = $brace_stack[-1];
+                        print "\n";
+                        print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
+                        print "$orig_line\n";
+                        print " " x $i . "^\n";
+                        print color('bold yellow') . "SyntaxError: Nested definition of task or lifecycle hook is not allowed (nested inside block opened on line " . $parent->{line} . ")\n" . color('reset');
+                        print "\n";
+                        unlink($target_js) if -e $target_js;
+                        return undef;
+                    }
+                    push @brace_stack, { line => $orig_num, type => ($last_word || "block") };
+                }
+                $last_word = "";
+                $in_definition_state = 0;
+            } elsif ($char eq '}') {
+                if ($in_node_block) {
+                    $node_block_brace_depth--;
+                    if ($node_block_brace_depth == 0) {
+                        $in_node_block = 0;
+                    }
+                } else {
+                    if (@brace_stack == 0) {
+                        print "\n";
+                        print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
+                        print "$orig_line\n";
+                        print " " x $i . "^\n";
+                        print color('bold yellow') . "SyntaxError: Unexpected closing brace '}' without a matching '{'\n" . color('reset');
+                        if (keys %closed_blocks) {
+                            print color('cyan');
+                            print "Recent block closures that might have caused this early termination:\n";
+                            for my $close_line (sort { $a <=> $b } keys %closed_blocks) {
+                                my $binfo = $closed_blocks{$close_line};
+                                print "  - Block '" . $binfo->{type} . "' opened on line " . $binfo->{line} . " was closed on line $close_line\n";
+                            }
+                            print color('reset');
+                        }
+                        print "\n";
+                        unlink($target_js) if -e $target_js;
+                        return undef;
+                    }
+                    my $opened = pop @brace_stack;
+                    $closed_blocks{$orig_num} = $opened;
+                }
+                $last_word = "";
+            } elsif ($char eq '(') {
+                if (!$in_node_block) {
+                    push @paren_stack, { line => $orig_num };
+                }
+                $last_word = "";
+            } elsif ($char eq ')') {
+                if (!$in_node_block) {
+                    if (@paren_stack == 0) {
+                        print "\n";
+                        print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
+                        print "$orig_line\n";
+                        print " " x $i . "^\n";
+                        print color('bold yellow') . "SyntaxError: Unexpected closing parenthesis ')' without a matching '('\n" . color('reset');
+                        print "\n";
+                        unlink($target_js) if -e $target_js;
+                        return undef;
+                    }
+                    pop @paren_stack;
+                }
+                $last_word = "";
+            } elsif ($char eq '[') {
+                if (!$in_node_block) {
+                    push @bracket_stack, { line => $orig_num };
+                }
+                $last_word = "";
+            } elsif ($char eq ']') {
+                if (!$in_node_block) {
+                    if (@bracket_stack == 0) {
+                        print "\n";
+                        print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
+                        print "$orig_line\n";
+                        print " " x $i . "^\n";
+                        print color('bold yellow') . "SyntaxError: Unexpected closing bracket ']' without a matching '['\n" . color('reset');
+                        print "\n";
+                        unlink($target_js) if -e $target_js;
+                        return undef;
+                    }
+                    pop @bracket_stack;
+                }
+                $last_word = "";
+            } else {
+                $last_word = "";
+                $in_definition_state = 0;
+            }
+            
+            $i++;
+        }
+        
+        if ($in_node_block) {
+            $node_block_lines{$orig_num} = 1;
+        }
+    }
+    
+    if ($in_multiline_comment) {
+        print "\n";
+        print color('bold red') . "Compilation Error in " . basename($src_file) . ":\n" . color('reset');
+        print color('bold yellow') . "SyntaxError: Unclosed multiline comment opened on line $multiline_comment_start_line\n" . color('reset');
+        print "\n";
+        unlink($target_js) if -e $target_js;
+        return undef;
+    }
+    
+    if ($in_node_block) {
+        print "\n";
+        print color('bold red') . "Compilation Error in " . basename($src_file) . ":\n" . color('reset');
+        print color('bold yellow') . "SyntaxError: Unclosed node block opened on line $node_block_start_line\n" . color('reset');
+        print "\n";
+        unlink($target_js) if -e $target_js;
+        return undef;
+    }
+    
+    if (@brace_stack > 0) {
+        my $first = $brace_stack[0];
+        print "\n";
+        print color('bold red') . "Compilation Error in " . basename($src_file) . ":\n" . color('reset');
+        print color('bold yellow') . "SyntaxError: Unclosed block '" . $first->{type} . "' opened on line " . $first->{line} . "\n" . color('reset');
+        print "\n";
+        unlink($target_js) if -e $target_js;
+        return undef;
+    }
+    
+    if (@paren_stack > 0) {
+        my $first = $paren_stack[0];
+        print "\n";
+        print color('bold red') . "Compilation Error in " . basename($src_file) . ":\n" . color('reset');
+        print color('bold yellow') . "SyntaxError: Unclosed parenthesis '(' opened on line " . $first->{line} . "\n" . color('reset');
+        print "\n";
+        unlink($target_js) if -e $target_js;
+        return undef;
+    }
+    
+    if (@bracket_stack > 0) {
+        my $first = $bracket_stack[0];
+        print "\n";
+        print color('bold red') . "Compilation Error in " . basename($src_file) . ":\n" . color('reset');
+        print color('bold yellow') . "SyntaxError: Unclosed bracket '[' opened on line " . $first->{line} . "\n" . color('reset');
+        print "\n";
+        unlink($target_js) if -e $target_js;
+        return undef;
+    }
+
     my @lines = split(/\n/, $source_code);
     my @output_lines;
     my @line_map;
@@ -173,6 +409,13 @@ sub compile_locally {
         my $line = $lines[$line_idx];
         my $orig_line = $line;
         my $orig_num = $line_idx + 1;
+        
+        if ($node_block_lines{$orig_num}) {
+            $line =~ s/\bnode\s*(?=\{)//g;
+            $comment = "";
+            $push_out->($line, $orig_num);
+            next;
+        }
         
         # 1. Detect global variables and register them dynamically
         while ($line =~ /\$([a-zA-Z_]\w*)/g) {
@@ -638,7 +881,14 @@ if (require.main === module) {
         for (const hook of hooks) {
             await hook();
         }
-    })().catch(console.error);
+    })().catch(err => {
+        if (typeof formatRuntimeError === 'function') {
+            formatRuntimeError(err);
+        } else {
+            console.error(err);
+        }
+        process.exit(1);
+    });
 }
 EOF
     for my $l (split(/\n/, $start_runner)) {
@@ -716,7 +966,7 @@ sub extract_referenced_variables {
     my @refs;
     
     my %keywords = map { $_ => 1 } qw(
-        if else while for of return define task fn var const background call with as int string ref true false null undefined
+        if else while for of return define task fn var const background call with as int string ref true false null undefined node
         try catch throw new class this function let void delete typeof instanceof in switch case default break continue debugger
         include load extension rules from on start shutdown error request server port get post put patch use
         GET POST PUT DELETE PATCH listen respond html json redirect to wait second seconds
