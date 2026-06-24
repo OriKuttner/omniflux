@@ -131,7 +131,6 @@ sub compile_locally {
     my $multiline_comment_start_line = 0;
     my $in_node_block = 0;
     my $node_block_start_line = 0;
-    my $node_block_brace_depth = 0;
     my $last_word = "";
     my $in_definition_state = 0;
     my %closed_blocks;
@@ -150,9 +149,28 @@ sub compile_locally {
         while ($i < $len) {
             my $char = substr($line, $i, 1);
             
+            if ($in_node_block) {
+                $node_block_lines{$orig_num} = 1;
+                if ($char eq '@' && $i + 1 < $len && substr($line, $i + 1, 1) eq '}') {
+                    $in_node_block = 0;
+                    $i += 2;
+                } else {
+                    $i++;
+                }
+                next;
+            }
+            
             if ($escaped) {
                 $escaped = 0;
                 $i++;
+                next;
+            }
+            
+            if ($char eq '@' && $i + 1 < $len && substr($line, $i + 1, 1) eq '{') {
+                $in_node_block = 1;
+                $node_block_start_line = $orig_num;
+                $node_block_lines{$orig_num} = 1;
+                $i += 2;
                 next;
             }
             if ($in_string) {
@@ -206,56 +224,42 @@ sub compile_locally {
             }
             
             if ($char eq '{') {
-                if ($last_word eq 'node') {
-                    $in_node_block = 1;
-                    $node_block_start_line = $orig_num;
-                    $node_block_brace_depth = 1;
-                    $node_block_lines{$orig_num} = 1;
-                } else {
-                    if ($in_definition_state && @brace_stack > 0) {
-                        my $parent = $brace_stack[-1];
-                        print "\n";
-                        print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
-                        print "$orig_line\n";
-                        print " " x $i . "^\n";
-                        print color('bold yellow') . "SyntaxError: Nested definition of task or lifecycle hook is not allowed (nested inside block opened on line " . $parent->{line} . ")\n" . color('reset');
-                        print "\n";
-                        unlink($target_js) if -e $target_js;
-                        return undef;
-                    }
-                    push @brace_stack, { line => $orig_num, type => ($last_word || "block") };
+                if ($in_definition_state && @brace_stack > 0) {
+                    my $parent = $brace_stack[-1];
+                    print "\n";
+                    print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
+                    print "$orig_line\n";
+                    print " " x $i . "^\n";
+                    print color('bold yellow') . "SyntaxError: Nested definition of task or lifecycle hook is not allowed (nested inside block opened on line " . $parent->{line} . ")\n" . color('reset');
+                    print "\n";
+                    unlink($target_js) if -e $target_js;
+                    return undef;
                 }
+                push @brace_stack, { line => $orig_num, type => ($last_word || "block") };
                 $last_word = "";
                 $in_definition_state = 0;
             } elsif ($char eq '}') {
-                if ($in_node_block) {
-                    $node_block_brace_depth--;
-                    if ($node_block_brace_depth == 0) {
-                        $in_node_block = 0;
-                    }
-                } else {
-                    if (@brace_stack == 0) {
-                        print "\n";
-                        print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
-                        print "$orig_line\n";
-                        print " " x $i . "^\n";
-                        print color('bold yellow') . "SyntaxError: Unexpected closing brace '}' without a matching '{'\n" . color('reset');
-                        if (keys %closed_blocks) {
-                            print color('cyan');
-                            print "Recent block closures that might have caused this early termination:\n";
-                            for my $close_line (sort { $a <=> $b } keys %closed_blocks) {
-                                my $binfo = $closed_blocks{$close_line};
-                                print "  - Block '" . $binfo->{type} . "' opened on line " . $binfo->{line} . " was closed on line $close_line\n";
-                            }
-                            print color('reset');
+                if (@brace_stack == 0) {
+                    print "\n";
+                    print color('bold red') . "Compilation Error in " . basename($src_file) . " on line $orig_num:\n" . color('reset');
+                    print "$orig_line\n";
+                    print " " x $i . "^\n";
+                    print color('bold yellow') . "SyntaxError: Unexpected closing brace '}' without a matching '{'\n" . color('reset');
+                    if (keys %closed_blocks) {
+                        print color('cyan');
+                        print "Recent block closures that might have caused this early termination:\n";
+                        for my $close_line (sort { $a <=> $b } keys %closed_blocks) {
+                            my $binfo = $closed_blocks{$close_line};
+                            print "  - Block '" . $binfo->{type} . "' opened on line " . $binfo->{line} . " was closed on line $close_line\n";
                         }
-                        print "\n";
-                        unlink($target_js) if -e $target_js;
-                        return undef;
+                        print color('reset');
                     }
-                    my $opened = pop @brace_stack;
-                    $closed_blocks{$orig_num} = $opened;
+                    print "\n";
+                    unlink($target_js) if -e $target_js;
+                    return undef;
                 }
+                my $opened = pop @brace_stack;
+                $closed_blocks{$orig_num} = $opened;
                 $last_word = "";
             } elsif ($char eq '(') {
                 if (!$in_node_block) {
@@ -322,7 +326,7 @@ sub compile_locally {
     if ($in_node_block) {
         print "\n";
         print color('bold red') . "Compilation Error in " . basename($src_file) . ":\n" . color('reset');
-        print color('bold yellow') . "SyntaxError: Unclosed node block opened on line $node_block_start_line\n" . color('reset');
+        print color('bold yellow') . "SyntaxError: Unclosed JS escape block '\@{' opened on line $node_block_start_line\n" . color('reset');
         print "\n";
         unlink($target_js) if -e $target_js;
         return undef;
@@ -411,7 +415,8 @@ sub compile_locally {
         my $orig_num = $line_idx + 1;
         
         if ($node_block_lines{$orig_num}) {
-            $line =~ s/\bnode\s*(?=\{)//g;
+            $line =~ s/\@\{//g;
+            $line =~ s/\@\}//g;
             $comment = "";
             $push_out->($line, $orig_num);
             next;
@@ -966,7 +971,7 @@ sub extract_referenced_variables {
     my @refs;
     
     my %keywords = map { $_ => 1 } qw(
-        if else while for of return define task fn var const background call with as int string ref true false null undefined node
+        if else while for of return define task fn var const background call with as int string ref true false null undefined
         try catch throw new class this function let void delete typeof instanceof in switch case default break continue debugger
         include load extension rules from on start shutdown error request server port get post put patch use
         GET POST PUT DELETE PATCH listen respond html json redirect to wait second seconds
