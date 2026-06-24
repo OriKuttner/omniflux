@@ -19,14 +19,37 @@ sub strip_comments {
     my $i = 0;
     my $comment_depth = 0;
     my $comment_start_line = 1;
+    my $in_string = 0;
     
     # Track line numbers to report comment start line
     my $current_line = 1;
     
     while ($i < $len) {
         if ($comment_depth == 0) {
+            if ($in_string) {
+                my $c = substr($content, $i, 1);
+                $stripped .= $c;
+                if ($c eq '\\') {
+                    if ($i + 1 < $len) {
+                        $stripped .= substr($content, $i + 1, 1);
+                        $i++;
+                    }
+                } elsif ($c eq $in_string) {
+                    $in_string = 0;
+                }
+                if ($c eq "\n") {
+                    $current_line++;
+                }
+                $i++;
+            }
+            # Check for string start
+            elsif (substr($content, $i, 1) eq '"' || substr($content, $i, 1) eq "'") {
+                $in_string = substr($content, $i, 1);
+                $stripped .= $in_string;
+                $i++;
+            }
             # Check for block comment start
-            if ($i + 1 < $len && substr($content, $i, 2) eq '/*') {
+            elsif ($i + 1 < $len && substr($content, $i, 2) eq '/*') {
                 $comment_depth = 1;
                 $comment_start_line = $current_line;
                 $i += 2;

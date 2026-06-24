@@ -1,0 +1,49 @@
+# network.of - OmniFlux HTTP/Network Standard Library
+
+define task networkget(url) {
+    @{
+        try {
+            const res = await fetch(url);
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch(e) {
+                return text;
+            }
+        } catch(err) {
+            throw new Error("HTTP GET request failed: " + err.message);
+        }
+    @}
+}
+
+define task network_get(url) {
+    return networkget(url)
+}
+
+define task networkpost(url, data) {
+    @{
+        try {
+            const isObject = typeof data === 'object' && data !== null;
+            const headers = isObject ? { 'Content-Type': 'application/json' } : {};
+            const body = isObject ? JSON.stringify(data) : data;
+            
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: headers,
+                body: body
+            });
+            const text = await res.text();
+            try {
+                return JSON.parse(text);
+            } catch(e) {
+                return text;
+            }
+        } catch(err) {
+            throw new Error("HTTP POST request failed: " + err.message);
+        }
+    @}
+}
+
+define task network_post(url, data) {
+    return networkpost(url, data)
+}

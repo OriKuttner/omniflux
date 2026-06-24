@@ -16,8 +16,6 @@ sub compile_locally {
     
     # Pre-scan for all async tasks
     my %async_tasks = (
-        db_query => 1,
-        dbquery => 1,
         cache_set => 1,
         cacheset => 1,
         cache_get => 1,
@@ -42,7 +40,8 @@ sub compile_locally {
     for my $g (qw(
         print printf fprint fprintf readchar read_char fileread file_read filewrite file_write fileexists file_exists
         fileappend file_append filedelete file_delete filecopy file_copy filerename file_rename
-        dirlist dir_list filestat file_stat dbquery db_query cacheset cache_set cacheget cache_get
+        dirlist dir_list filestat file_stat cacheset cache_set cacheget cache_get
+        dbinsert db_insert dbselect db_select dbupdate db_update dbdelete db_delete
         len strsplit str_split match arraypush array_push arraypop array_pop arraycontains array_contains
         arrayjoin array_join arrayslice array_slice time dateyear date_year datemonth date_month
         dateday date_day datehour date_hour dateminute date_minute datesecond date_second template describe

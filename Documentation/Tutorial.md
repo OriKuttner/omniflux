@@ -154,7 +154,7 @@ OmniFlux comes out of the box with standard procedural utilities:
 | `readchar()` | Reads a single character/keypress from stdin |
 | `fileread(path)` | Reads the contents of a file |
 | `filewrite(path, data)` | Writes data to a file |
-| `dbquery(sql, params)` | Executes a MySQL database query |
+| `dbinsert(coll, doc)` / `dbselect(coll, filter)` | Writes and reads from the local JSON database |
 | `cacheget(key)` / `cacheset(...)` | Gets or sets values in Redis |
 | `time()` | Returns current Unix timestamp |
 

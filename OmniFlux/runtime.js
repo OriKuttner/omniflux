@@ -189,22 +189,140 @@ function filestat(path) {
     };
 }
 
-// --- Databases (Lazy Loaded) ---
-let mysqlModule = null;
-let dbPool = null;
-async function dbquery(query, params) {
-    if (!mysqlModule) {
-        mysqlModule = require('mysql2/promise');
+// --- Databases (Local JSON DB) ---
+const DB_FILE = process.env.DB_FILE || 'db.json';
+let cachedDb = null;
+
+function loadDb() {
+    if (cachedDb) {
+        return cachedDb;
     }
-    if (!dbPool) {
-        const host = process.env.DB_HOST || 'localhost';
-        const user = process.env.DB_USER || 'root';
-        const password = process.env.DB_PASSWORD || '';
-        const database = process.env.DB_NAME;
-        dbPool = mysqlModule.createPool({ host, user, password, database });
+    try {
+        if (fs.existsSync(DB_FILE)) {
+            const content = fs.readFileSync(DB_FILE, 'utf8');
+            cachedDb = JSON.parse(content || '{}');
+            return cachedDb;
+        }
+    } catch (e) {
+        // Fallback to empty if read/parse fails
     }
-    const [rows] = await dbPool.execute(query, params);
-    return rows;
+    cachedDb = {};
+    return cachedDb;
+}
+
+function saveDb(data) {
+    cachedDb = data;
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+}
+
+function dbinsert(collection, doc) {
+    if (typeof collection !== 'string') throw new Error('Collection name must be a string');
+    if (!doc || typeof doc !== 'object') throw new Error('Document must be an object');
+    
+    const db = loadDb();
+    if (!db[collection]) {
+        db[collection] = [];
+    }
+    
+    const newDoc = { ...doc };
+    if (newDoc.id === undefined) {
+        newDoc.id = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+    }
+    
+    db[collection].push(newDoc);
+    saveDb(db);
+    return newDoc;
+}
+
+function dbselect(collection, filter) {
+    if (typeof collection !== 'string') throw new Error('Collection name must be a string');
+    
+    const db = loadDb();
+    const list = db[collection] || [];
+    
+    if (!filter || typeof filter !== 'object' || Object.keys(filter).length === 0) {
+        return list.map(d => ({ ...d }));
+    }
+    
+    return list
+        .filter(doc => {
+            for (const key in filter) {
+                if (doc[key] !== filter[key]) {
+                    return false;
+                }
+            }
+            return true;
+        })
+        .map(d => ({ ...d }));
+}
+
+function dbupdate(collection, filter, update) {
+    if (typeof collection !== 'string') throw new Error('Collection name must be a string');
+    if (!update || typeof update !== 'object') throw new Error('Update payload must be an object');
+    
+    const db = loadDb();
+    const list = db[collection] || [];
+    let count = 0;
+    
+    for (let i = 0; i < list.length; i++) {
+        const doc = list[i];
+        let matches = true;
+        
+        if (filter && typeof filter === 'object') {
+            for (const key in filter) {
+                if (doc[key] !== filter[key]) {
+                    matches = false;
+                    break;
+                }
+            }
+        }
+        
+        if (matches) {
+            list[i] = { ...doc, ...update };
+            count++;
+        }
+    }
+    
+    if (count > 0) {
+        db[collection] = list;
+        saveDb(db);
+    }
+    
+    return count;
+}
+
+function dbdelete(collection, filter) {
+    if (typeof collection !== 'string') throw new Error('Collection name must be a string');
+    
+    const db = loadDb();
+    const list = db[collection] || [];
+    let count = 0;
+    const newList = [];
+    
+    for (const doc of list) {
+        let matches = true;
+        if (filter && typeof filter === 'object') {
+            for (const key in filter) {
+                if (doc[key] !== filter[key]) {
+                    matches = false;
+                    break;
+                }
+            }
+        }
+        
+        if (matches) {
+            count++;
+        } else {
+            newList.push(doc);
+        }
+    }
+    
+    if (count > 0) {
+        db[collection] = newList;
+        saveDb(db);
+    }
+    
+    return count;
 }
 
 // --- Caching (Lazy Loaded) ---
@@ -538,8 +656,14 @@ global.dir_list = dirlist;
 global.filestat = filestat;
 global.file_stat = filestat;
 
-global.dbquery = dbquery;
-global.db_query = dbquery;
+global.dbinsert = dbinsert;
+global.db_insert = dbinsert;
+global.dbselect = dbselect;
+global.db_select = dbselect;
+global.dbupdate = dbupdate;
+global.db_update = dbupdate;
+global.dbdelete = dbdelete;
+global.db_delete = dbdelete;
 
 global.cacheset = cacheset;
 global.cache_set = cacheset;
