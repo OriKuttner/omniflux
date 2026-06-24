@@ -418,6 +418,12 @@ function arraypush(arr, item) {
     }
 }
 
+function arrayunshift(arr, item) {
+    if (Array.isArray(arr)) {
+        arr.unshift(item);
+    }
+}
+
 function arraypop(arr) {
     if (Array.isArray(arr)) {
         return arr.pop();
@@ -680,6 +686,9 @@ global.match = match;
 
 global.arraypush = arraypush;
 global.array_push = arraypush;
+
+global.arrayunshift = arrayunshift;
+global.array_unshift = arrayunshift;
 
 global.arraypop = arraypop;
 global.array_pop = arraypop;

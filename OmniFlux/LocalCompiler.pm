@@ -42,7 +42,7 @@ sub compile_locally {
         fileappend file_append filedelete file_delete filecopy file_copy filerename file_rename
         dirlist dir_list filestat file_stat cacheset cache_set cacheget cache_get
         dbinsert db_insert dbselect db_select dbupdate db_update dbdelete db_delete
-        len strsplit str_split match arraypush array_push arraypop array_pop arraycontains array_contains
+        len strsplit str_split match arraypush array_push arrayunshift array_unshift arraypop array_pop arraycontains array_contains
         arrayjoin array_join arrayslice array_slice time dateyear date_year datemonth date_month
         dateday date_day datehour date_hour dateminute date_minute datesecond date_second template describe
         args global console require module process Math JSON Array Object String Number Boolean Error
@@ -579,8 +579,8 @@ sub compile_locally {
             my @params = split(/\s*,\s*/, $params_str);
             my $params_joined = join(', ', @params);
             push @tasks, $name;
-            $push_out->("async function $name($params_joined) {", $orig_num);
-            push @block_stack, { type => 'normal' };
+            $push_out->("async function $name($params_joined) { try {", $orig_num);
+            push @block_stack, { type => 'task' };
             next;
         }
         # Match standard or parameterless define task (using parentheses or no parameters)
@@ -588,8 +588,8 @@ sub compile_locally {
             my $name = $1;
             my $params = $2 || "";
             push @tasks, $name;
-            $push_out->("async function $name($params) {", $orig_num);
-            push @block_stack, { type => 'normal' };
+            $push_out->("async function $name($params) { try {", $orig_num);
+            push @block_stack, { type => 'task' };
             next;
         }
         
@@ -689,7 +689,7 @@ sub compile_locally {
             my $method = lc($1);
             my $path = $2;
             my $params = $3;
-            $push_out->("app.$method(\"$path\", async ($params) => {", $orig_num);
+            $push_out->("app.$method(\"$path\", async ($params) => { try {", $orig_num);
             push @block_stack, { type => 'route' };
             next;
         }
@@ -803,6 +803,13 @@ sub compile_locally {
             $push_out->("else if $cond { $body }", $orig_num);
             next;
         }
+        if ($line =~ /^\s*\}\s*on\s+error\s*\((.*?)\)\s*\{\s*(.*?)\s*\}\s*$/i) {
+            my $var = $1;
+            my $body = $2;
+            pop @block_stack;
+            $push_out->("} catch ($var) { $body }", $orig_num);
+            next;
+        }
 
         if ($line =~ /^\s*for\s+(\w+)\s+of\s+(.*?)\s*\{/i) {
             $push_out->("for (let $1 of $2) {", $orig_num);
@@ -830,6 +837,44 @@ sub compile_locally {
             push @block_stack, { type => 'normal' };
             next;
         }
+        elsif ($line =~ /^\s*\}\s*on\s+error\s*\((.*?)\)\s*\{/i) {
+            my $var = $1;
+            my $block = pop @block_stack;
+            if ($block && ($block->{type} eq 'route' || $block->{type} eq 'task')) {
+                $push_out->("} catch ($var) {", $orig_num);
+                push @block_stack, { type => $block->{type} . '_error' };
+            } else {
+                $push_out->("} catch ($var) {", $orig_num);
+                push @block_stack, { type => 'task_error' };
+            }
+            next;
+        }
+        elsif ($line =~ /^\s*(?:(let|const)\s+(\w+)\s*=\s*)?([^\}\s].*?)\s+on\s+error\s*\((.*?)\)\s*\{\s*(.*?)\s*\}\s*$/i) {
+            my $decl = $1;
+            my $var = $2;
+            my $expr = $3;
+            my $err_var = $4;
+            my $body = $5;
+            if ($decl) {
+                $push_out->("let $var; try { $var = $expr; } catch ($err_var) { $body }", $orig_num);
+            } else {
+                $push_out->("try { $expr; } catch ($err_var) { $body }", $orig_num);
+            }
+            next;
+        }
+        elsif ($line =~ /^\s*(?:(let|const)\s+(\w+)\s*=\s*)?([^\}\s].*?)\s+on\s+error\s*\((.*?)\)\s*\{/i) {
+            my $decl = $1;
+            my $var = $2;
+            my $expr = $3;
+            my $err_var = $4;
+            if ($decl) {
+                $push_out->("let $var; try { $var = $expr; } catch ($err_var) {", $orig_num);
+            } else {
+                $push_out->("try { $expr; } catch ($err_var) {", $orig_num);
+            }
+            push @block_stack, { type => 'normal' };
+            next;
+        }
         
         # Handle block openings and closings
         if ($line =~ /\{/ && $line !~ /\}/) {
@@ -842,7 +887,16 @@ sub compile_locally {
                 $line =~ s/\}/\}, $block->{ms}\)/;
             }
             elsif ($block && $block->{type} eq 'route') {
-                $line =~ s/\}/\});/;
+                $line =~ s/\}/\n    } catch (err) {\n        if (typeof next === "function") { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } } \n    }\n\}\);/;
+            }
+            elsif ($block && $block->{type} eq 'route_error') {
+                $line =~ s/\}/\}\n\}\);/;
+            }
+            elsif ($block && $block->{type} eq 'task') {
+                $line =~ s/\}/\n    } catch (err) { throw err; }\n\}/;
+            }
+            elsif ($block && $block->{type} eq 'task_error') {
+                $line =~ s/\}/\}\n\}/;
             }
         }
         
