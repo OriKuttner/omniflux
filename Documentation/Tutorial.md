@@ -15,6 +15,7 @@ OmniFlux is designed as a **frictionless, purely procedural scripting language**
 *   **Frictionless Async:** Every asynchronous operation (like reading a file, querying a database, or contacting a server) is automatically awaited. You write simple, linear code without having to think about promises, callbacks, or `async`/`await` keywords.
 *   **Safe Globals:** Accessing global variables is frictionless. Undeclared globals safely return `null` (similar to PHP) rather than crashing the system, preventing unexpected runtime errors while you iterate.
 *   **Strict Locals:** While globals are flexible, local variables are strictly verified at compile-time to protect you from simple typos.
+*   **A Compiler That Helps, Not Fights:** When syntax errors occur (like a forgotten or extra closing brace), the compiler guides you directly to the cause. If a block is closed prematurely, the compiler lists recent block closures (with their exact open and close line numbers) so you can pinpoint the issue immediately instead of hunting through unrelated lines.
 
 > [!NOTE]
 > OmniFlux code is compiled to standard JavaScript and bundled for execution using a high-performance engine, giving you the simplicity of a scripting language with the speed and ecosystem of Node.js.
