@@ -91,6 +91,15 @@ Tasks (or functions) in OmniFlux are declared using the `define task` syntax. Th
     ```omniflux
     greet_user with "Charlie", 30
     ```
+
+    > [!NOTE]
+    > **Syntax Design:** Natural parameter calls using `with` are designed to be written on a **single physical line** for a clean, sentence-like reading flow. If you prefer to format and split arguments across multiple lines for better layout structure, use standard parenthesized calls:
+    > ```omniflux
+    > greet_user(
+    >     "Charlie",
+    >     30
+    > )
+    > ```
   * **Standard Call with Parameters:**
     Traditional call syntax with parentheses is also supported:
     ```omniflux
@@ -283,6 +292,67 @@ OmniFlux provides several lifecycle hooks to manage application state and events
   
   This hook is ideal for global tasks like request logging, CORS headers, API authentication checks, or rate limiting.
 
+### 2.6 Local Error Handling (`on error`) 🛡️
+
+To keep your code simple, readable, and free of nested boilerplate (like the `try-catch` blocks found in other languages), OmniFlux provides a clean, flat syntax to handle errors locally.
+
+You can attach an `on error (err)` block directly to the closing brace of any **Route Handler** or **Task**:
+
+#### 1. Route-Level Error Handling
+When attached to a route handler, any network, database, or runtime error thrown inside the route will immediately divert execution to your error handler. This allows you to respond to the client with a custom status and message:
+
+```omniflux
+POST "/v1/chat/completions" (req, res) {
+    # If networkpost fails (e.g. network timeout), execution jumps straight to the on error block
+    var response = networkpost("https://api.provider.com/v1/chat", req.body, {
+        "Authorization": "Bearer key"
+    })
+    respond json response
+} on error (err) {
+    # Respond gracefully without crashing the server
+    respond status 502 and json { 
+        "error": "Failed to reach AI provider", 
+        "details": err.message 
+    }
+}
+```
+
+#### 2. Task-Level Error Handling
+Similarly, you can attach an `on error` block to task definitions:
+
+```omniflux
+define task load_config(path) {
+    var content = fileread(path)
+    return JSON.parse(content)
+} on error (err) {
+    print("Failed to load config: %s", err.message)
+    return { "status": "fallback_default" }
+}
+```
+
+#### 3. Default Compiler Protection
+If you do not specify an `on error` block:
+* **For Route Handlers:** The compiler automatically wraps the handler in a default safety net. If an unhandled error occurs, it prints the error to the console and responds to the client with a `500 Internal Server Error` (preventing the server from crashing or leaving the connection hanging).
+* **For Tasks:** Unhandled errors are caught and re-thrown so they can bubble up to the caller or route handler.
+
+#### 4. Call-Level Error Handling
+You can also catch errors on a specific function call or statement using `on error (err)` on the same line. This is perfect for capturing exceptions from library calls (like standard library tasks) and supplying a default/fallback value:
+
+> [!NOTE]
+> **Syntax Design:** The start of the call-level `on error (err) {` block must be placed on the **same physical line** as the target statement or function call. This design choice prevents ambiguity, clearly distinguishing local statement-level fallbacks from global process-wide `on error` lifecycle hooks.
+
+* **Single-line statement fallback:**
+  ```omniflux
+  var data = fileread("config.json") on error (err) { data = "{}" }
+  ```
+* **Multi-line statement fallback:**
+  ```omniflux
+  var content = fileread("config.json") on error (err) {
+      print("Warning: could not read config: %s", err.message)
+      content = "{}"
+  }
+  ```
+
 ---
 
 ## 3. Web Server & Routing
@@ -353,6 +423,7 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `strsplit(str, sep)`: Splits a string into an array of substrings using the specified separator.
   * `match(str, regex)`: Performs a regular expression match on `str`. Returns `true` if there is a match (without capturing groups), `false` if there is no match, or an array of captured groups (excluding the full match, so index 0 is the first captured group) if capturing groups exist in the `regex` and the match succeeds. The `regex` parameter supports `RegExp` objects or string-based patterns. When using strings, you can use standard delimiters like `/` (e.g. `"/\\d+/i"`) or alternate delimiters like `~` (e.g. `"~\\d+~i"`) or `#`.
   * `arraypush(arr, item)`: Appends an item to the end of the array.
+  * `arrayunshift(arr, item)`: Prepends an item to the beginning of the array.
   * `arraypop(arr)`: Removes and returns the last item of the array.
   * `arraycontains(arr, item)`: Returns `true` if the item is present in the array, `false` otherwise.
   * `arrayjoin(arr, sep)`: Joins array elements into a string separated by `sep`.
