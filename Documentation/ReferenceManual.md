@@ -595,9 +595,12 @@ on start {
 ```
 
 ### 7.3 System Commands Library (`stdlib/system.of`)
-Provides tasks for executing commands in the host OS shell:
+Provides tasks for executing and managing processes in the host OS shell:
 * `system(command)`: Runs a command in the shell and returns its full output (stdout and stderr merged) as a string.
 * `exec(command)`: Runs a command in the shell and returns its exit status code (0 for success, non-zero for failure).
+* `spawn(command, args)`: Spawns an asynchronous child process with the given arguments array, returning its process ID (PID).
+* `kill(pid, signal)`: Sends a signal (e.g. `"SIGTERM"` or `"SIGKILL"`) to the specified PID. Returns `true` on success, `false` on failure.
+
 ```omniflux
 include "stdlib/system.of"
 
@@ -613,5 +616,14 @@ on start {
     } else {
         print("Git command failed with status code: %d", status)
     }
+    
+    # 3. Spawn a background process and kill it later
+    var pid = spawn("node", ["server.js"])
+    print("Spawned process with PID: %d", pid)
+    
+    wait 2000
+    
+    var success = kill(pid, "SIGTERM")
+    print("Process termination result: %s", success)
 }
 ```
