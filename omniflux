@@ -41,6 +41,7 @@ rebuild_system_prompt();
 my $no_run = 0;
 our $strict = 0;
 our $verbose = 0;
+my $watch = 0;
 my $input_file;
 my @run_args;
 
@@ -51,6 +52,8 @@ for my $arg (@ARGV) {
         $strict = 1;
     } elsif ($arg eq '--verbose' || $arg eq '-v') {
         $verbose = 1;
+    } elsif ($arg eq '--watch' || $arg eq '-w') {
+        $watch = 1;
     } else {
         if (!$input_file) {
             $input_file = $arg;
@@ -62,7 +65,7 @@ for my $arg (@ARGV) {
 
 if ($input_file) {
     # Run single file with the build and execution pipeline
-    build_and_run($input_file, $no_run, \@run_args);
+    build_and_run($input_file, $no_run, \@run_args, $watch);
 } else {
     # Interactive chat interface
     if (@messages && $messages[0]{role} eq 'system') {
@@ -136,14 +139,12 @@ sub rebuild_system_prompt {
     );
 }
 
-sub build_and_run {
-    my ($file, $no_run, $run_args_ref) = @_;
-    my @run_args = $run_args_ref ? @$run_args_ref : ();
-    
+sub build_only {
+    my ($file) = @_;
     my $abs_input = abs_path($file);
     if (!$abs_input || ! -e $abs_input) {
         print "Error: File '$file' does not exist.\n";
-        return;
+        return (0, undef, undef);
     }
     
     # 1. Find all dependencies (includes)
@@ -179,7 +180,7 @@ sub build_and_run {
     }
     
     my $output_file = $file;
-    $output_file =~ s/\.[^.]+$//; # Strip extension (e.g., .of -> no extension)
+    $output_file =~ s/\.[^.]+$//; # Strip extension
     
     if (! -e $output_file) {
         $needs_rebuild = 1;
@@ -196,7 +197,6 @@ sub build_and_run {
             
             if (exists $dirty_files{$dep_path}) {
                 print "Compiling: $rel_path -> $target_js\n";
-                # Delete target JS and cache entry first to ensure a clean build
                 unlink($target_js) if -e $target_js;
                 delete $hashes->{$rel_path};
                 
@@ -234,13 +234,129 @@ sub build_and_run {
     } else {
         print "No changes detected. Build is up to date.\n";
     }
+    return ($success, $output_file, \%deps);
+}
+
+sub start_child {
+    my ($output_file, $run_args_ref) = @_;
+    my @run_args = @$run_args_ref;
     
-    if ($success && !$no_run) {
-        my $args_str = @run_args ? " " . join(" ", @run_args) : "";
-        print "Running: $output_file$args_str\n";
-        print "----------------------------------------\n";
-        system($output_file, @run_args);
-        print "----------------------------------------\n";
+    my $pid = fork();
+    if (!defined $pid) {
+        die "Fork failed: $!\n";
+    }
+    
+    if ($pid == 0) {
+        # Child process: exec the output bundled file
+        exec($output_file, @run_args) or die "Failed to execute child process: $!\n";
+    }
+    
+    print "Running: $output_file (PID $pid)\n";
+    print "----------------------------------------\n";
+    return $pid;
+}
+
+sub build_and_run {
+    my ($file, $no_run, $run_args_ref, $watch) = @_;
+    my @run_args = $run_args_ref ? @$run_args_ref : ();
+    
+    my ($success, $output_file, $deps_ref) = build_only($file);
+    return if !$success;
+    
+    if ($watch) {
+        my $child_pid;
+        if (!$no_run) {
+            $child_pid = start_child($output_file, \@run_args);
+        }
+        
+        my %mod_times;
+        for my $dep_path (keys %$deps_ref) {
+            $mod_times{$dep_path} = (stat($dep_path))[9];
+        }
+        
+        print "Watching for changes... (Press Ctrl+C to stop)\n";
+        
+        # Clean shutdown of child on CTRL+C
+        local $SIG{INT} = sub {
+            if ($child_pid) {
+                print "\nStopping active process (PID $child_pid)...\n";
+                kill('TERM', $child_pid);
+                waitpid($child_pid, 0);
+            }
+            exit(0);
+        };
+        
+        while (1) {
+            select(undef, undef, undef, 0.5); # sleep 500ms
+            
+            # Reap child if exited
+            if ($child_pid) {
+                my $kid = waitpid($child_pid, 1);
+                if ($kid == $child_pid) {
+                    $child_pid = undef;
+                    print "Process exited.\n";
+                }
+            }
+            
+            # Check for changes in dependencies
+            my $abs_input = abs_path($file);
+            my %current_deps;
+            get_all_dependencies($abs_input, \%current_deps);
+            
+            my $changed = 0;
+            for my $dep_path (keys %current_deps) {
+                my $mtime = (stat($dep_path))[9];
+                if (!exists $mod_times{$dep_path} || $mtime > $mod_times{$dep_path}) {
+                    $changed = 1;
+                    last;
+                }
+            }
+            # Check for deleted files
+            for my $dep_path (keys %mod_times) {
+                if (! -e $dep_path) {
+                    $changed = 1;
+                    last;
+                }
+            }
+            
+            if ($changed) {
+                print "\nChange detected. Rebuilding...\n";
+                if ($child_pid) {
+                    print "Stopping active process (PID $child_pid)...\n";
+                    kill('TERM', $child_pid);
+                    waitpid($child_pid, 0);
+                    $child_pid = undef;
+                }
+                
+                my ($build_ok, $out, $new_deps_ref) = build_only($file);
+                if ($build_ok) {
+                    $deps_ref = $new_deps_ref;
+                    %mod_times = ();
+                    for my $dep_path (keys %$deps_ref) {
+                        $mod_times{$dep_path} = (stat($dep_path))[9];
+                    }
+                    if (!$no_run) {
+                        $child_pid = start_child($output_file, \@run_args);
+                    }
+                } else {
+                    print "Rebuild failed. Waiting for fixes...\n";
+                    # Update modification times of current dependencies anyway to prevent looping
+                    %mod_times = ();
+                    for my $dep_path (keys %current_deps) {
+                        $mod_times{$dep_path} = (stat($dep_path))[9] if -e $dep_path;
+                    }
+                }
+            }
+        }
+    } else {
+        # Single-run mode
+        if (!$no_run) {
+            my $args_str = @run_args ? " " . join(" ", @run_args) : "";
+            print "Running: $output_file$args_str\n";
+            print "----------------------------------------\n";
+            system($output_file, @run_args);
+            print "----------------------------------------\n";
+        }
     }
 }
 
