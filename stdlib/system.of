@@ -1,0 +1,27 @@
+# system.of - OmniFlux System Command Standard Library
+
+define task system(cmd) {
+    @{
+        const { exec } = require('child_process');
+        return new Promise((resolve) => {
+            exec(cmd, (error, stdout, stderr) => {
+                resolve(stderr + stdout);
+            });
+        });
+    @}
+}
+
+define task exec(cmd) {
+    @{
+        const { exec } = require('child_process');
+        return new Promise((resolve) => {
+            exec(cmd, (error) => {
+                if (error) {
+                    resolve(error.code !== undefined ? error.code : 1);
+                } else {
+                    resolve(0);
+                }
+            });
+        });
+    @}
+}
