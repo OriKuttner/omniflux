@@ -215,6 +215,34 @@ function sha256(text) {
     return crypto.createHash('sha256').update(text).digest('hex');
 }
 
+function encrypt(text, key) {
+    const crypto = require('crypto');
+    const iv = crypto.randomBytes(16);
+    const hashedKey = crypto.createHash('sha256').update(String(key)).digest();
+    const cipher = crypto.createCipheriv('aes-256-cbc', hashedKey, iv);
+    let encrypted = cipher.update(String(text), 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    return iv.toString('hex') + ':' + encrypted;
+}
+
+function decrypt(encryptedText, key) {
+    try {
+        const crypto = require('crypto');
+        const parts = String(encryptedText).split(':');
+        if (parts.length !== 2) return null;
+        const iv = Buffer.from(parts[0], 'hex');
+        const encrypted = parts[1];
+        const hashedKey = crypto.createHash('sha256').update(String(key)).digest();
+        const decipher = crypto.createDecipheriv('aes-256-cbc', hashedKey, iv);
+        let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
+    } catch (e) {
+        return null;
+    }
+}
+
+
 function getcookie(req, name) {
     if (!req || !req.headers || !req.headers.cookie) return null;
     const cookies = req.headers.cookie.split(';');
@@ -224,6 +252,14 @@ function getcookie(req, name) {
     }
     return null;
 }
+
+function setcookie(res, name, value, options = {}) {
+    if (!res || typeof res.cookie !== 'function') {
+        throw new Error('First argument to setcookie must be an HTTP response object');
+    }
+    res.cookie(name, value, options);
+}
+
 
 // --- Databases (Local JSON DB) ---
 let cachedDb = null;
@@ -680,6 +716,17 @@ function datesecond(ts) {
     return d.getSeconds();
 }
 
+function dateweekday(ts, format = 'number') {
+    const d = ts ? new Date(ts * 1000) : new Date();
+    const day = d.getDay();
+    if (format === 'short' || format === 'text') {
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        return days[day];
+    }
+    return day;
+}
+
+
 // --- Template Engine (Angular-style) ---
 function template(source, context = {}) {
     if (typeof source !== 'string') return '';
@@ -871,8 +918,14 @@ global.get_env = getenv;
 
 global.sha256 = sha256;
 
+global.encrypt = encrypt;
+global.decrypt = decrypt;
+
 global.getcookie = getcookie;
 global.get_cookie = getcookie;
+
+global.setcookie = setcookie;
+global.set_cookie = setcookie;
 
 global.filestat = filestat;
 global.file_stat = filestat;
@@ -985,6 +1038,9 @@ global.date_minute = dateminute;
 
 global.datesecond = datesecond;
 global.date_second = datesecond;
+
+global.dateweekday = dateweekday;
+global.date_weekday = dateweekday;
 
 global.template = template;
 
