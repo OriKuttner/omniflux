@@ -97,8 +97,8 @@ define task strip_comments(content) {
             continue
         }
 
-        // Detect line comment #
-        if ch == "#" {
+        // Detect line comment # or //
+        if ch == "#" || (ch == "/" && strsub(content, i + 1, 1) == "/") {
             while i < length && strsub(content, i, 1) != "\n" {
                 i = i + 1
             }

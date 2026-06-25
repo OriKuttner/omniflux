@@ -62,12 +62,17 @@ define task bundle(main_cache_js, output_file) {
 
     print("Bundling with esbuild: %s -> %s...", rel_main, output_file)
 
+    if fileexists(output_file) {
+        filedelete(output_file)
+    }
+
     var cmd = "npx -y esbuild \"" + rel_main + "\" --bundle --platform=node --external:mysql2/promise --external:redis --legal-comments=inline --banner:js=\"#!/usr/bin/env node\" --outfile=\"" + output_file + "\""
 
     // system() inherits stdio so esbuild output is shown; returns exit code string
     var output = system(cmd)
 
     if !fileexists(output_file) {
+        print("esbuild error output:\n%s", output)
         return {
             ok: false,
             error: "Bundling failed. esbuild did not produce output file."

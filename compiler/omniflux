@@ -745,6 +745,8 @@ document.addEventListener('click', async (e) => {
         const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
         const parts = html.split(tokenRegex);
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         for (let part of parts) {
           if (!part)
             continue;
@@ -777,6 +779,7 @@ document.addEventListener('click', async (e) => {
 `;
           }
         }
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         const keys = ["context", ...Object.keys(context)];
         const values = [context, ...Object.values(context)];
@@ -974,359 +977,207 @@ document.addEventListener('click', async (e) => {
       formatRuntimeError2(err, "OmniFlux Runtime Error (Unhandled Rejection)");
       process.exit(1);
     });
-    //! OF_LINE: symbols.of:1
-    //! OF_LINE: symbols.of:2
-    //! OF_LINE: symbols.of:3
-    //! OF_LINE: symbols.of:4
-    //! OF_LINE: symbols.of:5
-    //! OF_LINE: symbols.of:6
-    //! OF_LINE: symbols.of:7
-    //! OF_LINE: symbols.of:8
-    //! OF_LINE: symbols.of:9
-    //! OF_LINE: symbols.of:10
     var BUILTINS = [
-      //! OF_LINE: symbols.of:11
-      //! OF_LINE: symbols.of:12
       "print",
       "printf",
       "sprintf",
       "fprint",
       "fprintf",
-      //! OF_LINE: symbols.of:13
       "input",
       "readchar",
       "read_char",
-      //! OF_LINE: symbols.of:14
-      //! OF_LINE: symbols.of:15
       "fileread",
       "file_read",
-      //! OF_LINE: symbols.of:16
       "filewrite",
       "file_write",
-      //! OF_LINE: symbols.of:17
       "fileexists",
       "file_exists",
-      //! OF_LINE: symbols.of:18
       "fileappend",
       "file_append",
-      //! OF_LINE: symbols.of:19
       "filedelete",
       "file_delete",
-      //! OF_LINE: symbols.of:20
       "filecopy",
       "file_copy",
-      //! OF_LINE: symbols.of:21
       "filerename",
       "file_rename",
-      //! OF_LINE: symbols.of:22
       "filestat",
       "file_stat",
-      //! OF_LINE: symbols.of:23
       "dirlist",
       "dir_list",
-      //! OF_LINE: symbols.of:24
       "dircreate",
       "dir_create",
-      //! OF_LINE: symbols.of:25
       "scriptdir",
       "script_dir",
-      //! OF_LINE: symbols.of:26
-      //! OF_LINE: symbols.of:27
       "dbinsert",
       "db_insert",
-      //! OF_LINE: symbols.of:28
       "dbselect",
       "db_select",
-      //! OF_LINE: symbols.of:29
       "dbupdate",
       "db_update",
-      //! OF_LINE: symbols.of:30
       "dbdelete",
       "db_delete",
-      //! OF_LINE: symbols.of:31
-      //! OF_LINE: symbols.of:32
       "cacheset",
       "cache_set",
-      //! OF_LINE: symbols.of:33
       "cacheget",
       "cache_get",
-      //! OF_LINE: symbols.of:34
-      //! OF_LINE: symbols.of:35
       "setenv",
       "set_env",
-      //! OF_LINE: symbols.of:36
       "getenv",
       "get_env",
-      //! OF_LINE: symbols.of:37
-      //! OF_LINE: symbols.of:38
       "exit",
-      //! OF_LINE: symbols.of:39
-      //! OF_LINE: symbols.of:40
       "sha256",
-      //! OF_LINE: symbols.of:41
       "encrypt",
-      //! OF_LINE: symbols.of:42
       "decrypt",
-      //! OF_LINE: symbols.of:43
-      //! OF_LINE: symbols.of:44
       "getcookie",
       "get_cookie",
-      //! OF_LINE: symbols.of:45
       "setcookie",
       "set_cookie",
-      //! OF_LINE: symbols.of:46
-      //! OF_LINE: symbols.of:47
       "template",
-      //! OF_LINE: symbols.of:48
-      //! OF_LINE: symbols.of:49
       "len",
-      //! OF_LINE: symbols.of:50
       "match",
-      //! OF_LINE: symbols.of:51
       "strsplit",
       "str_split",
-      //! OF_LINE: symbols.of:52
       "strtrim",
       "str_trim",
-      //! OF_LINE: symbols.of:53
       "strsub",
       "str_sub",
-      //! OF_LINE: symbols.of:54
       "strindexof",
       "str_index_of",
-      //! OF_LINE: symbols.of:55
       "strlastindexof",
       "str_last_index_of",
-      //! OF_LINE: symbols.of:56
       "strrepeat",
       "str_repeat",
-      //! OF_LINE: symbols.of:57
       "strreplace",
       "str_replace",
-      //! OF_LINE: symbols.of:58
       "strupper",
       "str_upper",
-      //! OF_LINE: symbols.of:59
       "strlower",
       "str_lower",
-      //! OF_LINE: symbols.of:60
-      //! OF_LINE: symbols.of:61
       "arraypush",
       "array_push",
-      //! OF_LINE: symbols.of:62
       "arrayunshift",
       "array_unshift",
-      //! OF_LINE: symbols.of:63
       "arraypop",
       "array_pop",
-      //! OF_LINE: symbols.of:64
       "arrayshift",
       "array_shift",
-      //! OF_LINE: symbols.of:65
       "arraycontains",
       "array_contains",
-      //! OF_LINE: symbols.of:66
       "arrayjoin",
       "array_join",
-      //! OF_LINE: symbols.of:67
       "arrayslice",
       "array_slice",
-      //! OF_LINE: symbols.of:68
       "arrayreverse",
       "array_reverse",
-      //! OF_LINE: symbols.of:69
       "arraysort",
       "array_sort",
-      //! OF_LINE: symbols.of:70
       "arraymap",
       "array_map",
-      //! OF_LINE: symbols.of:71
       "arrayfilter",
       "array_filter",
-      //! OF_LINE: symbols.of:72
       "arrayfind",
       "array_find",
-      //! OF_LINE: symbols.of:73
-      //! OF_LINE: symbols.of:74
       "pathjoin",
       "path_join",
-      //! OF_LINE: symbols.of:75
       "pathresolve",
       "path_resolve",
-      //! OF_LINE: symbols.of:76
       "pathdirname",
       "path_dir_name",
-      //! OF_LINE: symbols.of:77
       "pathbasename",
       "path_base_name",
-      //! OF_LINE: symbols.of:78
       "pathextension",
       "path_extension",
-      //! OF_LINE: symbols.of:79
       "pathisabsolute",
       "path_is_absolute",
-      //! OF_LINE: symbols.of:80
-      //! OF_LINE: symbols.of:81
       "time",
-      //! OF_LINE: symbols.of:82
       "dateyear",
       "date_year",
-      //! OF_LINE: symbols.of:83
       "datemonth",
       "date_month",
-      //! OF_LINE: symbols.of:84
       "dateday",
       "date_day",
-      //! OF_LINE: symbols.of:85
       "datehour",
       "date_hour",
-      //! OF_LINE: symbols.of:86
       "dateminute",
       "date_minute",
-      //! OF_LINE: symbols.of:87
       "datesecond",
       "date_second",
-      //! OF_LINE: symbols.of:88
       "dateweekday",
       "date_weekday",
-      //! OF_LINE: symbols.of:89
-      //! OF_LINE: symbols.of:90
       "describe",
-      //! OF_LINE: symbols.of:91
-      //! OF_LINE: symbols.of:92
       "args",
       "global",
       "console",
       "require",
       "module",
       "process",
-      //! OF_LINE: symbols.of:93
       "Math",
       "JSON",
       "Array",
       "Object",
       "String",
       "Number",
-      //! OF_LINE: symbols.of:94
       "Boolean",
       "Error",
       "setTimeout",
       "setInterval",
-      //! OF_LINE: symbols.of:95
       "clearTimeout",
       "clearInterval",
       "NaN"
-      //! OF_LINE: symbols.of:96
     ];
-    //! OF_LINE: symbols.of:97
-    //! OF_LINE: symbols.of:98
-    //! OF_LINE: symbols.of:99
-    //! OF_LINE: symbols.of:100
     var ASYNC_BUILTINS = [
-      //! OF_LINE: symbols.of:101
       "cacheset",
       "cache_set",
-      //! OF_LINE: symbols.of:102
       "cacheget",
       "cache_get",
-      //! OF_LINE: symbols.of:103
       "arraymap",
       "array_map",
-      //! OF_LINE: symbols.of:104
       "arrayfilter",
       "array_filter",
-      //! OF_LINE: symbols.of:105
       "arrayfind",
       "array_find"
-      //! OF_LINE: symbols.of:106
     ];
-    //! OF_LINE: symbols.of:107
-    //! OF_LINE: symbols.of:108
-    //! OF_LINE: symbols.of:109
-    //! OF_LINE: symbols.of:110
-    //! OF_LINE: symbols.of:111
-    //! OF_LINE: symbols.of:112
     async function prescan_tasks2(content) {
       try {
-        //! OF_LINE: symbols.of:113
         let tasks = {};
-        //! OF_LINE: symbols.of:114
-        //! OF_LINE: symbols.of:115
         let lines = strsplit2(content, "\n");
-        //! OF_LINE: symbols.of:116
         for (let line of lines) {
-          //! OF_LINE: symbols.of:117
           let clean = strreplace2(line, "/#[^\n]*/", "");
-          //! OF_LINE: symbols.of:118
           clean = strtrim2(clean);
-          //! OF_LINE: symbols.of:119
-          //! OF_LINE: symbols.of:120
           let m1 = match2(clean, "/^define\\s+task\\s+(\\w+)/i");
-          //! OF_LINE: symbols.of:121
           if (m1) {
-            //! OF_LINE: symbols.of:122
             tasks[m1[0]] = true;
-            //! OF_LINE: symbols.of:123
           }
-          //! OF_LINE: symbols.of:124
-          //! OF_LINE: symbols.of:125
           let m2 = match2(clean, "/^fn\\s+(\\w+)/i");
-          //! OF_LINE: symbols.of:126
           if (m2) {
-            //! OF_LINE: symbols.of:127
             tasks[m2[0]] = true;
-            //! OF_LINE: symbols.of:128
           }
-          //! OF_LINE: symbols.of:129
         }
-        //! OF_LINE: symbols.of:130
-        //! OF_LINE: symbols.of:131
         return tasks;
-        //! OF_LINE: symbols.of:132
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:133
-    //! OF_LINE: symbols.of:134
-    //! OF_LINE: symbols.of:135
-    //! OF_LINE: symbols.of:136
     async function is_builtin(name) {
       try {
-        //! OF_LINE: symbols.of:137
         return arraycontains2(BUILTINS, name);
-        //! OF_LINE: symbols.of:138
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:139
-    //! OF_LINE: symbols.of:140
-    //! OF_LINE: symbols.of:141
-    //! OF_LINE: symbols.of:142
-    //! OF_LINE: symbols.of:143
     async function is_async(name, user_tasks) {
       try {
-        //! OF_LINE: symbols.of:144
         if (arraycontains2(ASYNC_BUILTINS, name)) {
-          //! OF_LINE: symbols.of:145
           return true;
-          //! OF_LINE: symbols.of:146
         }
-        //! OF_LINE: symbols.of:147
         if (user_tasks[name]) {
-          //! OF_LINE: symbols.of:148
           return true;
-          //! OF_LINE: symbols.of:149
         }
-        //! OF_LINE: symbols.of:150
         return false;
-        //! OF_LINE: symbols.of:151
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:152
     global.prescan_tasks = prescan_tasks2;
     global.is_builtin = is_builtin;
     global.is_async = is_async;
@@ -2089,6 +1940,8 @@ document.addEventListener('click', async (e) => {
         const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
         const parts = html.split(tokenRegex);
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         for (let part of parts) {
           if (!part)
             continue;
@@ -2121,6 +1974,7 @@ document.addEventListener('click', async (e) => {
 `;
           }
         }
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         const keys = ["context", ...Object.keys(context)];
         const values = [context, ...Object.values(context)];
@@ -2318,350 +2172,153 @@ document.addEventListener('click', async (e) => {
       formatRuntimeError2(err, "OmniFlux Runtime Error (Unhandled Rejection)");
       process.exit(1);
     });
-    //! OF_LINE: preprocessor.of:1
-    //! OF_LINE: preprocessor.of:2
-    //! OF_LINE: preprocessor.of:3
-    //! OF_LINE: preprocessor.of:4
-    //! OF_LINE: preprocessor.of:5
-    //! OF_LINE: preprocessor.of:6
-    //! OF_LINE: preprocessor.of:7
-    //! OF_LINE: preprocessor.of:8
-    //! OF_LINE: preprocessor.of:9
-    //! OF_LINE: preprocessor.of:10
-    //! OF_LINE: preprocessor.of:11
     require_symbols();
-    //! OF_LINE: preprocessor.of:12
-    //! OF_LINE: preprocessor.of:13
-    //! OF_LINE: preprocessor.of:14
-    //! OF_LINE: preprocessor.of:15
-    //! OF_LINE: preprocessor.of:16
-    //! OF_LINE: preprocessor.of:17
-    //! OF_LINE: preprocessor.of:18
-    //! OF_LINE: preprocessor.of:19
-    //! OF_LINE: preprocessor.of:20
-    //! OF_LINE: preprocessor.of:21
-    //! OF_LINE: preprocessor.of:22
     async function strip_comments2(content) {
       try {
-        //! OF_LINE: preprocessor.of:23
         let result = "";
-        //! OF_LINE: preprocessor.of:24
         let i = 0;
-        //! OF_LINE: preprocessor.of:25
         let length = len2(content);
-        //! OF_LINE: preprocessor.of:26
         let in_string = "";
-        //! OF_LINE: preprocessor.of:27
         let in_node_block = false;
-        //! OF_LINE: preprocessor.of:28
         let block_comment_depth = 0;
-        //! OF_LINE: preprocessor.of:29
-        //! OF_LINE: preprocessor.of:30
         while (i < length) {
-          //! OF_LINE: preprocessor.of:31
           let ch = strsub2(content, i, 1);
-          //! OF_LINE: preprocessor.of:32
-          //! OF_LINE: preprocessor.of:33
-          //! OF_LINE: preprocessor.of:34
           if (in_node_block) {
-            //! OF_LINE: preprocessor.of:35
             let node_close = "@}";
-            //! OF_LINE: preprocessor.of:36
             if (ch == "@" && strsub2(content, i + 1, 1) == "}") {
-              //! OF_LINE: preprocessor.of:37
               result = result + node_close;
-              //! OF_LINE: preprocessor.of:38
               i = i + 2;
-              //! OF_LINE: preprocessor.of:39
               in_node_block = false;
-              //! OF_LINE: preprocessor.of:40
             } else {
-              //! OF_LINE: preprocessor.of:41
               result = result + ch;
-              //! OF_LINE: preprocessor.of:42
               i = i + 1;
-              //! OF_LINE: preprocessor.of:43
             }
-            //! OF_LINE: preprocessor.of:44
             continue;
-            //! OF_LINE: preprocessor.of:45
           }
-          //! OF_LINE: preprocessor.of:46
-          //! OF_LINE: preprocessor.of:47
-          //! OF_LINE: preprocessor.of:48
-          //! OF_LINE: preprocessor.of:49
           if (block_comment_depth > 0) {
-            //! OF_LINE: preprocessor.of:50
             if (ch == "/" && strsub2(content, i + 1, 1) == "*") {
-              //! OF_LINE: preprocessor.of:51
               block_comment_depth = block_comment_depth + 1;
-              //! OF_LINE: preprocessor.of:52
               i = i + 2;
-              //! OF_LINE: preprocessor.of:53
             } else if (ch == "*" && strsub2(content, i + 1, 1) == "/") {
-              //! OF_LINE: preprocessor.of:54
               block_comment_depth = block_comment_depth - 1;
-              //! OF_LINE: preprocessor.of:55
               i = i + 2;
-              //! OF_LINE: preprocessor.of:56
             } else {
-              //! OF_LINE: preprocessor.of:57
-              //! OF_LINE: preprocessor.of:58
               if (ch == "\n") {
-                //! OF_LINE: preprocessor.of:59
                 result = result + "\n";
-                //! OF_LINE: preprocessor.of:60
               }
-              //! OF_LINE: preprocessor.of:61
               i = i + 1;
-              //! OF_LINE: preprocessor.of:62
             }
-            //! OF_LINE: preprocessor.of:63
             continue;
-            //! OF_LINE: preprocessor.of:64
           }
-          //! OF_LINE: preprocessor.of:65
-          //! OF_LINE: preprocessor.of:66
-          //! OF_LINE: preprocessor.of:67
           if (in_string != "") {
-            //! OF_LINE: preprocessor.of:68
             if (ch == "\\") {
-              //! OF_LINE: preprocessor.of:69
-              //! OF_LINE: preprocessor.of:70
               result = result + ch + strsub2(content, i + 1, 1);
-              //! OF_LINE: preprocessor.of:71
               i = i + 2;
-              //! OF_LINE: preprocessor.of:72
             } else if (ch == in_string) {
-              //! OF_LINE: preprocessor.of:73
               result = result + ch;
-              //! OF_LINE: preprocessor.of:74
               i = i + 1;
-              //! OF_LINE: preprocessor.of:75
               in_string = "";
-              //! OF_LINE: preprocessor.of:76
             } else {
-              //! OF_LINE: preprocessor.of:77
               result = result + ch;
-              //! OF_LINE: preprocessor.of:78
               i = i + 1;
-              //! OF_LINE: preprocessor.of:79
             }
-            //! OF_LINE: preprocessor.of:80
             continue;
-            //! OF_LINE: preprocessor.of:81
           }
-          //! OF_LINE: preprocessor.of:82
-          //! OF_LINE: preprocessor.of:83
-          //! OF_LINE: preprocessor.of:84
           let node_open = "@{";
-          //! OF_LINE: preprocessor.of:85
           if (ch == "@" && strsub2(content, i + 1, 1) == "{") {
-            //! OF_LINE: preprocessor.of:86
             result = result + node_open;
-            //! OF_LINE: preprocessor.of:87
             i = i + 2;
-            //! OF_LINE: preprocessor.of:88
             in_node_block = true;
-            //! OF_LINE: preprocessor.of:89
             continue;
-            //! OF_LINE: preprocessor.of:90
           }
-          //! OF_LINE: preprocessor.of:91
-          //! OF_LINE: preprocessor.of:92
-          //! OF_LINE: preprocessor.of:93
           if (ch == "/" && strsub2(content, i + 1, 1) == "*") {
-            //! OF_LINE: preprocessor.of:94
             i = i + 2;
-            //! OF_LINE: preprocessor.of:95
             block_comment_depth = 1;
-            //! OF_LINE: preprocessor.of:96
             continue;
-            //! OF_LINE: preprocessor.of:97
           }
-          //! OF_LINE: preprocessor.of:98
-          //! OF_LINE: preprocessor.of:99
-          //! OF_LINE: preprocessor.of:100
-          if (ch == "#") {
-            //! OF_LINE: preprocessor.of:101
+          if (ch == "#" || ch == "/" && strsub2(content, i + 1, 1) == "/") {
             while (i < length && strsub2(content, i, 1) != "\n") {
-              //! OF_LINE: preprocessor.of:102
               i = i + 1;
-              //! OF_LINE: preprocessor.of:103
             }
-            //! OF_LINE: preprocessor.of:104
             continue;
-            //! OF_LINE: preprocessor.of:105
           }
-          //! OF_LINE: preprocessor.of:106
-          //! OF_LINE: preprocessor.of:107
-          //! OF_LINE: preprocessor.of:108
           if (ch == '"' || ch == "'") {
-            //! OF_LINE: preprocessor.of:109
             in_string = ch;
-            //! OF_LINE: preprocessor.of:110
             result = result + ch;
-            //! OF_LINE: preprocessor.of:111
             i = i + 1;
-            //! OF_LINE: preprocessor.of:112
             continue;
-            //! OF_LINE: preprocessor.of:113
           }
-          //! OF_LINE: preprocessor.of:114
-          //! OF_LINE: preprocessor.of:115
-          //! OF_LINE: preprocessor.of:116
           result = result + ch;
-          //! OF_LINE: preprocessor.of:117
           i = i + 1;
-          //! OF_LINE: preprocessor.of:118
         }
-        //! OF_LINE: preprocessor.of:119
-        //! OF_LINE: preprocessor.of:120
         return result;
-        //! OF_LINE: preprocessor.of:121
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:122
-    //! OF_LINE: preprocessor.of:123
-    //! OF_LINE: preprocessor.of:124
-    //! OF_LINE: preprocessor.of:125
-    //! OF_LINE: preprocessor.of:126
-    //! OF_LINE: preprocessor.of:127
-    //! OF_LINE: preprocessor.of:128
-    //! OF_LINE: preprocessor.of:129
-    //! OF_LINE: preprocessor.of:130
-    //! OF_LINE: preprocessor.of:131
-    async function resolve_include(inc_path, src_file) {
+    async function resolve_include2(inc_path, src_file) {
       try {
-        //! OF_LINE: preprocessor.of:132
         let src_dir = pathdirname2(pathresolve2(src_file));
-        //! OF_LINE: preprocessor.of:133
         let cwd = pathresolve2(".");
-        //! OF_LINE: preprocessor.of:134
-        //! OF_LINE: preprocessor.of:135
         let candidates = [
-          //! OF_LINE: preprocessor.of:136
           pathjoin2(src_dir, inc_path),
-          //! OF_LINE: preprocessor.of:137
           pathjoin2(cwd, inc_path),
-          //! OF_LINE: preprocessor.of:138
           pathjoin2("/usr/local/share/omniflux", inc_path),
-          //! OF_LINE: preprocessor.of:139
           pathjoin2("/usr/share/omniflux", inc_path)
-          //! OF_LINE: preprocessor.of:140
         ];
-        //! OF_LINE: preprocessor.of:141
-        //! OF_LINE: preprocessor.of:142
         for (let candidate of candidates) {
-          //! OF_LINE: preprocessor.of:143
           if (fileexists2(candidate)) {
-            //! OF_LINE: preprocessor.of:144
             return pathresolve2(candidate);
-            //! OF_LINE: preprocessor.of:145
           }
-          //! OF_LINE: preprocessor.of:146
         }
-        //! OF_LINE: preprocessor.of:147
-        //! OF_LINE: preprocessor.of:148
         return null;
-        //! OF_LINE: preprocessor.of:149
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:150
-    //! OF_LINE: preprocessor.of:151
-    //! OF_LINE: preprocessor.of:152
-    //! OF_LINE: preprocessor.of:153
     async function load_source(filepath) {
       try {
-        //! OF_LINE: preprocessor.of:154
         let raw = fileread2(filepath);
-        //! OF_LINE: preprocessor.of:155
         return await strip_comments2(raw);
-        //! OF_LINE: preprocessor.of:156
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:157
-    //! OF_LINE: preprocessor.of:158
-    //! OF_LINE: preprocessor.of:159
-    //! OF_LINE: preprocessor.of:160
-    //! OF_LINE: preprocessor.of:161
-    //! OF_LINE: preprocessor.of:162
     async function get_all_dependencies2(filepath, visited) {
       try {
-        //! OF_LINE: preprocessor.of:163
         let abs_path = pathresolve2(filepath);
-        //! OF_LINE: preprocessor.of:164
-        //! OF_LINE: preprocessor.of:165
         if (!visited) {
-          //! OF_LINE: preprocessor.of:166
           visited = {};
-          //! OF_LINE: preprocessor.of:167
         }
-        //! OF_LINE: preprocessor.of:168
-        //! OF_LINE: preprocessor.of:169
-        //! OF_LINE: preprocessor.of:170
         if (visited[abs_path]) {
-          //! OF_LINE: preprocessor.of:171
           return [];
-          //! OF_LINE: preprocessor.of:172
         }
-        //! OF_LINE: preprocessor.of:173
         visited[abs_path] = true;
-        //! OF_LINE: preprocessor.of:174
-        //! OF_LINE: preprocessor.of:175
         let content = await load_source(abs_path);
-        //! OF_LINE: preprocessor.of:176
         let lines = strsplit2(content, "\n");
-        //! OF_LINE: preprocessor.of:177
         let deps = [];
-        //! OF_LINE: preprocessor.of:178
-        //! OF_LINE: preprocessor.of:179
         for (let line of lines) {
-          //! OF_LINE: preprocessor.of:180
           let trimmed = strtrim2(line);
-          //! OF_LINE: preprocessor.of:181
           let m = match2(trimmed, `/^include\\s+["']?([^"'\\s;]+)["']?/i`);
-          //! OF_LINE: preprocessor.of:182
           if (m) {
-            //! OF_LINE: preprocessor.of:183
             let inc_path = m[0];
-            //! OF_LINE: preprocessor.of:184
-            let resolved = await resolve_include(inc_path, abs_path);
-            //! OF_LINE: preprocessor.of:185
+            let resolved = await resolve_include2(inc_path, abs_path);
             if (resolved) {
-              //! OF_LINE: preprocessor.of:186
               let sub_deps = await get_all_dependencies2(resolved, visited);
-              //! OF_LINE: preprocessor.of:187
               for (let dep of sub_deps) {
-                //! OF_LINE: preprocessor.of:188
                 arraypush2(deps, dep);
-                //! OF_LINE: preprocessor.of:189
               }
-              //! OF_LINE: preprocessor.of:190
             }
-            //! OF_LINE: preprocessor.of:191
           }
-          //! OF_LINE: preprocessor.of:192
         }
-        //! OF_LINE: preprocessor.of:193
-        //! OF_LINE: preprocessor.of:194
         arraypush2(deps, abs_path);
-        //! OF_LINE: preprocessor.of:195
         return deps;
-        //! OF_LINE: preprocessor.of:196
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:197
     global.strip_comments = strip_comments2;
-    global.resolve_include = resolve_include;
+    global.resolve_include = resolve_include2;
     global.load_source = load_source;
     global.get_all_dependencies = get_all_dependencies2;
     if (require.main === module2) {
@@ -3423,6 +3080,8 @@ document.addEventListener('click', async (e) => {
         const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
         const parts = html.split(tokenRegex);
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         for (let part of parts) {
           if (!part)
             continue;
@@ -3455,6 +3114,7 @@ document.addEventListener('click', async (e) => {
 `;
           }
         }
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         const keys = ["context", ...Object.keys(context)];
         const values = [context, ...Object.values(context)];
@@ -3652,101 +3312,55 @@ document.addEventListener('click', async (e) => {
       formatRuntimeError2(err, "OmniFlux Runtime Error (Unhandled Rejection)");
       process.exit(1);
     });
-    //! OF_LINE: system.of:1
-    //! OF_LINE: system.of:2
     async function system2(cmd) {
       try {
-        //! OF_LINE: system.of:3
-        //! OF_LINE: system.of:4
         const { exec: exec3 } = require("child_process");
-        //! OF_LINE: system.of:5
         return new Promise((resolve) => {
-          //! OF_LINE: system.of:6
           exec3(cmd, (error, stdout, stderr) => {
-            //! OF_LINE: system.of:7
             resolve(stderr + stdout);
-            //! OF_LINE: system.of:8
           });
-          //! OF_LINE: system.of:9
         });
-        //! OF_LINE: system.of:10
-        //! OF_LINE: system.of:11
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: system.of:12
-    //! OF_LINE: system.of:13
     async function exec2(cmd) {
       try {
-        //! OF_LINE: system.of:14
-        //! OF_LINE: system.of:15
         const { exec: exec3 } = require("child_process");
-        //! OF_LINE: system.of:16
         return new Promise((resolve) => {
-          //! OF_LINE: system.of:17
           exec3(cmd, (error) => {
-            //! OF_LINE: system.of:18
             if (error) {
-              //! OF_LINE: system.of:19
               resolve(error.code !== void 0 ? error.code : 1);
-              //! OF_LINE: system.of:20
             } else {
-              //! OF_LINE: system.of:21
               resolve(0);
-              //! OF_LINE: system.of:22
             }
-            //! OF_LINE: system.of:23
           });
-          //! OF_LINE: system.of:24
         });
-        //! OF_LINE: system.of:25
-        //! OF_LINE: system.of:26
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: system.of:27
-    //! OF_LINE: system.of:28
     async function spawn(cmd, args2) {
       try {
-        //! OF_LINE: system.of:29
-        //! OF_LINE: system.of:30
         const { spawn: spawn2 } = require("child_process");
-        //! OF_LINE: system.of:31
         const child = spawn2(cmd, args2 || [], { stdio: "inherit", shell: true });
-        //! OF_LINE: system.of:32
         return child.pid;
-        //! OF_LINE: system.of:33
-        //! OF_LINE: system.of:34
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: system.of:35
-    //! OF_LINE: system.of:36
     async function kill(pid, signal) {
       try {
-        //! OF_LINE: system.of:37
-        //! OF_LINE: system.of:38
         try {
-          //! OF_LINE: system.of:39
           process.kill(pid, signal || "SIGTERM");
-          //! OF_LINE: system.of:40
           return true;
-          //! OF_LINE: system.of:41
         } catch (e) {
-          //! OF_LINE: system.of:42
           return false;
-          //! OF_LINE: system.of:43
         }
-        //! OF_LINE: system.of:44
-        //! OF_LINE: system.of:45
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: system.of:46
     global.system = system2;
     global.exec = exec2;
     global.spawn = spawn;
@@ -4510,6 +4124,8 @@ document.addEventListener('click', async (e) => {
         const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
         const parts = html.split(tokenRegex);
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         for (let part of parts) {
           if (!part)
             continue;
@@ -4542,6 +4158,7 @@ document.addEventListener('click', async (e) => {
 `;
           }
         }
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         const keys = ["context", ...Object.keys(context)];
         const values = [context, ...Object.values(context)];
@@ -4739,195 +4356,89 @@ document.addEventListener('click', async (e) => {
       formatRuntimeError2(err, "OmniFlux Runtime Error (Unhandled Rejection)");
       process.exit(1);
     });
-    //! OF_LINE: bundler.of:1
-    //! OF_LINE: bundler.of:2
-    //! OF_LINE: bundler.of:3
-    //! OF_LINE: bundler.of:4
-    //! OF_LINE: bundler.of:5
-    //! OF_LINE: bundler.of:6
-    //! OF_LINE: bundler.of:7
-    //! OF_LINE: bundler.of:8
-    //! OF_LINE: bundler.of:9
-    //! OF_LINE: bundler.of:10
-    //! OF_LINE: bundler.of:11
-    //! OF_LINE: bundler.of:12
-    //! OF_LINE: bundler.of:13
     require_preprocessor();
-    //! OF_LINE: bundler.of:14
     require_system();
-    //! OF_LINE: bundler.of:15
-    //! OF_LINE: bundler.of:16
-    //! OF_LINE: bundler.of:17
-    //! OF_LINE: bundler.of:18
-    //! OF_LINE: bundler.of:19
-    //! OF_LINE: bundler.of:20
-    async function get_cache_path(source_abs_path) {
+    async function get_cache_path2(source_abs_path) {
       try {
-        //! OF_LINE: bundler.of:21
         let cwd = pathresolve2(".");
-        //! OF_LINE: bundler.of:22
         let cache_dir = pathjoin2(cwd, ".omniflux_cache");
-        //! OF_LINE: bundler.of:23
-        //! OF_LINE: bundler.of:24
         let rel = source_abs_path;
-        //! OF_LINE: bundler.of:25
         let prefix = cwd + "/";
-        //! OF_LINE: bundler.of:26
         if (strindexof2(source_abs_path, prefix) == 0) {
-          //! OF_LINE: bundler.of:27
           rel = strsub2(source_abs_path, len2(prefix), len2(source_abs_path) - len2(prefix));
-          //! OF_LINE: bundler.of:28
         }
-        //! OF_LINE: bundler.of:29
-        //! OF_LINE: bundler.of:30
         let js_rel = strreplace2(rel, "/\\.of$/", ".js");
-        //! OF_LINE: bundler.of:31
         if (js_rel == rel) {
-          //! OF_LINE: bundler.of:32
           js_rel = rel + ".js";
-          //! OF_LINE: bundler.of:33
         }
-        //! OF_LINE: bundler.of:34
-        //! OF_LINE: bundler.of:35
         return pathjoin2(cache_dir, js_rel);
-        //! OF_LINE: bundler.of:36
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: bundler.of:37
-    //! OF_LINE: bundler.of:38
-    //! OF_LINE: bundler.of:39
-    //! OF_LINE: bundler.of:40
-    //! OF_LINE: bundler.of:41
     async function get_output_path2(source_abs_path) {
       try {
-        //! OF_LINE: bundler.of:42
         let dir = pathdirname2(source_abs_path);
-        //! OF_LINE: bundler.of:43
         let base = pathbasename2(source_abs_path);
-        //! OF_LINE: bundler.of:44
         let name = strreplace2(base, "/\\.[^.]+$/", "");
-        //! OF_LINE: bundler.of:45
         return pathjoin2(dir, name);
-        //! OF_LINE: bundler.of:46
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: bundler.of:47
-    //! OF_LINE: bundler.of:48
-    //! OF_LINE: bundler.of:49
-    //! OF_LINE: bundler.of:50
     async function write_js(cache_path, js_content) {
       try {
-        //! OF_LINE: bundler.of:51
         let dir = pathdirname2(cache_path);
-        //! OF_LINE: bundler.of:52
         dircreate2(dir);
-        //! OF_LINE: bundler.of:53
         filewrite2(cache_path, js_content);
-        //! OF_LINE: bundler.of:54
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: bundler.of:55
-    //! OF_LINE: bundler.of:56
-    //! OF_LINE: bundler.of:57
-    //! OF_LINE: bundler.of:58
-    //! OF_LINE: bundler.of:59
     async function bundle(main_cache_js, output_file) {
       try {
-        //! OF_LINE: bundler.of:60
         let rel_main = main_cache_js;
-        //! OF_LINE: bundler.of:61
-        //! OF_LINE: bundler.of:62
         print2("Bundling with esbuild: %s -> %s...", rel_main, output_file);
-        //! OF_LINE: bundler.of:63
-        //! OF_LINE: bundler.of:64
-        let cmd = 'npx -y esbuild "' + rel_main + '" --bundle --platform=node --external:mysql2/promise --external:redis --legal-comments=inline --banner:js="#!/usr/bin/env node" --outfile="' + output_file + '"';
-        //! OF_LINE: bundler.of:65
-        //! OF_LINE: bundler.of:66
-        //! OF_LINE: bundler.of:67
-        let output = await system(cmd);
-        //! OF_LINE: bundler.of:68
-        //! OF_LINE: bundler.of:69
-        if (!fileexists2(output_file)) {
-          //! OF_LINE: bundler.of:70
-          return {
-            //! OF_LINE: bundler.of:71
-            ok: false,
-            //! OF_LINE: bundler.of:72
-            error: "Bundling failed. esbuild did not produce output file."
-            //! OF_LINE: bundler.of:73
-          };
-          //! OF_LINE: bundler.of:74
+        if (fileexists2(output_file)) {
+          filedelete2(output_file);
         }
-        //! OF_LINE: bundler.of:75
-        //! OF_LINE: bundler.of:76
-        //! OF_LINE: bundler.of:77
+        let cmd = 'npx -y esbuild "' + rel_main + '" --bundle --platform=node --external:mysql2/promise --external:redis --legal-comments=inline --banner:js="#!/usr/bin/env node" --outfile="' + output_file + '"';
+        let output = await system(cmd);
+        if (!fileexists2(output_file)) {
+          print2("esbuild error output:\n%s", output);
+          return {
+            ok: false,
+            error: "Bundling failed. esbuild did not produce output file."
+          };
+        }
         await exec('chmod +x "' + output_file + '"');
-        //! OF_LINE: bundler.of:78
-        //! OF_LINE: bundler.of:79
         print2("Build Successful -> %s", output_file);
-        //! OF_LINE: bundler.of:80
         return { ok: true, output: output_file };
-        //! OF_LINE: bundler.of:81
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: bundler.of:82
-    //! OF_LINE: bundler.of:83
-    //! OF_LINE: bundler.of:84
-    //! OF_LINE: bundler.of:85
-    //! OF_LINE: bundler.of:86
-    //! OF_LINE: bundler.of:87
     async function build2(main_source_path, output_file, compiled_js_map) {
       try {
-        //! OF_LINE: bundler.of:88
         let abs_main = pathresolve2(main_source_path);
-        //! OF_LINE: bundler.of:89
-        //! OF_LINE: bundler.of:90
         if (!output_file) {
-          //! OF_LINE: bundler.of:91
           output_file = await get_output_path2(abs_main);
-          //! OF_LINE: bundler.of:92
         }
-        //! OF_LINE: bundler.of:93
-        //! OF_LINE: bundler.of:94
-        //! OF_LINE: bundler.of:95
         var map_keys = Object.keys(compiled_js_map);
-        //! OF_LINE: bundler.of:96
         for (let source_path of map_keys) {
-          //! OF_LINE: bundler.of:97
           let js_content = compiled_js_map[source_path];
-          //! OF_LINE: bundler.of:98
-          let cache_path = await get_cache_path(source_path);
-          //! OF_LINE: bundler.of:99
+          let cache_path = await get_cache_path2(source_path);
           print2("Writing cache: %s", cache_path);
-          //! OF_LINE: bundler.of:100
           await write_js(cache_path, js_content);
-          //! OF_LINE: bundler.of:101
         }
-        //! OF_LINE: bundler.of:102
-        //! OF_LINE: bundler.of:103
-        //! OF_LINE: bundler.of:104
-        let main_cache_js = await get_cache_path(abs_main);
-        //! OF_LINE: bundler.of:105
-        //! OF_LINE: bundler.of:106
-        //! OF_LINE: bundler.of:107
+        let main_cache_js = await get_cache_path2(abs_main);
         let result = await bundle(main_cache_js, output_file);
-        //! OF_LINE: bundler.of:108
         return result;
-        //! OF_LINE: bundler.of:109
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: bundler.of:110
-    global.get_cache_path = get_cache_path;
+    global.get_cache_path = get_cache_path2;
     global.get_output_path = get_output_path2;
     global.write_js = write_js;
     global.bundle = bundle;
@@ -5691,6 +5202,8 @@ document.addEventListener('click', async (e) => {
         const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
         const parts = html.split(tokenRegex);
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         for (let part of parts) {
           if (!part)
             continue;
@@ -5723,6 +5236,7 @@ document.addEventListener('click', async (e) => {
 `;
           }
         }
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         const keys = ["context", ...Object.keys(context)];
         const values = [context, ...Object.values(context)];
@@ -5920,447 +5434,200 @@ document.addEventListener('click', async (e) => {
       formatRuntimeError2(err, "OmniFlux Runtime Error (Unhandled Rejection)");
       process.exit(1);
     });
-    //! OF_LINE: validator.of:1
-    //! OF_LINE: validator.of:2
-    //! OF_LINE: validator.of:3
-    //! OF_LINE: validator.of:4
-    //! OF_LINE: validator.of:5
-    //! OF_LINE: validator.of:6
-    //! OF_LINE: validator.of:7
-    //! OF_LINE: validator.of:8
-    //! OF_LINE: validator.of:9
-    //! OF_LINE: validator.of:10
     require_preprocessor();
-    //! OF_LINE: validator.of:11
-    //! OF_LINE: validator.of:12
-    //! OF_LINE: validator.of:13
-    //! OF_LINE: validator.of:14
-    //! OF_LINE: validator.of:15
     async function validate2(content, filename) {
       try {
-        //! OF_LINE: validator.of:16
         let brace_stack = [];
-        //! OF_LINE: validator.of:17
         let paren_stack = [];
-        //! OF_LINE: validator.of:18
         let bracket_stack = [];
-        //! OF_LINE: validator.of:19
-        //! OF_LINE: validator.of:20
         let in_string = "";
-        //! OF_LINE: validator.of:21
         let in_node_block = false;
-        //! OF_LINE: validator.of:22
         let in_block_comment = false;
-        //! OF_LINE: validator.of:23
         let node_block_start = 0;
-        //! OF_LINE: validator.of:24
         let block_comment_start = 0;
-        //! OF_LINE: validator.of:25
         let in_definition_state = false;
-        //! OF_LINE: validator.of:26
         let last_word = "";
-        //! OF_LINE: validator.of:27
-        //! OF_LINE: validator.of:28
         let lines = strsplit2(content, "\n");
-        //! OF_LINE: validator.of:29
         let line_num = 0;
-        //! OF_LINE: validator.of:30
-        //! OF_LINE: validator.of:31
         for (let line of lines) {
-          //! OF_LINE: validator.of:32
           line_num = line_num + 1;
-          //! OF_LINE: validator.of:33
           let length = len2(line);
-          //! OF_LINE: validator.of:34
           let i = 0;
-          //! OF_LINE: validator.of:35
-          //! OF_LINE: validator.of:36
           while (i < length) {
-            //! OF_LINE: validator.of:37
             let ch = strsub2(line, i, 1);
-            //! OF_LINE: validator.of:38
-            //! OF_LINE: validator.of:39
-            //! OF_LINE: validator.of:40
             if (in_node_block) {
-              //! OF_LINE: validator.of:41
               if (ch == "@" && strsub2(line, i + 1, 1) == "}") {
-                //! OF_LINE: validator.of:42
                 in_node_block = false;
-                //! OF_LINE: validator.of:43
                 i = i + 2;
-                //! OF_LINE: validator.of:44
               } else {
-                //! OF_LINE: validator.of:45
                 i = i + 1;
-                //! OF_LINE: validator.of:46
               }
-              //! OF_LINE: validator.of:47
               continue;
-              //! OF_LINE: validator.of:48
             }
-            //! OF_LINE: validator.of:49
-            //! OF_LINE: validator.of:50
-            //! OF_LINE: validator.of:51
             if (in_block_comment) {
-              //! OF_LINE: validator.of:52
               if (ch == "*" && strsub2(line, i + 1, 1) == "/") {
-                //! OF_LINE: validator.of:53
                 in_block_comment = false;
-                //! OF_LINE: validator.of:54
                 i = i + 2;
-                //! OF_LINE: validator.of:55
               } else {
-                //! OF_LINE: validator.of:56
                 i = i + 1;
-                //! OF_LINE: validator.of:57
               }
-              //! OF_LINE: validator.of:58
               continue;
-              //! OF_LINE: validator.of:59
             }
-            //! OF_LINE: validator.of:60
-            //! OF_LINE: validator.of:61
-            //! OF_LINE: validator.of:62
             if (in_string != "") {
-              //! OF_LINE: validator.of:63
               if (ch == "\\") {
-                //! OF_LINE: validator.of:64
                 i = i + 2;
-                //! OF_LINE: validator.of:65
               } else if (ch == in_string) {
-                //! OF_LINE: validator.of:66
                 in_string = "";
-                //! OF_LINE: validator.of:67
                 i = i + 1;
-                //! OF_LINE: validator.of:68
               } else {
-                //! OF_LINE: validator.of:69
                 i = i + 1;
-                //! OF_LINE: validator.of:70
               }
-              //! OF_LINE: validator.of:71
               continue;
-              //! OF_LINE: validator.of:72
             }
-            //! OF_LINE: validator.of:73
-            //! OF_LINE: validator.of:74
-            //! OF_LINE: validator.of:75
             if (ch == "@" && strsub2(line, i + 1, 1) == "{") {
-              //! OF_LINE: validator.of:76
               in_node_block = true;
-              //! OF_LINE: validator.of:77
               node_block_start = line_num;
-              //! OF_LINE: validator.of:78
               i = i + 2;
-              //! OF_LINE: validator.of:79
               continue;
-              //! OF_LINE: validator.of:80
             }
-            //! OF_LINE: validator.of:81
-            //! OF_LINE: validator.of:82
-            //! OF_LINE: validator.of:83
             if (ch == "/" && strsub2(line, i + 1, 1) == "*") {
-              //! OF_LINE: validator.of:84
               in_block_comment = true;
-              //! OF_LINE: validator.of:85
               block_comment_start = line_num;
-              //! OF_LINE: validator.of:86
               i = i + 2;
-              //! OF_LINE: validator.of:87
               continue;
-              //! OF_LINE: validator.of:88
             }
-            //! OF_LINE: validator.of:89
-            //! OF_LINE: validator.of:90
-            //! OF_LINE: validator.of:91
             if (ch == "#") {
-              //! OF_LINE: validator.of:92
               i = length;
-              //! OF_LINE: validator.of:93
               continue;
-              //! OF_LINE: validator.of:94
             }
-            //! OF_LINE: validator.of:95
             if (ch == "/" && strsub2(line, i + 1, 1) == "/") {
-              //! OF_LINE: validator.of:96
               i = length;
-              //! OF_LINE: validator.of:97
               continue;
-              //! OF_LINE: validator.of:98
             }
-            //! OF_LINE: validator.of:99
-            //! OF_LINE: validator.of:100
-            //! OF_LINE: validator.of:101
             if (ch == '"' || ch == "'") {
-              //! OF_LINE: validator.of:102
               in_string = ch;
-              //! OF_LINE: validator.of:103
               last_word = "";
-              //! OF_LINE: validator.of:104
               i = i + 1;
-              //! OF_LINE: validator.of:105
               continue;
-              //! OF_LINE: validator.of:106
             }
-            //! OF_LINE: validator.of:107
-            //! OF_LINE: validator.of:108
-            //! OF_LINE: validator.of:109
             if (ch == " " || ch == "	" || ch == "\r") {
-              //! OF_LINE: validator.of:110
               i = i + 1;
-              //! OF_LINE: validator.of:111
               continue;
-              //! OF_LINE: validator.of:112
             }
-            //! OF_LINE: validator.of:113
-            //! OF_LINE: validator.of:114
-            //! OF_LINE: validator.of:115
             let word_match = match2(strsub2(line, i, length - i), "/^([a-zA-Z_]\\w*)/");
-            //! OF_LINE: validator.of:116
             if (word_match) {
-              //! OF_LINE: validator.of:117
               let word = word_match[0];
-              //! OF_LINE: validator.of:118
               last_word = word;
-              //! OF_LINE: validator.of:119
               if (word == "define" || word == "task" || word == "fn" || word == "on" || word == "GET" || word == "POST" || word == "PUT" || word == "DELETE" || word == "PATCH") {
-                //! OF_LINE: validator.of:120
                 in_definition_state = true;
-                //! OF_LINE: validator.of:121
               }
-              //! OF_LINE: validator.of:122
               i = i + len2(word);
-              //! OF_LINE: validator.of:123
               continue;
-              //! OF_LINE: validator.of:124
             }
-            //! OF_LINE: validator.of:125
-            //! OF_LINE: validator.of:126
-            //! OF_LINE: validator.of:127
             if (ch == "{") {
-              //! OF_LINE: validator.of:128
               if (in_definition_state && len2(brace_stack) > 0) {
-                //! OF_LINE: validator.of:129
                 return {
-                  //! OF_LINE: validator.of:130
                   ok: false,
-                  //! OF_LINE: validator.of:131
                   error: "SyntaxError in " + filename + " on line " + line_num + ": Nested definition of task or lifecycle hook is not allowed"
-                  //! OF_LINE: validator.of:132
                 };
-                //! OF_LINE: validator.of:133
               }
-              //! OF_LINE: validator.of:134
               arraypush2(brace_stack, { line: line_num, type: last_word || "block" });
-              //! OF_LINE: validator.of:135
               last_word = "";
-              //! OF_LINE: validator.of:136
               in_definition_state = false;
-              //! OF_LINE: validator.of:137
               i = i + 1;
-              //! OF_LINE: validator.of:138
               continue;
-              //! OF_LINE: validator.of:139
             }
-            //! OF_LINE: validator.of:140
-            //! OF_LINE: validator.of:141
-            //! OF_LINE: validator.of:142
             if (ch == "}") {
-              //! OF_LINE: validator.of:143
               if (len2(brace_stack) == 0) {
-                //! OF_LINE: validator.of:144
                 return {
-                  //! OF_LINE: validator.of:145
                   ok: false,
-                  //! OF_LINE: validator.of:146
                   error: "SyntaxError in " + filename + " on line " + line_num + ": Unexpected closing brace '}' without a matching '{'"
-                  //! OF_LINE: validator.of:147
                 };
-                //! OF_LINE: validator.of:148
               }
-              //! OF_LINE: validator.of:149
               arraypop2(brace_stack);
-              //! OF_LINE: validator.of:150
               last_word = "";
-              //! OF_LINE: validator.of:151
               i = i + 1;
-              //! OF_LINE: validator.of:152
               continue;
-              //! OF_LINE: validator.of:153
             }
-            //! OF_LINE: validator.of:154
-            //! OF_LINE: validator.of:155
-            //! OF_LINE: validator.of:156
             if (ch == "(") {
-              //! OF_LINE: validator.of:157
               arraypush2(paren_stack, { line: line_num });
-              //! OF_LINE: validator.of:158
               last_word = "";
-              //! OF_LINE: validator.of:159
               i = i + 1;
-              //! OF_LINE: validator.of:160
               continue;
-              //! OF_LINE: validator.of:161
             }
-            //! OF_LINE: validator.of:162
-            //! OF_LINE: validator.of:163
-            //! OF_LINE: validator.of:164
             if (ch == ")") {
-              //! OF_LINE: validator.of:165
               if (len2(paren_stack) == 0) {
-                //! OF_LINE: validator.of:166
                 return {
-                  //! OF_LINE: validator.of:167
                   ok: false,
-                  //! OF_LINE: validator.of:168
                   error: "SyntaxError in " + filename + " on line " + line_num + ": Unexpected closing parenthesis ')' without a matching '('"
-                  //! OF_LINE: validator.of:169
                 };
-                //! OF_LINE: validator.of:170
               }
-              //! OF_LINE: validator.of:171
               arraypop2(paren_stack);
-              //! OF_LINE: validator.of:172
               last_word = "";
-              //! OF_LINE: validator.of:173
               i = i + 1;
-              //! OF_LINE: validator.of:174
               continue;
-              //! OF_LINE: validator.of:175
             }
-            //! OF_LINE: validator.of:176
-            //! OF_LINE: validator.of:177
-            //! OF_LINE: validator.of:178
             if (ch == "[") {
-              //! OF_LINE: validator.of:179
               arraypush2(bracket_stack, { line: line_num });
-              //! OF_LINE: validator.of:180
               last_word = "";
-              //! OF_LINE: validator.of:181
               i = i + 1;
-              //! OF_LINE: validator.of:182
               continue;
-              //! OF_LINE: validator.of:183
             }
-            //! OF_LINE: validator.of:184
-            //! OF_LINE: validator.of:185
-            //! OF_LINE: validator.of:186
             if (ch == "]") {
-              //! OF_LINE: validator.of:187
               if (len2(bracket_stack) == 0) {
-                //! OF_LINE: validator.of:188
                 return {
-                  //! OF_LINE: validator.of:189
                   ok: false,
-                  //! OF_LINE: validator.of:190
                   error: "SyntaxError in " + filename + " on line " + line_num + ": Unexpected closing bracket ']' without a matching '['"
-                  //! OF_LINE: validator.of:191
                 };
-                //! OF_LINE: validator.of:192
               }
-              //! OF_LINE: validator.of:193
               arraypop2(bracket_stack);
-              //! OF_LINE: validator.of:194
               last_word = "";
-              //! OF_LINE: validator.of:195
               i = i + 1;
-              //! OF_LINE: validator.of:196
               continue;
-              //! OF_LINE: validator.of:197
             }
-            //! OF_LINE: validator.of:198
-            //! OF_LINE: validator.of:199
-            //! OF_LINE: validator.of:200
             last_word = "";
-            //! OF_LINE: validator.of:201
             in_definition_state = false;
-            //! OF_LINE: validator.of:202
             i = i + 1;
-            //! OF_LINE: validator.of:203
           }
-          //! OF_LINE: validator.of:204
         }
-        //! OF_LINE: validator.of:205
-        //! OF_LINE: validator.of:206
-        //! OF_LINE: validator.of:207
         if (in_block_comment) {
-          //! OF_LINE: validator.of:208
           return {
-            //! OF_LINE: validator.of:209
             ok: false,
-            //! OF_LINE: validator.of:210
             error: "SyntaxError in " + filename + ": Unclosed block comment opened on line " + block_comment_start
-            //! OF_LINE: validator.of:211
           };
-          //! OF_LINE: validator.of:212
         }
-        //! OF_LINE: validator.of:213
-        //! OF_LINE: validator.of:214
         if (in_node_block) {
-          //! OF_LINE: validator.of:215
           return {
-            //! OF_LINE: validator.of:216
             ok: false,
-            //! OF_LINE: validator.of:217
             error: "SyntaxError in " + filename + ": Unclosed JS escape block opened on line " + node_block_start
-            //! OF_LINE: validator.of:218
           };
-          //! OF_LINE: validator.of:219
         }
-        //! OF_LINE: validator.of:220
-        //! OF_LINE: validator.of:221
         if (len2(brace_stack) > 0) {
-          //! OF_LINE: validator.of:222
           let first_brace = brace_stack[0];
-          //! OF_LINE: validator.of:223
           return {
-            //! OF_LINE: validator.of:224
             ok: false,
-            //! OF_LINE: validator.of:225
             error: "SyntaxError in " + filename + ": Unclosed block '" + first_brace.type + "' opened on line " + first_brace.line
-            //! OF_LINE: validator.of:226
           };
-          //! OF_LINE: validator.of:227
         }
-        //! OF_LINE: validator.of:228
-        //! OF_LINE: validator.of:229
         if (len2(paren_stack) > 0) {
-          //! OF_LINE: validator.of:230
           let first_paren = paren_stack[0];
-          //! OF_LINE: validator.of:231
           return {
-            //! OF_LINE: validator.of:232
             ok: false,
-            //! OF_LINE: validator.of:233
             error: "SyntaxError in " + filename + ": Unclosed parenthesis '(' opened on line " + first_paren.line
-            //! OF_LINE: validator.of:234
           };
-          //! OF_LINE: validator.of:235
         }
-        //! OF_LINE: validator.of:236
-        //! OF_LINE: validator.of:237
         if (len2(bracket_stack) > 0) {
-          //! OF_LINE: validator.of:238
           let first_bracket = bracket_stack[0];
-          //! OF_LINE: validator.of:239
           return {
-            //! OF_LINE: validator.of:240
             ok: false,
-            //! OF_LINE: validator.of:241
             error: "SyntaxError in " + filename + ": Unclosed bracket '[' opened on line " + first_bracket.line
-            //! OF_LINE: validator.of:242
           };
-          //! OF_LINE: validator.of:243
         }
-        //! OF_LINE: validator.of:244
-        //! OF_LINE: validator.of:245
         return { ok: true };
-        //! OF_LINE: validator.of:246
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: validator.of:247
     global.validate = validate2;
     if (require.main === module2) {
       (async () => {
@@ -7121,6 +6388,8 @@ document.addEventListener('click', async (e) => {
         const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
         const parts = html.split(tokenRegex);
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         for (let part of parts) {
           if (!part)
             continue;
@@ -7153,6 +6422,7 @@ document.addEventListener('click', async (e) => {
 `;
           }
         }
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         const keys = ["context", ...Object.keys(context)];
         const values = [context, ...Object.values(context)];
@@ -7350,880 +6620,500 @@ document.addEventListener('click', async (e) => {
       formatRuntimeError2(err, "OmniFlux Runtime Error (Unhandled Rejection)");
       process.exit(1);
     });
-    //! OF_LINE: transpiler.of:1
-    //! OF_LINE: transpiler.of:2
-    //! OF_LINE: transpiler.of:3
-    //! OF_LINE: transpiler.of:4
-    //! OF_LINE: transpiler.of:5
-    //! OF_LINE: transpiler.of:6
-    //! OF_LINE: transpiler.of:7
-    //! OF_LINE: transpiler.of:8
     require_symbols();
-    //! OF_LINE: transpiler.of:9
-    //! OF_LINE: transpiler.of:10
-    //! OF_LINE: transpiler.of:11
-    //! OF_LINE: transpiler.of:12
-    //! OF_LINE: transpiler.of:13
     async function ensure_parens(cond) {
       try {
-        //! OF_LINE: transpiler.of:14
         let trimmed = strtrim2(cond);
-        //! OF_LINE: transpiler.of:15
         if (strsub2(trimmed, 0, 1) == "(" && strsub2(trimmed, len2(trimmed) - 1, 1) == ")") {
-          //! OF_LINE: transpiler.of:16
           return trimmed;
-          //! OF_LINE: transpiler.of:17
         }
-        //! OF_LINE: transpiler.of:18
         return "(" + trimmed + ")";
-        //! OF_LINE: transpiler.of:19
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: transpiler.of:20
-    //! OF_LINE: transpiler.of:21
-    //! OF_LINE: transpiler.of:22
-    //! OF_LINE: transpiler.of:23
-    //! OF_LINE: transpiler.of:24
     async function replace_globals(line) {
       try {
-        //! OF_LINE: transpiler.of:25
         return strreplace2(line, "/\\$([a-zA-Z_]\\w*)/g", "global.vars.$1");
-        //! OF_LINE: transpiler.of:26
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: transpiler.of:27
-    //! OF_LINE: transpiler.of:28
-    //! OF_LINE: transpiler.of:29
-    //! OF_LINE: transpiler.of:30
-    //! OF_LINE: transpiler.of:31
     async function insert_awaits(line, user_tasks) {
       try {
-        //! OF_LINE: transpiler.of:32
         let result = line;
-        //! OF_LINE: transpiler.of:33
         var all_async = Array.isArray(global.ASYNC_BUILTINS) ? global.ASYNC_BUILTINS : Array.from(global.ASYNC_BUILTINS || []);
-        //! OF_LINE: transpiler.of:34
         for (let name of all_async) {
-          //! OF_LINE: transpiler.of:35
           let pattern = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)" + name + "\\b/g";
-          //! OF_LINE: transpiler.of:36
           result = strreplace2(result, pattern, "await " + name);
-          //! OF_LINE: transpiler.of:37
         }
-        //! OF_LINE: transpiler.of:38
         var task_names = Object.keys(user_tasks);
-        //! OF_LINE: transpiler.of:39
         for (let name2 of task_names) {
-          //! OF_LINE: transpiler.of:40
           let pattern2 = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!REFERENCE_)" + name2 + "\\b/g";
-          //! OF_LINE: transpiler.of:41
           result = strreplace2(result, pattern2, "await " + name2);
-          //! OF_LINE: transpiler.of:42
         }
-        //! OF_LINE: transpiler.of:43
         return result;
-        //! OF_LINE: transpiler.of:44
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: transpiler.of:45
-    //! OF_LINE: transpiler.of:46
-    //! OF_LINE: transpiler.of:47
-    //! OF_LINE: transpiler.of:48
-    //! OF_LINE: transpiler.of:49
-    //! OF_LINE: transpiler.of:50
-    //! OF_LINE: transpiler.of:51
-    //! OF_LINE: transpiler.of:52
     async function transpile_line(raw_line, filename, user_tasks, line_num, state) {
       try {
-        //! OF_LINE: transpiler.of:53
         let line = strtrim2(raw_line);
-        //! OF_LINE: transpiler.of:54
-        let out = [];
-        //! OF_LINE: transpiler.of:55
-        //! OF_LINE: transpiler.of:56
-        //! OF_LINE: transpiler.of:57
+        let node_open = "@{";
+        let node_close = "@}";
+        let node_pattern = "/@\\{|@\\}/g";
+        if (state.in_node_block) {
+          let out = [];
+          let has_close = strindexof2(raw_line, node_close);
+          if (has_close >= 0) {
+            state.in_node_block = false;
+          }
+          let clean = strreplace2(raw_line, node_pattern, "");
+          arraypush2(out, clean);
+          return out;
+        }
+        let has_open = strindexof2(raw_line, node_open);
+        if (has_open >= 0) {
+          let out = [];
+          let has_close2 = strindexof2(raw_line, node_close);
+          if (has_close2 >= 0) {
+            let clean2 = strreplace2(raw_line, node_pattern, "");
+            arraypush2(out, clean2);
+            return out;
+          } else {
+            state.in_node_block = true;
+            let clean3 = strreplace2(raw_line, node_pattern, "");
+            arraypush2(out, clean3);
+            return out;
+          }
+        }
         if (line == "") {
-          //! OF_LINE: transpiler.of:58
+          let out = [];
           arraypush2(out, "");
-          //! OF_LINE: transpiler.of:59
           return out;
-          //! OF_LINE: transpiler.of:60
         }
-        //! OF_LINE: transpiler.of:61
-        //! OF_LINE: transpiler.of:62
-        //! OF_LINE: transpiler.of:63
-        let inc_match = match2(line, `/^include\\s+["']?([^"'\\s;]+)["']?/i`);
-        //! OF_LINE: transpiler.of:64
-        if (inc_match) {
-          //! OF_LINE: transpiler.of:65
-          let inc_path = strreplace2(inc_match[0], "/.of$/", ".js");
-          //! OF_LINE: transpiler.of:66
-          if (!match2(inc_path, "/^\\./")) {
-            //! OF_LINE: transpiler.of:67
-            inc_path = "./" + inc_path;
-            //! OF_LINE: transpiler.of:68
-          }
-          //! OF_LINE: transpiler.of:69
-          arraypush2(out, "require('" + inc_path + "');");
-          //! OF_LINE: transpiler.of:70
-          return out;
-          //! OF_LINE: transpiler.of:71
+        if (match2(line, "/^include\\b/i")) {
+          return await transpile_line_core(line, filename, user_tasks, line_num, state);
         }
-        //! OF_LINE: transpiler.of:72
-        //! OF_LINE: transpiler.of:73
-        //! OF_LINE: transpiler.of:74
-        let task_with = match2(line, "/^(?:define\\s+task|fn)\\s+(\\w+)\\s+with\\s+([^{]+)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:75
-        if (task_with) {
-          //! OF_LINE: transpiler.of:76
-          let tname = task_with[0];
-          //! OF_LINE: transpiler.of:77
-          let tparams = strtrim2(task_with[1]);
-          //! OF_LINE: transpiler.of:78
-          arraypush2(state.tasks, tname);
-          //! OF_LINE: transpiler.of:79
-          arraypush2(state.block_stack, "task");
-          //! OF_LINE: transpiler.of:80
-          arraypush2(out, "async function " + tname + "(" + tparams + ") { try {");
-          //! OF_LINE: transpiler.of:81
-          return out;
-          //! OF_LINE: transpiler.of:82
+        let strings_list = [];
+        let line_with_placeholders = line;
+        const str_regex = /("(\\.|[^\\"])*"|'(\\.|[^\\'])*')/g;
+        line_with_placeholders = line.replace(str_regex, (match3) => {
+          strings_list.push(match3);
+          return "__STR_PLACEHOLDER_" + (strings_list.length - 1) + "__";
+        });
+        let raw_out = await transpile_line_core(line_with_placeholders, filename, user_tasks, line_num, state);
+        let restored_out = [];
+        for (let ol of raw_out) {
+          let restored_line = ol;
+          restored_line = ol.replace(/__STR_PLACEHOLDER_(\d+)__/g, (match3, idx) => {
+            return strings_list[parseInt(idx, 10)];
+          });
+          arraypush2(restored_out, restored_line);
         }
-        //! OF_LINE: transpiler.of:83
-        let task_paren = match2(line, "/^(?:define\\s+task|fn)\\s+(\\w+)\\s*(?:\\(([^)]*)\\))?\\s*\\{/i");
-        //! OF_LINE: transpiler.of:84
-        if (task_paren) {
-          //! OF_LINE: transpiler.of:85
-          let tname2 = task_paren[0];
-          //! OF_LINE: transpiler.of:86
-          let tparams2 = task_paren[1] || "";
-          //! OF_LINE: transpiler.of:87
-          arraypush2(state.tasks, tname2);
-          //! OF_LINE: transpiler.of:88
-          arraypush2(state.block_stack, "task");
-          //! OF_LINE: transpiler.of:89
-          arraypush2(out, "async function " + tname2 + "(" + tparams2 + ") { try {");
-          //! OF_LINE: transpiler.of:90
-          return out;
-          //! OF_LINE: transpiler.of:91
-        }
-        //! OF_LINE: transpiler.of:92
-        //! OF_LINE: transpiler.of:93
-        //! OF_LINE: transpiler.of:94
-        if (match2(line, "/^on\\s+start\\s*\\{/i")) {
-          //! OF_LINE: transpiler.of:95
-          state.on_start_count = state.on_start_count + 1;
-          //! OF_LINE: transpiler.of:96
-          let fn_name = "__on_start_" + state.on_start_count;
-          //! OF_LINE: transpiler.of:97
-          arraypush2(state.on_start_funcs, fn_name);
-          //! OF_LINE: transpiler.of:98
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:99
-          arraypush2(out, "async function " + fn_name + "() {");
-          //! OF_LINE: transpiler.of:100
-          return out;
-          //! OF_LINE: transpiler.of:101
-        }
-        //! OF_LINE: transpiler.of:102
-        if (match2(line, "/^on\\s+shutdown\\s*\\{/i")) {
-          //! OF_LINE: transpiler.of:103
-          state.on_shutdown_count = state.on_shutdown_count + 1;
-          //! OF_LINE: transpiler.of:104
-          let fn_sd = "__on_shutdown_" + state.on_shutdown_count;
-          //! OF_LINE: transpiler.of:105
-          arraypush2(state.on_shutdown_funcs, fn_sd);
-          //! OF_LINE: transpiler.of:106
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:107
-          arraypush2(out, "async function " + fn_sd + "() {");
-          //! OF_LINE: transpiler.of:108
-          return out;
-          //! OF_LINE: transpiler.of:109
-        }
-        //! OF_LINE: transpiler.of:110
-        let on_error_m = match2(line, "/^on\\s+error\\s*\\(([^)]*)\\)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:111
-        if (on_error_m) {
-          //! OF_LINE: transpiler.of:112
-          state.on_error_count = state.on_error_count + 1;
-          //! OF_LINE: transpiler.of:113
-          let fn_err = "__on_error_" + state.on_error_count;
-          //! OF_LINE: transpiler.of:114
-          arraypush2(state.on_error_funcs, fn_err);
-          //! OF_LINE: transpiler.of:115
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:116
-          arraypush2(out, "async function " + fn_err + "(" + on_error_m[0] + ") {");
-          //! OF_LINE: transpiler.of:117
-          return out;
-          //! OF_LINE: transpiler.of:118
-        }
-        //! OF_LINE: transpiler.of:119
-        let on_req_m = match2(line, "/^on\\s+request\\s*\\(([^)]*)\\)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:120
-        if (on_req_m) {
-          //! OF_LINE: transpiler.of:121
-          state.on_request_count = state.on_request_count + 1;
-          //! OF_LINE: transpiler.of:122
-          let fn_req = "__on_request_" + state.on_request_count;
-          //! OF_LINE: transpiler.of:123
-          arraypush2(state.on_request_funcs, fn_req);
-          //! OF_LINE: transpiler.of:124
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:125
-          arraypush2(out, "async function " + fn_req + "(" + on_req_m[0] + ") {");
-          //! OF_LINE: transpiler.of:126
-          return out;
-          //! OF_LINE: transpiler.of:127
-        }
-        //! OF_LINE: transpiler.of:128
-        //! OF_LINE: transpiler.of:129
-        //! OF_LINE: transpiler.of:130
-        let every_m = match2(line, "/^every\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:131
-        if (every_m) {
-          //! OF_LINE: transpiler.of:132
-          let ev_val = every_m[0];
-          //! OF_LINE: transpiler.of:133
-          let ev_unit = every_m[1];
-          //! OF_LINE: transpiler.of:134
-          let ev_mult = "1000";
-          //! OF_LINE: transpiler.of:135
-          if (match2(ev_unit, "/^min/i")) {
-            //! OF_LINE: transpiler.of:136
-            ev_mult = "60000";
-            //! OF_LINE: transpiler.of:137
-          }
-          //! OF_LINE: transpiler.of:138
-          if (match2(ev_unit, "/^hour/i")) {
-            //! OF_LINE: transpiler.of:139
-            ev_mult = "3600000";
-            //! OF_LINE: transpiler.of:140
-          }
-          //! OF_LINE: transpiler.of:141
-          let ev_ms = ev_val + " * " + ev_mult;
-          //! OF_LINE: transpiler.of:142
-          arraypush2(state.block_stack, "every:" + ev_ms);
-          //! OF_LINE: transpiler.of:143
-          arraypush2(out, "setInterval(async () => {");
-          //! OF_LINE: transpiler.of:144
-          return out;
-          //! OF_LINE: transpiler.of:145
-        }
-        //! OF_LINE: transpiler.of:146
-        //! OF_LINE: transpiler.of:147
-        //! OF_LINE: transpiler.of:148
-        let wait_m = match2(line, "/^wait\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i");
-        //! OF_LINE: transpiler.of:149
-        if (wait_m) {
-          //! OF_LINE: transpiler.of:150
-          let wt_val = wait_m[0];
-          //! OF_LINE: transpiler.of:151
-          let wt_unit = wait_m[1];
-          //! OF_LINE: transpiler.of:152
-          let wt_mult = "1000";
-          //! OF_LINE: transpiler.of:153
-          if (match2(wt_unit, "/^min/i")) {
-            //! OF_LINE: transpiler.of:154
-            wt_mult = "60000";
-            //! OF_LINE: transpiler.of:155
-          }
-          //! OF_LINE: transpiler.of:156
-          if (match2(wt_unit, "/^hour/i")) {
-            //! OF_LINE: transpiler.of:157
-            wt_mult = "3600000";
-            //! OF_LINE: transpiler.of:158
-          }
-          //! OF_LINE: transpiler.of:159
-          let wt_ms = wt_val + " * " + wt_mult;
-          //! OF_LINE: transpiler.of:160
-          arraypush2(out, "await new Promise(resolve => setTimeout(resolve, " + wt_ms + "));");
-          //! OF_LINE: transpiler.of:161
-          return out;
-          //! OF_LINE: transpiler.of:162
-        }
-        //! OF_LINE: transpiler.of:163
-        //! OF_LINE: transpiler.of:164
-        //! OF_LINE: transpiler.of:165
-        let listen_m = match2(line, "/^listen\\s+on\\s+port\\s+(.*)/i");
-        //! OF_LINE: transpiler.of:166
-        if (listen_m) {
-          //! OF_LINE: transpiler.of:167
-          state.server_port = strtrim2(listen_m[0]);
-          //! OF_LINE: transpiler.of:168
-          arraypush2(out, "const express = require('express');");
-          //! OF_LINE: transpiler.of:169
-          arraypush2(out, "const app = express();");
-          //! OF_LINE: transpiler.of:170
-          arraypush2(out, "app.use(express.json());");
-          //! OF_LINE: transpiler.of:171
-          arraypush2(out, "app.use(express.urlencoded({ extended: true }));");
-          //! OF_LINE: transpiler.of:172
-          arraypush2(out, "app.use(async (req, res, next) => {");
-          //! OF_LINE: transpiler.of:173
-          arraypush2(out, "    try {");
-          //! OF_LINE: transpiler.of:174
-          arraypush2(out, "        const hooks = global.__on_request_hooks || [];");
-          //! OF_LINE: transpiler.of:175
-          arraypush2(out, "        for (const hook of hooks) {");
-          //! OF_LINE: transpiler.of:176
-          arraypush2(out, "            if (!res.headersSent) { await hook(req, res); }");
-          //! OF_LINE: transpiler.of:177
-          arraypush2(out, "        }");
-          //! OF_LINE: transpiler.of:178
-          arraypush2(out, "        if (!res.headersSent) { next(); }");
-          //! OF_LINE: transpiler.of:179
-          arraypush2(out, "    } catch (e) { next(e); }");
-          //! OF_LINE: transpiler.of:180
-          arraypush2(out, "});");
-          //! OF_LINE: transpiler.of:181
-          return out;
-          //! OF_LINE: transpiler.of:182
-        }
-        //! OF_LINE: transpiler.of:183
-        //! OF_LINE: transpiler.of:184
-        //! OF_LINE: transpiler.of:185
-        let route_m = match2(line, `/^(GET|POST|PUT|DELETE)\\s+["']([^"']+)["']\\s*\\(([^)]*)\\)\\s*\\{/i`);
-        //! OF_LINE: transpiler.of:186
-        if (route_m) {
-          //! OF_LINE: transpiler.of:187
-          let route_method = strlower2(route_m[0]);
-          //! OF_LINE: transpiler.of:188
-          let route_path = route_m[1];
-          //! OF_LINE: transpiler.of:189
-          let route_params = route_m[2];
-          //! OF_LINE: transpiler.of:190
-          arraypush2(state.block_stack, "route");
-          //! OF_LINE: transpiler.of:191
-          arraypush2(out, "app." + route_method + '("' + route_path + '", async (' + route_params + ") => { try {");
-          //! OF_LINE: transpiler.of:192
-          return out;
-          //! OF_LINE: transpiler.of:193
-        }
-        //! OF_LINE: transpiler.of:194
-        //! OF_LINE: transpiler.of:195
-        //! OF_LINE: transpiler.of:196
-        let redir_m = match2(line, `/^redirect\\s+to\\s+["']?([^"'\\s]+)["']?(?:\\s+with\\s+status\\s+(\\d+))?/i`);
-        //! OF_LINE: transpiler.of:197
-        if (redir_m) {
-          //! OF_LINE: transpiler.of:198
-          let redir_url = redir_m[0];
-          //! OF_LINE: transpiler.of:199
-          let redir_status = redir_m[1];
-          //! OF_LINE: transpiler.of:200
-          if (redir_status) {
-            //! OF_LINE: transpiler.of:201
-            arraypush2(out, "res.status(" + redir_status + ").redirect('" + redir_url + "');");
-            //! OF_LINE: transpiler.of:202
-          } else {
-            //! OF_LINE: transpiler.of:203
-            arraypush2(out, "res.redirect('" + redir_url + "');");
-            //! OF_LINE: transpiler.of:204
-          }
-          //! OF_LINE: transpiler.of:205
-          return out;
-          //! OF_LINE: transpiler.of:206
-        }
-        //! OF_LINE: transpiler.of:207
-        //! OF_LINE: transpiler.of:208
-        //! OF_LINE: transpiler.of:209
-        let resp_status_m = match2(line, "/^respond\\s+(?:with\\s+)?status\\s+(\\S+)\\s+and\\s+(json|html|text|file|template)\\s+(.*)/i");
-        //! OF_LINE: transpiler.of:210
-        if (resp_status_m) {
-          //! OF_LINE: transpiler.of:211
-          let rs_status = resp_status_m[0];
-          //! OF_LINE: transpiler.of:212
-          let rs_type = strlower2(resp_status_m[1]);
-          //! OF_LINE: transpiler.of:213
-          let rs_content = strtrim2(resp_status_m[2]);
-          //! OF_LINE: transpiler.of:214
-          if (rs_type == "json") {
-            //! OF_LINE: transpiler.of:215
-            arraypush2(out, "res.status(" + rs_status + ").json(" + rs_content + ");");
-            //! OF_LINE: transpiler.of:216
-          } else if (rs_type == "file") {
-            //! OF_LINE: transpiler.of:217
-            arraypush2(out, "res.status(" + rs_status + ").sendFile(path.resolve(global.__app_root, " + rs_content + "));");
-            //! OF_LINE: transpiler.of:218
-          } else if (rs_type == "template") {
-            //! OF_LINE: transpiler.of:219
-            arraypush2(out, "res.status(" + rs_status + ").send(await template(" + rs_content + "));");
-            //! OF_LINE: transpiler.of:220
-          } else {
-            //! OF_LINE: transpiler.of:221
-            arraypush2(out, "res.status(" + rs_status + ").send(" + rs_content + ");");
-            //! OF_LINE: transpiler.of:222
-          }
-          //! OF_LINE: transpiler.of:223
-          return out;
-          //! OF_LINE: transpiler.of:224
-        }
-        //! OF_LINE: transpiler.of:225
-        //! OF_LINE: transpiler.of:226
-        //! OF_LINE: transpiler.of:227
-        let resp_m = match2(line, "/^respond\\s+(?:with\\s+)?(json|html|text|file|template)\\s*(.*)/i");
-        //! OF_LINE: transpiler.of:228
-        if (resp_m) {
-          //! OF_LINE: transpiler.of:229
-          let r_type = strlower2(resp_m[0]);
-          //! OF_LINE: transpiler.of:230
-          let r_content = strtrim2(resp_m[1]);
-          //! OF_LINE: transpiler.of:231
-          if (r_type == "json") {
-            //! OF_LINE: transpiler.of:232
-            arraypush2(out, "res.json(" + r_content + ");");
-            //! OF_LINE: transpiler.of:233
-          } else if (r_type == "file") {
-            //! OF_LINE: transpiler.of:234
-            arraypush2(out, "res.sendFile(path.resolve(global.__app_root, " + r_content + "));");
-            //! OF_LINE: transpiler.of:235
-          } else if (r_type == "template") {
-            //! OF_LINE: transpiler.of:236
-            arraypush2(out, "res.send(await template(" + r_content + "));");
-            //! OF_LINE: transpiler.of:237
-          } else {
-            //! OF_LINE: transpiler.of:238
-            arraypush2(out, "res.send(" + r_content + ");");
-            //! OF_LINE: transpiler.of:239
-          }
-          //! OF_LINE: transpiler.of:240
-          return out;
-          //! OF_LINE: transpiler.of:241
-        }
-        //! OF_LINE: transpiler.of:242
-        //! OF_LINE: transpiler.of:243
-        //! OF_LINE: transpiler.of:244
-        let for_m = match2(line, "/^for\\s+(\\w+)\\s+of\\s+(.*?)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:245
-        if (for_m) {
-          //! OF_LINE: transpiler.of:246
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:247
-          arraypush2(out, "for (let " + for_m[0] + " of " + strtrim2(for_m[1]) + ") {");
-          //! OF_LINE: transpiler.of:248
-          return out;
-          //! OF_LINE: transpiler.of:249
-        }
-        //! OF_LINE: transpiler.of:250
-        //! OF_LINE: transpiler.of:251
-        //! OF_LINE: transpiler.of:252
-        let while_m = match2(line, "/^while\\s+(.*?)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:253
-        if (while_m) {
-          //! OF_LINE: transpiler.of:254
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:255
-          arraypush2(out, "while " + await ensure_parens(while_m[0]) + " {");
-          //! OF_LINE: transpiler.of:256
-          return out;
-          //! OF_LINE: transpiler.of:257
-        }
-        //! OF_LINE: transpiler.of:258
-        //! OF_LINE: transpiler.of:259
-        //! OF_LINE: transpiler.of:260
-        let catch_m = match2(line, "/^\\}\\s*on\\s+error\\s*\\(([^)]*)\\)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:261
-        if (catch_m) {
-          //! OF_LINE: transpiler.of:262
-          arraypop2(state.block_stack);
-          //! OF_LINE: transpiler.of:263
-          arraypush2(state.block_stack, "task_error");
-          //! OF_LINE: transpiler.of:264
-          arraypush2(out, "} catch (" + catch_m[0] + ") {");
-          //! OF_LINE: transpiler.of:265
-          return out;
-          //! OF_LINE: transpiler.of:266
-        }
-        //! OF_LINE: transpiler.of:267
-        //! OF_LINE: transpiler.of:268
-        //! OF_LINE: transpiler.of:269
-        let elif_m = match2(line, "/^(\\}\\s*)?else\\s+if\\s+(.*?)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:270
-        if (elif_m) {
-          //! OF_LINE: transpiler.of:271
-          if (elif_m[0]) {
-            //! OF_LINE: transpiler.of:272
-            arraypop2(state.block_stack);
-            //! OF_LINE: transpiler.of:273
-          }
-          //! OF_LINE: transpiler.of:274
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:275
-          arraypush2(out, "} else if " + await ensure_parens(elif_m[1]) + " {");
-          //! OF_LINE: transpiler.of:276
-          return out;
-          //! OF_LINE: transpiler.of:277
-        }
-        //! OF_LINE: transpiler.of:278
-        //! OF_LINE: transpiler.of:279
-        //! OF_LINE: transpiler.of:280
-        let else_m = match2(line, "/^(\\}\\s*)?else\\s*\\{/i");
-        //! OF_LINE: transpiler.of:281
-        if (else_m) {
-          //! OF_LINE: transpiler.of:282
-          if (else_m[0]) {
-            //! OF_LINE: transpiler.of:283
-            arraypop2(state.block_stack);
-            //! OF_LINE: transpiler.of:284
-          }
-          //! OF_LINE: transpiler.of:285
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:286
-          arraypush2(out, "} else {");
-          //! OF_LINE: transpiler.of:287
-          return out;
-          //! OF_LINE: transpiler.of:288
-        }
-        //! OF_LINE: transpiler.of:289
-        //! OF_LINE: transpiler.of:290
-        //! OF_LINE: transpiler.of:291
-        let if_m = match2(line, "/^if\\s+(.*?)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:292
-        if (if_m) {
-          //! OF_LINE: transpiler.of:293
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:294
-          arraypush2(out, "if " + await ensure_parens(if_m[0]) + " {");
-          //! OF_LINE: transpiler.of:295
-          return out;
-          //! OF_LINE: transpiler.of:296
-        }
-        //! OF_LINE: transpiler.of:297
-        //! OF_LINE: transpiler.of:298
-        //! OF_LINE: transpiler.of:299
-        let switch_m = match2(line, "/^switch\\s+(.*?)\\s*\\{/i");
-        //! OF_LINE: transpiler.of:300
-        if (switch_m) {
-          //! OF_LINE: transpiler.of:301
-          arraypush2(state.block_stack, "normal");
-          //! OF_LINE: transpiler.of:302
-          arraypush2(out, "switch (" + strtrim2(switch_m[0]) + ") {");
-          //! OF_LINE: transpiler.of:303
-          return out;
-          //! OF_LINE: transpiler.of:304
-        }
-        //! OF_LINE: transpiler.of:305
-        //! OF_LINE: transpiler.of:306
-        //! OF_LINE: transpiler.of:307
-        if (match2(line, "/^\\}\\s*$/")) {
-          //! OF_LINE: transpiler.of:308
-          let top = "";
-          //! OF_LINE: transpiler.of:309
-          if (len2(state.block_stack) > 0) {
-            //! OF_LINE: transpiler.of:310
-            top = arraypop2(state.block_stack);
-            //! OF_LINE: transpiler.of:311
-          }
-          //! OF_LINE: transpiler.of:312
-          if (match2(top, "/^every:/")) {
-            //! OF_LINE: transpiler.of:313
-            let ev_ms_val = strsub2(top, 6, len2(top) - 6);
-            //! OF_LINE: transpiler.of:314
-            arraypush2(out, "}, " + ev_ms_val + ");");
-            //! OF_LINE: transpiler.of:315
-          } else if (top == "route") {
-            //! OF_LINE: transpiler.of:316
-            arraypush2(out, "} catch (err) {");
-            //! OF_LINE: transpiler.of:317
-            arraypush2(out, "    if (typeof next === 'function') { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } }");
-            //! OF_LINE: transpiler.of:318
-            arraypush2(out, "} });");
-            //! OF_LINE: transpiler.of:319
-          } else if (top == "route_error") {
-            //! OF_LINE: transpiler.of:320
-            arraypush2(out, "} });");
-            //! OF_LINE: transpiler.of:321
-          } else if (top == "task") {
-            //! OF_LINE: transpiler.of:322
-            arraypush2(out, "} catch (err) { throw err; }");
-            //! OF_LINE: transpiler.of:323
-            arraypush2(out, "}");
-            //! OF_LINE: transpiler.of:324
-          } else if (top == "task_error") {
-            //! OF_LINE: transpiler.of:325
-            arraypush2(out, "}");
-            //! OF_LINE: transpiler.of:326
-            arraypush2(out, "}");
-            //! OF_LINE: transpiler.of:327
-          } else {
-            //! OF_LINE: transpiler.of:328
-            arraypush2(out, "}");
-            //! OF_LINE: transpiler.of:329
-          }
-          //! OF_LINE: transpiler.of:330
-          return out;
-          //! OF_LINE: transpiler.of:331
-        }
-        //! OF_LINE: transpiler.of:332
-        //! OF_LINE: transpiler.of:333
-        //! OF_LINE: transpiler.of:334
-        line = await replace_globals(line);
-        //! OF_LINE: transpiler.of:335
-        //! OF_LINE: transpiler.of:336
-        //! OF_LINE: transpiler.of:337
-        //! OF_LINE: transpiler.of:338
-        line = strreplace2(line, "/\\bbackground\\s+(\\w+)/g", "NONBLOCKING_$1");
-        //! OF_LINE: transpiler.of:339
-        //! OF_LINE: transpiler.of:340
-        //! OF_LINE: transpiler.of:341
-        line = strreplace2(line, "/\\bvar\\b/g", "let");
-        //! OF_LINE: transpiler.of:342
-        //! OF_LINE: transpiler.of:343
-        //! OF_LINE: transpiler.of:344
-        line = strreplace2(line, "/\\bref\\s+(\\w+)/g", "$1");
-        //! OF_LINE: transpiler.of:345
-        //! OF_LINE: transpiler.of:346
-        //! OF_LINE: transpiler.of:347
-        var user_task_list = Object.keys(user_tasks);
-        //! OF_LINE: transpiler.of:348
-        for (let tname3 of user_task_list) {
-          //! OF_LINE: transpiler.of:349
-          let with_pat = "/^(\\s*)" + tname3 + "\\s+with\\s+(.*?)(?=\\s*(?://|;|$))/m";
-          //! OF_LINE: transpiler.of:350
-          line = strreplace2(line, with_pat, "$1await " + tname3 + "($2)");
-          //! OF_LINE: transpiler.of:351
-        }
-        //! OF_LINE: transpiler.of:352
-        //! OF_LINE: transpiler.of:353
-        //! OF_LINE: transpiler.of:354
-        line = await insert_awaits(line, user_tasks);
-        //! OF_LINE: transpiler.of:355
-        //! OF_LINE: transpiler.of:356
-        //! OF_LINE: transpiler.of:357
-        line = strreplace2(line, "/NONBLOCKING_/g", "");
-        //! OF_LINE: transpiler.of:358
-        //! OF_LINE: transpiler.of:359
-        //! OF_LINE: transpiler.of:360
-        line = strreplace2(line, "/\\b(\\S+)\\s+as\\s+int\\b/g", "parseInt($1, 10)");
-        //! OF_LINE: transpiler.of:361
-        line = strreplace2(line, "/\\b(\\S+)\\s+as\\s+string\\b/g", "String($1)");
-        //! OF_LINE: transpiler.of:362
-        //! OF_LINE: transpiler.of:363
-        arraypush2(out, line);
-        //! OF_LINE: transpiler.of:364
-        return out;
-        //! OF_LINE: transpiler.of:365
+        return restored_out;
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: transpiler.of:366
-    //! OF_LINE: transpiler.of:367
-    //! OF_LINE: transpiler.of:368
-    //! OF_LINE: transpiler.of:369
-    //! OF_LINE: transpiler.of:370
-    //! OF_LINE: transpiler.of:371
+    async function transpile_line_core(raw_line, filename, user_tasks, line_num, state) {
+      try {
+        let line = strtrim2(raw_line);
+        let out = [];
+        let inc_match = match2(line, `/^include\\s+["']?([^"'\\s;]+)["']?/i`);
+        if (inc_match) {
+          let inc_path = inc_match[0];
+          let resolved = await resolve_include(inc_path, filename);
+          let rel_require_path = "";
+          if (resolved) {
+            let dep_cache = await get_cache_path(resolved);
+            let current_cache = await get_cache_path(filename);
+            const path3 = require("path");
+            let rel = path3.relative(path3.dirname(current_cache), dep_cache);
+            if (!rel.startsWith(".")) {
+              rel = "./" + rel;
+            }
+            rel_require_path = rel;
+          } else {
+            let inc_js = strreplace2(inc_path, "/\\.of$/", ".js");
+            if (!match2(inc_js, "/^\\./")) {
+              inc_js = "./" + inc_js;
+            }
+            rel_require_path = inc_js;
+          }
+          arraypush2(out, "require('" + rel_require_path + "');");
+          return out;
+        }
+        let task_with = match2(line, "/^(?:define\\s+task|fn)\\s+(\\w+)\\s+with\\s+([^{]+)\\s*\\{/i");
+        if (task_with) {
+          let tname = task_with[0];
+          let tparams = strtrim2(task_with[1]);
+          arraypush2(state.tasks, tname);
+          arraypush2(state.block_stack, "task");
+          arraypush2(out, "async function " + tname + "(" + tparams + ") { try {");
+          return out;
+        }
+        let task_paren = match2(line, "/^(?:define\\s+task|fn)\\s+(\\w+)\\s*(?:\\(([^)]*)\\))?\\s*\\{/i");
+        if (task_paren) {
+          let tname2 = task_paren[0];
+          let tparams2 = task_paren[1] || "";
+          arraypush2(state.tasks, tname2);
+          arraypush2(state.block_stack, "task");
+          arraypush2(out, "async function " + tname2 + "(" + tparams2 + ") { try {");
+          return out;
+        }
+        if (match2(line, "/^on\\s+start\\s*\\{/i")) {
+          state.on_start_count = state.on_start_count + 1;
+          let fn_name = "__on_start_" + state.on_start_count;
+          arraypush2(state.on_start_funcs, fn_name);
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "async function " + fn_name + "() {");
+          return out;
+        }
+        if (match2(line, "/^on\\s+shutdown\\s*\\{/i")) {
+          state.on_shutdown_count = state.on_shutdown_count + 1;
+          let fn_sd = "__on_shutdown_" + state.on_shutdown_count;
+          arraypush2(state.on_shutdown_funcs, fn_sd);
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "async function " + fn_sd + "() {");
+          return out;
+        }
+        let on_error_m = match2(line, "/^on\\s+error\\s*\\(([^)]*)\\)\\s*\\{/i");
+        if (on_error_m) {
+          state.on_error_count = state.on_error_count + 1;
+          let fn_err = "__on_error_" + state.on_error_count;
+          arraypush2(state.on_error_funcs, fn_err);
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "async function " + fn_err + "(" + on_error_m[0] + ") {");
+          return out;
+        }
+        let on_req_m = match2(line, "/^on\\s+request\\s*\\(([^)]*)\\)\\s*\\{/i");
+        if (on_req_m) {
+          state.on_request_count = state.on_request_count + 1;
+          let fn_req = "__on_request_" + state.on_request_count;
+          arraypush2(state.on_request_funcs, fn_req);
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "async function " + fn_req + "(" + on_req_m[0] + ") {");
+          return out;
+        }
+        let every_m = match2(line, "/^every\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)\\s*\\{/i");
+        if (every_m) {
+          let ev_val = every_m[0];
+          let ev_unit = every_m[1];
+          let ev_mult = "1000";
+          if (match2(ev_unit, "/^min/i")) {
+            ev_mult = "60000";
+          }
+          if (match2(ev_unit, "/^hour/i")) {
+            ev_mult = "3600000";
+          }
+          let ev_ms = ev_val + " * " + ev_mult;
+          arraypush2(state.block_stack, "every:" + ev_ms);
+          arraypush2(out, "setInterval(async () => {");
+          return out;
+        }
+        let wait_m = match2(line, "/^wait\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i");
+        if (wait_m) {
+          let wt_val = wait_m[0];
+          let wt_unit = wait_m[1];
+          let wt_mult = "1000";
+          if (match2(wt_unit, "/^min/i")) {
+            wt_mult = "60000";
+          }
+          if (match2(wt_unit, "/^hour/i")) {
+            wt_mult = "3600000";
+          }
+          let wt_ms = wt_val + " * " + wt_mult;
+          arraypush2(out, "await new Promise(resolve => setTimeout(resolve, " + wt_ms + "));");
+          return out;
+        }
+        let listen_m = match2(line, "/^listen\\s+on\\s+port\\s+(.*)/i");
+        if (listen_m) {
+          state.server_port = strtrim2(listen_m[0]);
+          arraypush2(out, "const express = require('express');");
+          arraypush2(out, "const app = express();");
+          arraypush2(out, "app.use(express.json());");
+          arraypush2(out, "app.use(express.urlencoded({ extended: true }));");
+          arraypush2(out, "app.use(async (req, res, next) => {");
+          arraypush2(out, "    try {");
+          arraypush2(out, "        const hooks = global.__on_request_hooks || [];");
+          arraypush2(out, "        for (const hook of hooks) {");
+          arraypush2(out, "            if (!res.headersSent) { await hook(req, res); }");
+          arraypush2(out, "        }");
+          arraypush2(out, "        if (!res.headersSent) { next(); }");
+          arraypush2(out, "    } catch (e) { next(e); }");
+          arraypush2(out, "});");
+          return out;
+        }
+        let route_m = match2(line, `/^(GET|POST|PUT|DELETE)\\s+["']([^"']+)["']\\s*\\(([^)]*)\\)\\s*\\{/i`);
+        if (route_m) {
+          let route_method = strlower2(route_m[0]);
+          let route_path = route_m[1];
+          let route_params = route_m[2];
+          arraypush2(state.block_stack, "route");
+          arraypush2(out, "app." + route_method + '("' + route_path + '", async (' + route_params + ") => { try {");
+          return out;
+        }
+        let redir_m = match2(line, `/^redirect\\s+to\\s+["']?([^"'\\s]+)["']?(?:\\s+with\\s+status\\s+(\\d+))?/i`);
+        if (redir_m) {
+          let redir_url = redir_m[0];
+          let redir_status = redir_m[1];
+          if (redir_status) {
+            arraypush2(out, "res.status(" + redir_status + ").redirect('" + redir_url + "');");
+          } else {
+            arraypush2(out, "res.redirect('" + redir_url + "');");
+          }
+          return out;
+        }
+        let resp_status_m = match2(line, "/^respond\\s+(?:with\\s+)?status\\s+(\\S+)\\s+and\\s+(json|html|text|file|template)\\s+(.*)/i");
+        if (resp_status_m) {
+          let rs_status = resp_status_m[0];
+          let rs_type = strlower2(resp_status_m[1]);
+          let rs_content = strtrim2(resp_status_m[2]);
+          if (rs_type == "json") {
+            arraypush2(out, "res.status(" + rs_status + ").json(" + rs_content + ");");
+          } else if (rs_type == "file") {
+            arraypush2(out, "res.status(" + rs_status + ").sendFile(path.resolve(global.__app_root, " + rs_content + "));");
+          } else if (rs_type == "template") {
+            arraypush2(out, "res.status(" + rs_status + ").send(await template(" + rs_content + "));");
+          } else {
+            arraypush2(out, "res.status(" + rs_status + ").send(" + rs_content + ");");
+          }
+          return out;
+        }
+        let resp_m = match2(line, "/^respond\\s+(?:with\\s+)?(json|html|text|file|template)\\s*(.*)/i");
+        if (resp_m) {
+          let r_type = strlower2(resp_m[0]);
+          let r_content = strtrim2(resp_m[1]);
+          if (r_type == "json") {
+            arraypush2(out, "res.json(" + r_content + ");");
+          } else if (r_type == "file") {
+            arraypush2(out, "res.sendFile(path.resolve(global.__app_root, " + r_content + "));");
+          } else if (r_type == "template") {
+            arraypush2(out, "res.send(await template(" + r_content + "));");
+          } else {
+            arraypush2(out, "res.send(" + r_content + ");");
+          }
+          return out;
+        }
+        let for_m = match2(line, "/^for\\s+(\\w+)\\s+of\\s+(.*?)\\s*\\{/i");
+        if (for_m) {
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "for (let " + for_m[0] + " of " + strtrim2(for_m[1]) + ") {");
+          return out;
+        }
+        let while_m = match2(line, "/^while\\s+(.*?)\\s*\\{/i");
+        if (while_m) {
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "while " + await ensure_parens(while_m[0]) + " {");
+          return out;
+        }
+        let catch_m = match2(line, "/^\\}\\s*on\\s+error\\s*\\(([^)]*)\\)\\s*\\{/i");
+        if (catch_m) {
+          arraypop2(state.block_stack);
+          arraypush2(state.block_stack, "task_error");
+          arraypush2(out, "} catch (" + catch_m[0] + ") {");
+          return out;
+        }
+        let elif_m = match2(line, "/^(\\}\\s*)?else\\s+if\\s+(.*?)\\s*\\{/i");
+        if (elif_m) {
+          if (elif_m[0]) {
+            arraypop2(state.block_stack);
+          }
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "} else if " + await ensure_parens(elif_m[1]) + " {");
+          return out;
+        }
+        let else_m = match2(line, "/^(\\}\\s*)?else\\s*\\{/i");
+        if (else_m) {
+          if (else_m[0]) {
+            arraypop2(state.block_stack);
+          }
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "} else {");
+          return out;
+        }
+        let if_m = match2(line, "/^if\\s+(.*?)\\s*\\{/i");
+        if (if_m) {
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "if " + await ensure_parens(if_m[0]) + " {");
+          return out;
+        }
+        let switch_m = match2(line, "/^switch\\s+(.*?)\\s*\\{/i");
+        if (switch_m) {
+          arraypush2(state.block_stack, "normal");
+          arraypush2(out, "switch (" + strtrim2(switch_m[0]) + ") {");
+          return out;
+        }
+        line = await replace_globals(line);
+        line = strreplace2(line, "/\\bbackground\\s+(\\w+)/g", "NONBLOCKING_$1");
+        line = strreplace2(line, "/\\bvar\\b/g", "let");
+        line = strreplace2(line, "/\\bref\\s+(\\w+)/g", "$1");
+        var user_task_list = Object.keys(user_tasks);
+        for (let tname3 of user_task_list) {
+          let with_pat = "/^(\\s*)" + tname3 + "\\s+with\\s+(.*?)(?=\\s*(?://|;|$))/m";
+          line = strreplace2(line, with_pat, "$1await " + tname3 + "($2)");
+        }
+        line = await insert_awaits(line, user_tasks);
+        line = strreplace2(line, "/NONBLOCKING_/g", "");
+        line = strreplace2(line, "/\\b(\\S+)\\s+as\\s+int\\b/g", "parseInt($1, 10)");
+        line = strreplace2(line, "/\\b(\\S+)\\s+as\\s+string\\b/g", "String($1)");
+        let local_stack = [];
+        let unmatched_closes = 0;
+        let unmatched_opens = 0;
+        let line_len = len2(line);
+        let char_idx = 0;
+        while (char_idx < line_len) {
+          let char = strsub2(line, char_idx, 1);
+          if (char == "{") {
+            arraypush2(local_stack, "{");
+          } else if (char == "}") {
+            if (len2(local_stack) > 0) {
+              arraypop2(local_stack);
+            } else {
+              unmatched_closes = unmatched_closes + 1;
+            }
+          }
+          char_idx = char_idx + 1;
+        }
+        unmatched_opens = len2(local_stack);
+        if (unmatched_closes > 0) {
+          let c_idx = 0;
+          while (c_idx < unmatched_closes) {
+            let top = "";
+            if (len2(state.block_stack) > 0) {
+              top = arraypop2(state.block_stack);
+            }
+            let close_js = "}";
+            if (match2(top, "/^every:/")) {
+              let ev_ms_val = strsub2(top, 6, len2(top) - 6);
+              close_js = "}, " + ev_ms_val + ");";
+            } else if (top == "route") {
+              close_js = "} catch (err) {\n    if (typeof next === 'function') { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } }\n} });";
+            } else if (top == "route_error") {
+              close_js = "} });";
+            } else if (top == "task") {
+              close_js = "} catch (err) { throw err; }\n}";
+            } else if (top == "task_error") {
+              close_js = "}\n}";
+            }
+            line = line.replace("}", close_js);
+            c_idx = c_idx + 1;
+          }
+        }
+        if (unmatched_opens > 0) {
+          let o_idx = 0;
+          while (o_idx < unmatched_opens) {
+            arraypush2(state.block_stack, "normal");
+            o_idx = o_idx + 1;
+          }
+        }
+        arraypush2(out, line);
+        return out;
+      } catch (err) {
+        throw err;
+      }
+    }
     async function transpile2(content, filename, user_tasks, runtime_js) {
       try {
-        //! OF_LINE: transpiler.of:372
         let state = {
-          //! OF_LINE: transpiler.of:373
           block_stack: [],
-          //! OF_LINE: transpiler.of:374
           tasks: [],
-          //! OF_LINE: transpiler.of:375
           on_start_funcs: [],
-          //! OF_LINE: transpiler.of:376
           on_shutdown_funcs: [],
-          //! OF_LINE: transpiler.of:377
           on_error_funcs: [],
-          //! OF_LINE: transpiler.of:378
           on_request_funcs: [],
-          //! OF_LINE: transpiler.of:379
           on_start_count: 0,
-          //! OF_LINE: transpiler.of:380
           on_shutdown_count: 0,
-          //! OF_LINE: transpiler.of:381
           on_error_count: 0,
-          //! OF_LINE: transpiler.of:382
           on_request_count: 0,
-          //! OF_LINE: transpiler.of:383
-          server_port: ""
-          //! OF_LINE: transpiler.of:384
+          server_port: "",
+          in_node_block: false
         };
-        //! OF_LINE: transpiler.of:385
-        //! OF_LINE: transpiler.of:386
         let output_lines = [];
-        //! OF_LINE: transpiler.of:387
-        //! OF_LINE: transpiler.of:388
-        //! OF_LINE: transpiler.of:389
         let runtime_lines = strsplit2(runtime_js, "\n");
-        //! OF_LINE: transpiler.of:390
         for (let rtl of runtime_lines) {
-          //! OF_LINE: transpiler.of:391
           arraypush2(output_lines, rtl);
-          //! OF_LINE: transpiler.of:392
         }
-        //! OF_LINE: transpiler.of:393
         arraypush2(output_lines, "");
-        //! OF_LINE: transpiler.of:394
-        //! OF_LINE: transpiler.of:395
         let source_lines = strsplit2(content, "\n");
-        //! OF_LINE: transpiler.of:396
-        //! OF_LINE: transpiler.of:397
         for (let src_line of source_lines) {
-          //! OF_LINE: transpiler.of:398
           let result_lines = await transpile_line(src_line, filename, user_tasks, 0, state);
-          //! OF_LINE: transpiler.of:399
           if (result_lines) {
-            //! OF_LINE: transpiler.of:400
             for (let ol of result_lines) {
-              //! OF_LINE: transpiler.of:401
               arraypush2(output_lines, ol);
-              //! OF_LINE: transpiler.of:402
             }
-            //! OF_LINE: transpiler.of:403
           }
-          //! OF_LINE: transpiler.of:404
         }
-        //! OF_LINE: transpiler.of:405
-        //! OF_LINE: transpiler.of:406
-        //! OF_LINE: transpiler.of:407
         for (let exported_task of state.tasks) {
-          //! OF_LINE: transpiler.of:408
           arraypush2(output_lines, "global." + exported_task + " = " + exported_task + ";");
-          //! OF_LINE: transpiler.of:409
         }
-        //! OF_LINE: transpiler.of:410
-        //! OF_LINE: transpiler.of:411
-        //! OF_LINE: transpiler.of:412
         if (len2(state.on_start_funcs) > 0) {
-          //! OF_LINE: transpiler.of:413
           arraypush2(output_lines, "global.__on_start_hooks = global.__on_start_hooks || [];");
-          //! OF_LINE: transpiler.of:414
           for (let f of state.on_start_funcs) {
-            //! OF_LINE: transpiler.of:415
             arraypush2(output_lines, "global.__on_start_hooks.push(" + f + ");");
-            //! OF_LINE: transpiler.of:416
           }
-          //! OF_LINE: transpiler.of:417
         }
-        //! OF_LINE: transpiler.of:418
         if (len2(state.on_shutdown_funcs) > 0) {
-          //! OF_LINE: transpiler.of:419
           arraypush2(output_lines, "global.__on_shutdown_hooks = global.__on_shutdown_hooks || [];");
-          //! OF_LINE: transpiler.of:420
           for (let f2 of state.on_shutdown_funcs) {
-            //! OF_LINE: transpiler.of:421
             arraypush2(output_lines, "global.__on_shutdown_hooks.push(" + f2 + ");");
-            //! OF_LINE: transpiler.of:422
           }
-          //! OF_LINE: transpiler.of:423
         }
-        //! OF_LINE: transpiler.of:424
         if (len2(state.on_error_funcs) > 0) {
-          //! OF_LINE: transpiler.of:425
           arraypush2(output_lines, "global.__on_error_hooks = global.__on_error_hooks || [];");
-          //! OF_LINE: transpiler.of:426
           for (let f3 of state.on_error_funcs) {
-            //! OF_LINE: transpiler.of:427
             arraypush2(output_lines, "global.__on_error_hooks.push(" + f3 + ");");
-            //! OF_LINE: transpiler.of:428
           }
-          //! OF_LINE: transpiler.of:429
         }
-        //! OF_LINE: transpiler.of:430
         if (len2(state.on_request_funcs) > 0) {
-          //! OF_LINE: transpiler.of:431
           arraypush2(output_lines, "global.__on_request_hooks = global.__on_request_hooks || [];");
-          //! OF_LINE: transpiler.of:432
           for (let f4 of state.on_request_funcs) {
-            //! OF_LINE: transpiler.of:433
             arraypush2(output_lines, "global.__on_request_hooks.push(" + f4 + ");");
-            //! OF_LINE: transpiler.of:434
           }
-          //! OF_LINE: transpiler.of:435
         }
-        //! OF_LINE: transpiler.of:436
-        //! OF_LINE: transpiler.of:437
-        //! OF_LINE: transpiler.of:438
         if (len2(state.on_shutdown_funcs) > 0) {
-          //! OF_LINE: transpiler.of:439
           arraypush2(output_lines, "if (!global.__on_shutdown_registered) {");
-          //! OF_LINE: transpiler.of:440
           arraypush2(output_lines, "    global.__on_shutdown_registered = true;");
-          //! OF_LINE: transpiler.of:441
           arraypush2(output_lines, "    const __shutdown_wrapper = async () => {");
-          //! OF_LINE: transpiler.of:442
           arraypush2(output_lines, "        try { const hooks = global.__on_shutdown_hooks || []; for (const hook of hooks) { await hook(); } } catch(e) {}");
-          //! OF_LINE: transpiler.of:443
           arraypush2(output_lines, "        process.exit(0);");
-          //! OF_LINE: transpiler.of:444
           arraypush2(output_lines, "    };");
-          //! OF_LINE: transpiler.of:445
           arraypush2(output_lines, "    process.on('SIGTERM', __shutdown_wrapper);");
-          //! OF_LINE: transpiler.of:446
           arraypush2(output_lines, "    process.on('SIGINT', __shutdown_wrapper);");
-          //! OF_LINE: transpiler.of:447
           arraypush2(output_lines, "}");
-          //! OF_LINE: transpiler.of:448
         }
-        //! OF_LINE: transpiler.of:449
-        //! OF_LINE: transpiler.of:450
-        //! OF_LINE: transpiler.of:451
         if (len2(state.on_error_funcs) > 0) {
-          //! OF_LINE: transpiler.of:452
           arraypush2(output_lines, "if (!global.__on_error_registered) {");
-          //! OF_LINE: transpiler.of:453
           arraypush2(output_lines, "    global.__on_error_registered = true;");
-          //! OF_LINE: transpiler.of:454
           arraypush2(output_lines, "    process.on('uncaughtException', (err) => { const hooks = global.__on_error_hooks || []; for (const hook of hooks) { hook(err).catch(() => {}); } });");
-          //! OF_LINE: transpiler.of:455
           arraypush2(output_lines, "    process.on('unhandledRejection', (reason) => { const hooks = global.__on_error_hooks || []; for (const hook of hooks) { hook(reason).catch(() => {}); } });");
-          //! OF_LINE: transpiler.of:456
           arraypush2(output_lines, "}");
-          //! OF_LINE: transpiler.of:457
         }
-        //! OF_LINE: transpiler.of:458
-        //! OF_LINE: transpiler.of:459
-        //! OF_LINE: transpiler.of:460
         if (state.server_port != "") {
-          //! OF_LINE: transpiler.of:461
           arraypush2(output_lines, "global.__app_root = process.cwd();");
-          //! OF_LINE: transpiler.of:462
           arraypush2(output_lines, "app.listen(" + state.server_port + ", () => console.log('Server started on port ' + " + state.server_port + "));");
-          //! OF_LINE: transpiler.of:463
         }
-        //! OF_LINE: transpiler.of:464
-        //! OF_LINE: transpiler.of:465
-        //! OF_LINE: transpiler.of:466
         arraypush2(output_lines, "if (require.main === module) {");
-        //! OF_LINE: transpiler.of:467
         arraypush2(output_lines, "    (async () => {");
-        //! OF_LINE: transpiler.of:468
         arraypush2(output_lines, "        const hooks = global.__on_start_hooks || [];");
-        //! OF_LINE: transpiler.of:469
         arraypush2(output_lines, "        for (const hook of hooks) { await hook(); }");
-        //! OF_LINE: transpiler.of:470
         arraypush2(output_lines, "    })().catch(err => {");
-        //! OF_LINE: transpiler.of:471
         arraypush2(output_lines, "        if (typeof formatRuntimeError === 'function') { formatRuntimeError(err); } else { console.error(err); }");
-        //! OF_LINE: transpiler.of:472
         arraypush2(output_lines, "        process.exit(1);");
-        //! OF_LINE: transpiler.of:473
         arraypush2(output_lines, "    });");
-        //! OF_LINE: transpiler.of:474
         arraypush2(output_lines, "}");
-        //! OF_LINE: transpiler.of:475
-        //! OF_LINE: transpiler.of:476
         return { ok: true, js: arrayjoin2(output_lines, "\n") };
-        //! OF_LINE: transpiler.of:477
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: transpiler.of:478
     global.ensure_parens = ensure_parens;
     global.replace_globals = replace_globals;
     global.insert_awaits = insert_awaits;
     global.transpile_line = transpile_line;
+    global.transpile_line_core = transpile_line_core;
     global.transpile = transpile2;
     if (require.main === module2) {
       (async () => {
@@ -8982,6 +7872,8 @@ document.addEventListener('click', async (e) => {
     const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
     const parts = html.split(tokenRegex);
     let jsCode = "let _out = '';\n";
+    jsCode += "with(global.vars || {}) {\n";
+    jsCode += "with(context || {}) {\n";
     for (let part of parts) {
       if (!part)
         continue;
@@ -9014,6 +7906,7 @@ document.addEventListener('click', async (e) => {
 `;
       }
     }
+    jsCode += "}\n}\n";
     jsCode += "return _out;";
     const keys = ["context", ...Object.keys(context)];
     const values = [context, ...Object.values(context)];
@@ -9211,513 +8104,235 @@ process.on("unhandledRejection", (reason) => {
   formatRuntimeError(err, "OmniFlux Runtime Error (Unhandled Rejection)");
   process.exit(1);
 });
-//! OF_LINE: omniflux.of:1
-//! OF_LINE: omniflux.of:2
-//! OF_LINE: omniflux.of:3
-//! OF_LINE: omniflux.of:4
-//! OF_LINE: omniflux.of:5
-//! OF_LINE: omniflux.of:6
-//! OF_LINE: omniflux.of:7
-//! OF_LINE: omniflux.of:8
-//! OF_LINE: omniflux.of:9
-//! OF_LINE: omniflux.of:10
-//! OF_LINE: omniflux.of:11
-//! OF_LINE: omniflux.of:12
-//! OF_LINE: omniflux.of:13
-//! OF_LINE: omniflux.of:14
-//! OF_LINE: omniflux.of:15
 require_bundler();
-//! OF_LINE: omniflux.of:16
 require_validator();
-//! OF_LINE: omniflux.of:17
 require_transpiler();
-//! OF_LINE: omniflux.of:18
 require_system();
-//! OF_LINE: omniflux.of:19
-//! OF_LINE: omniflux.of:20
-//! OF_LINE: omniflux.of:21
-//! OF_LINE: omniflux.of:22
-//! OF_LINE: omniflux.of:23
 async function parse_args(argv) {
   try {
-    //! OF_LINE: omniflux.of:24
     let result = {
-      //! OF_LINE: omniflux.of:25
       input_file: "",
-      //! OF_LINE: omniflux.of:26
       compile_only: false,
-      //! OF_LINE: omniflux.of:27
       strict: false,
-      //! OF_LINE: omniflux.of:28
       watch: false,
-      //! OF_LINE: omniflux.of:29
       run_args: []
-      //! OF_LINE: omniflux.of:30
     };
-    //! OF_LINE: omniflux.of:31
     let after_dashdash = false;
-    //! OF_LINE: omniflux.of:32
     for (let arg of argv) {
-      //! OF_LINE: omniflux.of:33
       if (after_dashdash) {
-        //! OF_LINE: omniflux.of:34
         arraypush(result.run_args, arg);
-        //! OF_LINE: omniflux.of:35
       } else if (arg == "--") {
-        //! OF_LINE: omniflux.of:36
         after_dashdash = true;
-        //! OF_LINE: omniflux.of:37
       } else if (arg == "--compile-only" || arg == "--no-run") {
-        //! OF_LINE: omniflux.of:38
         result.compile_only = true;
-        //! OF_LINE: omniflux.of:39
       } else if (arg == "--strict" || arg == "--no-llm") {
-        //! OF_LINE: omniflux.of:40
         result.strict = true;
-        //! OF_LINE: omniflux.of:41
       } else if (arg == "--watch" || arg == "-w") {
-        //! OF_LINE: omniflux.of:42
         result.watch = true;
-        //! OF_LINE: omniflux.of:43
       } else if (result.input_file == "") {
-        //! OF_LINE: omniflux.of:44
         result.input_file = arg;
-        //! OF_LINE: omniflux.of:45
       } else {
-        //! OF_LINE: omniflux.of:46
         arraypush(result.run_args, arg);
-        //! OF_LINE: omniflux.of:47
       }
-      //! OF_LINE: omniflux.of:48
     }
-    //! OF_LINE: omniflux.of:49
     return result;
-    //! OF_LINE: omniflux.of:50
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:51
-//! OF_LINE: omniflux.of:52
-//! OF_LINE: omniflux.of:53
-//! OF_LINE: omniflux.of:54
-//! OF_LINE: omniflux.of:55
 async function print_usage() {
   try {
-    //! OF_LINE: omniflux.of:56
     print("Usage: omniflux <file.of> [options] [-- args...]");
-    //! OF_LINE: omniflux.of:57
     print("");
-    //! OF_LINE: omniflux.of:58
     print("Options:");
-    //! OF_LINE: omniflux.of:59
     print("  --compile-only   Compile only, do not run the output");
-    //! OF_LINE: omniflux.of:60
     print("  --strict         Fail if compilation requires AI assistance");
-    //! OF_LINE: omniflux.of:61
     print("  --watch          Watch for changes and rebuild automatically");
-    //! OF_LINE: omniflux.of:62
     print("  --               Pass remaining arguments to the compiled program");
-    //! OF_LINE: omniflux.of:63
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:64
-//! OF_LINE: omniflux.of:65
-//! OF_LINE: omniflux.of:66
-//! OF_LINE: omniflux.of:67
-//! OF_LINE: omniflux.of:68
 async function read_runtime() {
   try {
-    //! OF_LINE: omniflux.of:69
-    let parent_dir = pathdirname(scriptdir);
-    //! OF_LINE: omniflux.of:70
+    let parent_dir = pathdirname(scriptdir());
     let candidates = [
-      //! OF_LINE: omniflux.of:71
-      pathjoin(scriptdir, "OmniFlux/runtime.js"),
-      //! OF_LINE: omniflux.of:72
+      pathjoin(scriptdir(), "runtime.js"),
+      pathjoin(scriptdir(), "OmniFlux/runtime.js"),
+      pathjoin(parent_dir, "runtime.js"),
       pathjoin(parent_dir, "OmniFlux/runtime.js"),
-      //! OF_LINE: omniflux.of:73
+      "/usr/local/share/omniflux/runtime.js",
       "/usr/local/share/omniflux/OmniFlux/runtime.js",
-      //! OF_LINE: omniflux.of:74
+      "/usr/share/omniflux/runtime.js",
       "/usr/share/omniflux/OmniFlux/runtime.js"
-      //! OF_LINE: omniflux.of:75
     ];
-    //! OF_LINE: omniflux.of:76
     for (let path2 of candidates) {
-      //! OF_LINE: omniflux.of:77
       if (fileexists(path2)) {
-        //! OF_LINE: omniflux.of:78
         return fileread(path2);
-        //! OF_LINE: omniflux.of:79
       }
-      //! OF_LINE: omniflux.of:80
     }
-    //! OF_LINE: omniflux.of:81
     print("Error: Cannot find OmniFlux runtime.js");
-    //! OF_LINE: omniflux.of:82
     exit(1);
-    //! OF_LINE: omniflux.of:83
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:84
-//! OF_LINE: omniflux.of:85
-//! OF_LINE: omniflux.of:86
-//! OF_LINE: omniflux.of:87
-//! OF_LINE: omniflux.of:88
 async function compile_file(abs_path, runtime_js, global_user_tasks) {
   try {
-    //! OF_LINE: omniflux.of:89
     let raw = fileread(abs_path);
-    //! OF_LINE: omniflux.of:90
     let filename = pathbasename(abs_path);
-    //! OF_LINE: omniflux.of:91
-    //! OF_LINE: omniflux.of:92
-    //! OF_LINE: omniflux.of:93
     let content = await strip_comments(raw);
-    //! OF_LINE: omniflux.of:94
-    //! OF_LINE: omniflux.of:95
-    //! OF_LINE: omniflux.of:96
     let vresult = await validate(content, filename);
-    //! OF_LINE: omniflux.of:97
     if (!vresult.ok) {
-      //! OF_LINE: omniflux.of:98
       print("Compilation Error in %s:", filename);
-      //! OF_LINE: omniflux.of:99
       print("%s", vresult.error);
-      //! OF_LINE: omniflux.of:100
       return null;
-      //! OF_LINE: omniflux.of:101
     }
-    //! OF_LINE: omniflux.of:102
-    //! OF_LINE: omniflux.of:103
-    //! OF_LINE: omniflux.of:104
     let file_tasks = await prescan_tasks(content);
-    //! OF_LINE: omniflux.of:105
     Object.assign(global_user_tasks, file_tasks);
-    //! OF_LINE: omniflux.of:106
-    //! OF_LINE: omniflux.of:107
-    //! OF_LINE: omniflux.of:108
     var user_task_keys = Object.keys(global_user_tasks);
-    //! OF_LINE: omniflux.of:109
-    let tresult = await transpile(content, filename, global_user_tasks, runtime_js);
-    //! OF_LINE: omniflux.of:110
+    let tresult = await transpile(content, abs_path, global_user_tasks, runtime_js);
     if (!tresult.ok) {
-      //! OF_LINE: omniflux.of:111
       print("Transpile Error in %s:", filename);
-      //! OF_LINE: omniflux.of:112
       print("%s", tresult.error);
-      //! OF_LINE: omniflux.of:113
       return null;
-      //! OF_LINE: omniflux.of:114
     }
-    //! OF_LINE: omniflux.of:115
-    //! OF_LINE: omniflux.of:116
     return tresult.js;
-    //! OF_LINE: omniflux.of:117
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:118
-//! OF_LINE: omniflux.of:119
-//! OF_LINE: omniflux.of:120
-//! OF_LINE: omniflux.of:121
-//! OF_LINE: omniflux.of:122
-//! OF_LINE: omniflux.of:123
 async function build_once(input_file, compile_only) {
   try {
-    //! OF_LINE: omniflux.of:124
     let abs_input = pathresolve(input_file);
-    //! OF_LINE: omniflux.of:125
-    //! OF_LINE: omniflux.of:126
     if (!fileexists(abs_input)) {
-      //! OF_LINE: omniflux.of:127
       print("Error: File '%s' does not exist.", input_file);
-      //! OF_LINE: omniflux.of:128
       return { ok: false };
-      //! OF_LINE: omniflux.of:129
     }
-    //! OF_LINE: omniflux.of:130
-    //! OF_LINE: omniflux.of:131
-    //! OF_LINE: omniflux.of:132
     let deps = await get_all_dependencies(abs_input, null);
-    //! OF_LINE: omniflux.of:133
-    //! OF_LINE: omniflux.of:134
-    //! OF_LINE: omniflux.of:135
     let runtime_js = await read_runtime();
-    //! OF_LINE: omniflux.of:136
-    //! OF_LINE: omniflux.of:137
-    //! OF_LINE: omniflux.of:138
     let compiled_map = {};
-    //! OF_LINE: omniflux.of:139
     let global_user_tasks = {};
-    //! OF_LINE: omniflux.of:140
     let ok = true;
-    //! OF_LINE: omniflux.of:141
-    //! OF_LINE: omniflux.of:142
-    //! OF_LINE: omniflux.of:143
     for (let dep_path of deps) {
-      //! OF_LINE: omniflux.of:144
       let raw = fileread(dep_path);
-      //! OF_LINE: omniflux.of:145
       let content = await strip_comments(raw);
-      //! OF_LINE: omniflux.of:146
       let tasks = await prescan_tasks(content);
-      //! OF_LINE: omniflux.of:147
       Object.assign(global_user_tasks, tasks);
-      //! OF_LINE: omniflux.of:148
     }
-    //! OF_LINE: omniflux.of:149
-    //! OF_LINE: omniflux.of:150
-    //! OF_LINE: omniflux.of:151
     for (let dep_path of deps) {
-      //! OF_LINE: omniflux.of:152
       let js = await compile_file(dep_path, runtime_js, global_user_tasks);
-      //! OF_LINE: omniflux.of:153
       if (!js) {
-        //! OF_LINE: omniflux.of:154
         ok = false;
-        //! OF_LINE: omniflux.of:155
         break;
-        //! OF_LINE: omniflux.of:156
       }
-      //! OF_LINE: omniflux.of:157
       compiled_map[dep_path] = js;
-      //! OF_LINE: omniflux.of:158
       print("Compiled: %s", dep_path);
-      //! OF_LINE: omniflux.of:159
     }
-    //! OF_LINE: omniflux.of:160
-    //! OF_LINE: omniflux.of:161
     if (!ok) {
-      //! OF_LINE: omniflux.of:162
       return { ok: false };
-      //! OF_LINE: omniflux.of:163
     }
-    //! OF_LINE: omniflux.of:164
-    //! OF_LINE: omniflux.of:165
-    //! OF_LINE: omniflux.of:166
     let output_file = await get_output_path(abs_input);
-    //! OF_LINE: omniflux.of:167
     let bresult = await build(abs_input, output_file, compiled_map);
-    //! OF_LINE: omniflux.of:168
     return bresult;
-    //! OF_LINE: omniflux.of:169
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:170
-//! OF_LINE: omniflux.of:171
-//! OF_LINE: omniflux.of:172
-//! OF_LINE: omniflux.of:173
-//! OF_LINE: omniflux.of:174
 async function run_output(output_file, run_args) {
   try {
-    //! OF_LINE: omniflux.of:175
     let cmd = output_file;
-    //! OF_LINE: omniflux.of:176
     for (let arg of run_args) {
-      //! OF_LINE: omniflux.of:177
       cmd = cmd + " " + arg;
-      //! OF_LINE: omniflux.of:178
     }
-    //! OF_LINE: omniflux.of:179
     print("Running: %s", output_file);
-    //! OF_LINE: omniflux.of:180
     print("----------------------------------------");
-    //! OF_LINE: omniflux.of:181
     await system(cmd);
-    //! OF_LINE: omniflux.of:182
     print("----------------------------------------");
-    //! OF_LINE: omniflux.of:183
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:184
-//! OF_LINE: omniflux.of:185
-//! OF_LINE: omniflux.of:186
-//! OF_LINE: omniflux.of:187
-//! OF_LINE: omniflux.of:188
 async function watch_loop(input_file, compile_only) {
   try {
-    //! OF_LINE: omniflux.of:189
     let last_build_ok = false;
-    //! OF_LINE: omniflux.of:190
     let output_file = "";
-    //! OF_LINE: omniflux.of:191
-    //! OF_LINE: omniflux.of:192
     let result = await build_once(input_file, compile_only);
-    //! OF_LINE: omniflux.of:193
     if (result.ok) {
-      //! OF_LINE: omniflux.of:194
       last_build_ok = true;
-      //! OF_LINE: omniflux.of:195
       output_file = result.output;
-      //! OF_LINE: omniflux.of:196
       if (!compile_only) {
-        //! OF_LINE: omniflux.of:197
-        //! OF_LINE: omniflux.of:198
         await exec(output_file + " &");
-        //! OF_LINE: omniflux.of:199
       }
-      //! OF_LINE: omniflux.of:200
     }
-    //! OF_LINE: omniflux.of:201
-    //! OF_LINE: omniflux.of:202
     print("Watching for changes... (Press Ctrl+C to stop)");
-    //! OF_LINE: omniflux.of:203
-    //! OF_LINE: omniflux.of:204
     let abs_input = pathresolve(input_file);
-    //! OF_LINE: omniflux.of:205
     let deps = await get_all_dependencies(abs_input, null);
-    //! OF_LINE: omniflux.of:206
-    //! OF_LINE: omniflux.of:207
-    //! OF_LINE: omniflux.of:208
     let mod_times = {};
-    //! OF_LINE: omniflux.of:209
     for (let dep_path of deps) {
-      //! OF_LINE: omniflux.of:210
       let stat = filestat(dep_path);
-      //! OF_LINE: omniflux.of:211
       if (stat) {
-        //! OF_LINE: omniflux.of:212
         mod_times[dep_path] = stat.mtime;
-        //! OF_LINE: omniflux.of:213
       }
-      //! OF_LINE: omniflux.of:214
     }
-    //! OF_LINE: omniflux.of:215
-    //! OF_LINE: omniflux.of:216
     while (true) {
-      //! OF_LINE: omniflux.of:217
-      await new Promise((resolve) => setTimeout(resolve, 1e3));
-      //! OF_LINE: omniflux.of:218
-      //! OF_LINE: omniflux.of:219
-      //! OF_LINE: omniflux.of:220
+      await new Promise((resolve) => setTimeout(resolve, 1 * 1e3));
       let changed = false;
-      //! OF_LINE: omniflux.of:221
       for (let dep_path of deps) {
-        //! OF_LINE: omniflux.of:222
         if (!fileexists(dep_path)) {
-          //! OF_LINE: omniflux.of:223
           changed = true;
-          //! OF_LINE: omniflux.of:224
           break;
-          //! OF_LINE: omniflux.of:225
         }
-        //! OF_LINE: omniflux.of:226
         let stat2 = filestat(dep_path);
-        //! OF_LINE: omniflux.of:227
         if (stat2 && mod_times[dep_path] && stat2.mtime > mod_times[dep_path]) {
-          //! OF_LINE: omniflux.of:228
           changed = true;
-          //! OF_LINE: omniflux.of:229
           break;
-          //! OF_LINE: omniflux.of:230
         }
-        //! OF_LINE: omniflux.of:231
       }
-      //! OF_LINE: omniflux.of:232
-      //! OF_LINE: omniflux.of:233
       if (changed) {
-        //! OF_LINE: omniflux.of:234
         print("\nChange detected. Rebuilding...");
-        //! OF_LINE: omniflux.of:235
         let new_result = await build_once(input_file, compile_only);
-        //! OF_LINE: omniflux.of:236
         if (new_result.ok) {
-          //! OF_LINE: omniflux.of:237
           output_file = new_result.output;
-          //! OF_LINE: omniflux.of:238
           if (!compile_only) {
-            //! OF_LINE: omniflux.of:239
             await exec(output_file + " &");
-            //! OF_LINE: omniflux.of:240
           }
-          //! OF_LINE: omniflux.of:241
         } else {
-          //! OF_LINE: omniflux.of:242
           print("Rebuild failed. Waiting for fixes...");
-          //! OF_LINE: omniflux.of:243
         }
-        //! OF_LINE: omniflux.of:244
-        //! OF_LINE: omniflux.of:245
-        //! OF_LINE: omniflux.of:246
         deps = await get_all_dependencies(abs_input, null);
-        //! OF_LINE: omniflux.of:247
         mod_times = {};
-        //! OF_LINE: omniflux.of:248
         for (let dep_path2 of deps) {
-          //! OF_LINE: omniflux.of:249
           let stat3 = filestat(dep_path2);
-          //! OF_LINE: omniflux.of:250
           if (stat3) {
-            //! OF_LINE: omniflux.of:251
             mod_times[dep_path2] = stat3.mtime;
-            //! OF_LINE: omniflux.of:252
           }
-          //! OF_LINE: omniflux.of:253
         }
-        //! OF_LINE: omniflux.of:254
       }
-      //! OF_LINE: omniflux.of:255
     }
-    //! OF_LINE: omniflux.of:256
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:257
-//! OF_LINE: omniflux.of:258
-//! OF_LINE: omniflux.of:259
-//! OF_LINE: omniflux.of:260
-//! OF_LINE: omniflux.of:261
 async function __on_start_1() {
-  //! OF_LINE: omniflux.of:262
   let cli = await parse_args(args);
-  //! OF_LINE: omniflux.of:263
-  //! OF_LINE: omniflux.of:264
   if (cli.input_file == "") {
-    //! OF_LINE: omniflux.of:265
     await print_usage();
-    //! OF_LINE: omniflux.of:266
     exit(0);
-    //! OF_LINE: omniflux.of:267
   }
-  //! OF_LINE: omniflux.of:268
-  //! OF_LINE: omniflux.of:269
   if (cli.watch) {
-    //! OF_LINE: omniflux.of:270
     await watch_loop(cli.input_file, cli.compile_only);
-    //! OF_LINE: omniflux.of:271
   } else {
-    //! OF_LINE: omniflux.of:272
     let result = await build_once(cli.input_file, cli.compile_only);
-    //! OF_LINE: omniflux.of:273
     if (!result.ok) {
-      //! OF_LINE: omniflux.of:274
       exit(1);
-      //! OF_LINE: omniflux.of:275
     }
-    //! OF_LINE: omniflux.of:276
     if (!cli.compile_only) {
-      //! OF_LINE: omniflux.of:277
       await run_output(result.output, cli.run_args);
-      //! OF_LINE: omniflux.of:278
     }
-    //! OF_LINE: omniflux.of:279
     exit(0);
-    //! OF_LINE: omniflux.of:280
   }
-  //! OF_LINE: omniflux.of:281
 }
-//! OF_LINE: omniflux.of:282
 global.parse_args = parse_args;
 global.print_usage = print_usage;
 global.read_runtime = read_runtime;

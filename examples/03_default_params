@@ -739,6 +739,8 @@ document.addEventListener('click', async (e) => {
     const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
     const parts = html.split(tokenRegex);
     let jsCode = "let _out = '';\n";
+    jsCode += "with(global.vars || {}) {\n";
+    jsCode += "with(context || {}) {\n";
     for (let part of parts) {
       if (!part)
         continue;
@@ -771,6 +773,7 @@ document.addEventListener('click', async (e) => {
 `;
       }
     }
+    jsCode += "}\n}\n";
     jsCode += "return _out;";
     const keys = ["context", ...Object.keys(context)];
     const values = [context, ...Object.values(context)];
@@ -984,18 +987,18 @@ async function create_user(username, role = "member", active = true) {
 }
 async function __on_start_1() {
   print("=== Testing Default Parameters ===");
-  print("Calling await greet() with no arguments:");
+  print("Calling greet() with no arguments:");
   await greet();
-  print("\nCalling await greet() with only one argument:");
+  print("\nCalling greet() with only one argument:");
   await greet("Alice");
-  print("\nCalling await greet() with all arguments:");
+  print("\nCalling greet() with all arguments:");
   await greet("Bob", "Good morning");
   print("\n----------------------------------------");
-  print("Calling await create_user with only required argument:");
+  print("Calling create_user with only required argument:");
   await create_user("charlie");
-  print("\nCalling await create_user overriding the role:");
+  print("\nCalling create_user overriding the role:");
   await create_user("david", "admin");
-  print("\nCalling await create_user overriding all arguments:");
+  print("\nCalling create_user overriding all arguments:");
   await create_user("eve", "moderator", false);
 }
 global.greet = greet;

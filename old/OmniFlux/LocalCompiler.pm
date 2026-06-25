@@ -174,13 +174,6 @@ sub compile_locally {
                 next;
             }
             
-            if ($char eq '@' && $i + 1 < $len && substr($line, $i + 1, 1) eq '{') {
-                $in_node_block = 1;
-                $node_block_start_line = $orig_num;
-                $node_block_lines{$orig_num} = 1;
-                $i += 2;
-                next;
-            }
             if ($in_string) {
                 if ($char eq '\\') {
                     $escaped = 1;
@@ -210,6 +203,13 @@ sub compile_locally {
                 $multiline_comment_start_line = $orig_num;
                 $i += 2;
                 $last_word = "";
+                next;
+            }
+            if ($char eq '@' && $i + 1 < $len && substr($line, $i + 1, 1) eq '{') {
+                $in_node_block = 1;
+                $node_block_start_line = $orig_num;
+                $node_block_lines{$orig_num} = 1;
+                $i += 2;
                 next;
             }
             if ($char eq '#' || ($char eq '/' && $i + 1 < $len && substr($line, $i + 1, 1) eq '/')) {

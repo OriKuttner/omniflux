@@ -745,6 +745,8 @@ document.addEventListener('click', async (e) => {
         const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
         const parts = html.split(tokenRegex);
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         for (let part of parts) {
           if (!part)
             continue;
@@ -777,6 +779,7 @@ document.addEventListener('click', async (e) => {
 `;
           }
         }
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         const keys = ["context", ...Object.keys(context)];
         const values = [context, ...Object.values(context)];
@@ -2089,6 +2092,8 @@ document.addEventListener('click', async (e) => {
         const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
         const parts = html.split(tokenRegex);
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         for (let part of parts) {
           if (!part)
             continue;
@@ -2121,6 +2126,7 @@ document.addEventListener('click', async (e) => {
 `;
           }
         }
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         const keys = ["context", ...Object.keys(context)];
         const values = [context, ...Object.values(context)];
@@ -2354,7 +2360,7 @@ document.addEventListener('click', async (e) => {
         //! OF_LINE: preprocessor.of:27
         let in_node_block = false;
         //! OF_LINE: preprocessor.of:28
-        let in_block_comment = false;
+        let block_comment_depth = 0;
         //! OF_LINE: preprocessor.of:29
         //! OF_LINE: preprocessor.of:30
         while (i < length) {
@@ -2389,270 +2395,277 @@ document.addEventListener('click', async (e) => {
           //! OF_LINE: preprocessor.of:46
           //! OF_LINE: preprocessor.of:47
           //! OF_LINE: preprocessor.of:48
-          if (in_block_comment) {
-            //! OF_LINE: preprocessor.of:49
-            if (ch == "*" && strsub2(content, i + 1, 1) == "/") {
-              //! OF_LINE: preprocessor.of:50
-              i = i + 2;
+          //! OF_LINE: preprocessor.of:49
+          if (block_comment_depth > 0) {
+            //! OF_LINE: preprocessor.of:50
+            if (ch == "/" && strsub2(content, i + 1, 1) == "*") {
               //! OF_LINE: preprocessor.of:51
-              in_block_comment = false;
+              block_comment_depth = block_comment_depth + 1;
               //! OF_LINE: preprocessor.of:52
-            } else {
-              //! OF_LINE: preprocessor.of:53
-              //! OF_LINE: preprocessor.of:54
-              if (ch == "\n") {
-                //! OF_LINE: preprocessor.of:55
-                result = result + "\n";
-                //! OF_LINE: preprocessor.of:56
-              }
-              //! OF_LINE: preprocessor.of:57
-              i = i + 1;
-              //! OF_LINE: preprocessor.of:58
-            }
-            //! OF_LINE: preprocessor.of:59
-            continue;
-            //! OF_LINE: preprocessor.of:60
-          }
-          //! OF_LINE: preprocessor.of:61
-          //! OF_LINE: preprocessor.of:62
-          //! OF_LINE: preprocessor.of:63
-          if (in_string != "") {
-            //! OF_LINE: preprocessor.of:64
-            if (ch == "\\") {
-              //! OF_LINE: preprocessor.of:65
-              //! OF_LINE: preprocessor.of:66
-              result = result + ch + strsub2(content, i + 1, 1);
-              //! OF_LINE: preprocessor.of:67
               i = i + 2;
-              //! OF_LINE: preprocessor.of:68
-            } else if (ch == in_string) {
-              //! OF_LINE: preprocessor.of:69
-              result = result + ch;
-              //! OF_LINE: preprocessor.of:70
-              i = i + 1;
-              //! OF_LINE: preprocessor.of:71
-              in_string = "";
-              //! OF_LINE: preprocessor.of:72
+              //! OF_LINE: preprocessor.of:53
+            } else if (ch == "*" && strsub2(content, i + 1, 1) == "/") {
+              //! OF_LINE: preprocessor.of:54
+              block_comment_depth = block_comment_depth - 1;
+              //! OF_LINE: preprocessor.of:55
+              i = i + 2;
+              //! OF_LINE: preprocessor.of:56
             } else {
+              //! OF_LINE: preprocessor.of:57
+              //! OF_LINE: preprocessor.of:58
+              if (ch == "\n") {
+                //! OF_LINE: preprocessor.of:59
+                result = result + "\n";
+                //! OF_LINE: preprocessor.of:60
+              }
+              //! OF_LINE: preprocessor.of:61
+              i = i + 1;
+              //! OF_LINE: preprocessor.of:62
+            }
+            //! OF_LINE: preprocessor.of:63
+            continue;
+            //! OF_LINE: preprocessor.of:64
+          }
+          //! OF_LINE: preprocessor.of:65
+          //! OF_LINE: preprocessor.of:66
+          //! OF_LINE: preprocessor.of:67
+          if (in_string != "") {
+            //! OF_LINE: preprocessor.of:68
+            if (ch == "\\") {
+              //! OF_LINE: preprocessor.of:69
+              //! OF_LINE: preprocessor.of:70
+              result = result + ch + strsub2(content, i + 1, 1);
+              //! OF_LINE: preprocessor.of:71
+              i = i + 2;
+              //! OF_LINE: preprocessor.of:72
+            } else if (ch == in_string) {
               //! OF_LINE: preprocessor.of:73
               result = result + ch;
               //! OF_LINE: preprocessor.of:74
               i = i + 1;
               //! OF_LINE: preprocessor.of:75
-            }
-            //! OF_LINE: preprocessor.of:76
-            continue;
-            //! OF_LINE: preprocessor.of:77
-          }
-          //! OF_LINE: preprocessor.of:78
-          //! OF_LINE: preprocessor.of:79
-          //! OF_LINE: preprocessor.of:80
-          let node_open = "@{";
-          //! OF_LINE: preprocessor.of:81
-          if (ch == "@" && strsub2(content, i + 1, 1) == "{") {
-            //! OF_LINE: preprocessor.of:82
-            result = result + node_open;
-            //! OF_LINE: preprocessor.of:83
-            i = i + 2;
-            //! OF_LINE: preprocessor.of:84
-            in_node_block = true;
-            //! OF_LINE: preprocessor.of:85
-            continue;
-            //! OF_LINE: preprocessor.of:86
-          }
-          //! OF_LINE: preprocessor.of:87
-          //! OF_LINE: preprocessor.of:88
-          //! OF_LINE: preprocessor.of:89
-          if (ch == "/" && strsub2(content, i + 1, 1) == "*") {
-            //! OF_LINE: preprocessor.of:90
-            i = i + 2;
-            //! OF_LINE: preprocessor.of:91
-            in_block_comment = true;
-            //! OF_LINE: preprocessor.of:92
-            continue;
-            //! OF_LINE: preprocessor.of:93
-          }
-          //! OF_LINE: preprocessor.of:94
-          //! OF_LINE: preprocessor.of:95
-          //! OF_LINE: preprocessor.of:96
-          if (ch == "#") {
-            //! OF_LINE: preprocessor.of:97
-            while (i < length && strsub2(content, i, 1) != "\n") {
-              //! OF_LINE: preprocessor.of:98
+              in_string = "";
+              //! OF_LINE: preprocessor.of:76
+            } else {
+              //! OF_LINE: preprocessor.of:77
+              result = result + ch;
+              //! OF_LINE: preprocessor.of:78
               i = i + 1;
-              //! OF_LINE: preprocessor.of:99
+              //! OF_LINE: preprocessor.of:79
             }
-            //! OF_LINE: preprocessor.of:100
+            //! OF_LINE: preprocessor.of:80
             continue;
+            //! OF_LINE: preprocessor.of:81
+          }
+          //! OF_LINE: preprocessor.of:82
+          //! OF_LINE: preprocessor.of:83
+          //! OF_LINE: preprocessor.of:84
+          let node_open = "@{";
+          //! OF_LINE: preprocessor.of:85
+          if (ch == "@" && strsub2(content, i + 1, 1) == "{") {
+            //! OF_LINE: preprocessor.of:86
+            result = result + node_open;
+            //! OF_LINE: preprocessor.of:87
+            i = i + 2;
+            //! OF_LINE: preprocessor.of:88
+            in_node_block = true;
+            //! OF_LINE: preprocessor.of:89
+            continue;
+            //! OF_LINE: preprocessor.of:90
+          }
+          //! OF_LINE: preprocessor.of:91
+          //! OF_LINE: preprocessor.of:92
+          //! OF_LINE: preprocessor.of:93
+          if (ch == "/" && strsub2(content, i + 1, 1) == "*") {
+            //! OF_LINE: preprocessor.of:94
+            i = i + 2;
+            //! OF_LINE: preprocessor.of:95
+            block_comment_depth = 1;
+            //! OF_LINE: preprocessor.of:96
+            continue;
+            //! OF_LINE: preprocessor.of:97
+          }
+          //! OF_LINE: preprocessor.of:98
+          //! OF_LINE: preprocessor.of:99
+          //! OF_LINE: preprocessor.of:100
+          if (ch == "#") {
             //! OF_LINE: preprocessor.of:101
-          }
-          //! OF_LINE: preprocessor.of:102
-          //! OF_LINE: preprocessor.of:103
-          //! OF_LINE: preprocessor.of:104
-          if (ch == '"' || ch == "'") {
-            //! OF_LINE: preprocessor.of:105
-            in_string = ch;
-            //! OF_LINE: preprocessor.of:106
-            result = result + ch;
-            //! OF_LINE: preprocessor.of:107
-            i = i + 1;
-            //! OF_LINE: preprocessor.of:108
+            while (i < length && strsub2(content, i, 1) != "\n") {
+              //! OF_LINE: preprocessor.of:102
+              i = i + 1;
+              //! OF_LINE: preprocessor.of:103
+            }
+            //! OF_LINE: preprocessor.of:104
             continue;
-            //! OF_LINE: preprocessor.of:109
+            //! OF_LINE: preprocessor.of:105
           }
-          //! OF_LINE: preprocessor.of:110
-          //! OF_LINE: preprocessor.of:111
-          //! OF_LINE: preprocessor.of:112
-          result = result + ch;
-          //! OF_LINE: preprocessor.of:113
-          i = i + 1;
+          //! OF_LINE: preprocessor.of:106
+          //! OF_LINE: preprocessor.of:107
+          //! OF_LINE: preprocessor.of:108
+          if (ch == '"' || ch == "'") {
+            //! OF_LINE: preprocessor.of:109
+            in_string = ch;
+            //! OF_LINE: preprocessor.of:110
+            result = result + ch;
+            //! OF_LINE: preprocessor.of:111
+            i = i + 1;
+            //! OF_LINE: preprocessor.of:112
+            continue;
+            //! OF_LINE: preprocessor.of:113
+          }
           //! OF_LINE: preprocessor.of:114
+          //! OF_LINE: preprocessor.of:115
+          //! OF_LINE: preprocessor.of:116
+          result = result + ch;
+          //! OF_LINE: preprocessor.of:117
+          i = i + 1;
+          //! OF_LINE: preprocessor.of:118
         }
-        //! OF_LINE: preprocessor.of:115
-        //! OF_LINE: preprocessor.of:116
+        //! OF_LINE: preprocessor.of:119
+        //! OF_LINE: preprocessor.of:120
         return result;
-        //! OF_LINE: preprocessor.of:117
+        //! OF_LINE: preprocessor.of:121
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:118
-    //! OF_LINE: preprocessor.of:119
-    //! OF_LINE: preprocessor.of:120
-    //! OF_LINE: preprocessor.of:121
     //! OF_LINE: preprocessor.of:122
     //! OF_LINE: preprocessor.of:123
     //! OF_LINE: preprocessor.of:124
     //! OF_LINE: preprocessor.of:125
     //! OF_LINE: preprocessor.of:126
     //! OF_LINE: preprocessor.of:127
+    //! OF_LINE: preprocessor.of:128
+    //! OF_LINE: preprocessor.of:129
+    //! OF_LINE: preprocessor.of:130
+    //! OF_LINE: preprocessor.of:131
     async function resolve_include(inc_path, src_file) {
       try {
-        //! OF_LINE: preprocessor.of:128
+        //! OF_LINE: preprocessor.of:132
         let src_dir = pathdirname2(pathresolve2(src_file));
-        //! OF_LINE: preprocessor.of:129
+        //! OF_LINE: preprocessor.of:133
         let cwd = pathresolve2(".");
-        //! OF_LINE: preprocessor.of:130
-        //! OF_LINE: preprocessor.of:131
+        //! OF_LINE: preprocessor.of:134
+        //! OF_LINE: preprocessor.of:135
         let candidates = [
-          //! OF_LINE: preprocessor.of:132
-          pathjoin2(src_dir, inc_path),
-          //! OF_LINE: preprocessor.of:133
-          pathjoin2(cwd, inc_path),
-          //! OF_LINE: preprocessor.of:134
-          pathjoin2("/usr/local/share/omniflux", inc_path),
-          //! OF_LINE: preprocessor.of:135
-          pathjoin2("/usr/share/omniflux", inc_path)
           //! OF_LINE: preprocessor.of:136
-        ];
-        //! OF_LINE: preprocessor.of:137
-        //! OF_LINE: preprocessor.of:138
-        for (let candidate of candidates) {
+          pathjoin2(src_dir, inc_path),
+          //! OF_LINE: preprocessor.of:137
+          pathjoin2(cwd, inc_path),
+          //! OF_LINE: preprocessor.of:138
+          pathjoin2("/usr/local/share/omniflux", inc_path),
           //! OF_LINE: preprocessor.of:139
+          pathjoin2("/usr/share/omniflux", inc_path)
+          //! OF_LINE: preprocessor.of:140
+        ];
+        //! OF_LINE: preprocessor.of:141
+        //! OF_LINE: preprocessor.of:142
+        for (let candidate of candidates) {
+          //! OF_LINE: preprocessor.of:143
           if (fileexists2(candidate)) {
-            //! OF_LINE: preprocessor.of:140
+            //! OF_LINE: preprocessor.of:144
             return pathresolve2(candidate);
-            //! OF_LINE: preprocessor.of:141
+            //! OF_LINE: preprocessor.of:145
           }
-          //! OF_LINE: preprocessor.of:142
+          //! OF_LINE: preprocessor.of:146
         }
-        //! OF_LINE: preprocessor.of:143
-        //! OF_LINE: preprocessor.of:144
+        //! OF_LINE: preprocessor.of:147
+        //! OF_LINE: preprocessor.of:148
         return null;
-        //! OF_LINE: preprocessor.of:145
+        //! OF_LINE: preprocessor.of:149
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:146
-    //! OF_LINE: preprocessor.of:147
-    //! OF_LINE: preprocessor.of:148
-    //! OF_LINE: preprocessor.of:149
+    //! OF_LINE: preprocessor.of:150
+    //! OF_LINE: preprocessor.of:151
+    //! OF_LINE: preprocessor.of:152
+    //! OF_LINE: preprocessor.of:153
     async function load_source(filepath) {
       try {
-        //! OF_LINE: preprocessor.of:150
+        //! OF_LINE: preprocessor.of:154
         let raw = fileread2(filepath);
-        //! OF_LINE: preprocessor.of:151
+        //! OF_LINE: preprocessor.of:155
         return await strip_comments(raw);
-        //! OF_LINE: preprocessor.of:152
+        //! OF_LINE: preprocessor.of:156
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:153
-    //! OF_LINE: preprocessor.of:154
-    //! OF_LINE: preprocessor.of:155
-    //! OF_LINE: preprocessor.of:156
     //! OF_LINE: preprocessor.of:157
     //! OF_LINE: preprocessor.of:158
+    //! OF_LINE: preprocessor.of:159
+    //! OF_LINE: preprocessor.of:160
+    //! OF_LINE: preprocessor.of:161
+    //! OF_LINE: preprocessor.of:162
     async function get_all_dependencies(filepath, visited) {
       try {
-        //! OF_LINE: preprocessor.of:159
+        //! OF_LINE: preprocessor.of:163
         let abs_path = pathresolve2(filepath);
-        //! OF_LINE: preprocessor.of:160
-        //! OF_LINE: preprocessor.of:161
-        if (!visited) {
-          //! OF_LINE: preprocessor.of:162
-          visited = {};
-          //! OF_LINE: preprocessor.of:163
-        }
         //! OF_LINE: preprocessor.of:164
         //! OF_LINE: preprocessor.of:165
-        //! OF_LINE: preprocessor.of:166
-        if (visited[abs_path]) {
+        if (!visited) {
+          //! OF_LINE: preprocessor.of:166
+          visited = {};
           //! OF_LINE: preprocessor.of:167
-          return [];
-          //! OF_LINE: preprocessor.of:168
         }
+        //! OF_LINE: preprocessor.of:168
         //! OF_LINE: preprocessor.of:169
-        visited[abs_path] = true;
         //! OF_LINE: preprocessor.of:170
-        //! OF_LINE: preprocessor.of:171
-        let content = await load_source(abs_path);
-        //! OF_LINE: preprocessor.of:172
-        let lines = strsplit2(content, "\n");
+        if (visited[abs_path]) {
+          //! OF_LINE: preprocessor.of:171
+          return [];
+          //! OF_LINE: preprocessor.of:172
+        }
         //! OF_LINE: preprocessor.of:173
-        let deps = [];
+        visited[abs_path] = true;
         //! OF_LINE: preprocessor.of:174
         //! OF_LINE: preprocessor.of:175
+        let content = await load_source(abs_path);
+        //! OF_LINE: preprocessor.of:176
+        let lines = strsplit2(content, "\n");
+        //! OF_LINE: preprocessor.of:177
+        let deps = [];
+        //! OF_LINE: preprocessor.of:178
+        //! OF_LINE: preprocessor.of:179
         for (let line of lines) {
-          //! OF_LINE: preprocessor.of:176
+          //! OF_LINE: preprocessor.of:180
           let trimmed = strtrim2(line);
-          //! OF_LINE: preprocessor.of:177
+          //! OF_LINE: preprocessor.of:181
           let m = match2(trimmed, `/^include\\s+["']?([^"'\\s;]+)["']?/i`);
-          //! OF_LINE: preprocessor.of:178
+          //! OF_LINE: preprocessor.of:182
           if (m) {
-            //! OF_LINE: preprocessor.of:179
+            //! OF_LINE: preprocessor.of:183
             let inc_path = m[0];
-            //! OF_LINE: preprocessor.of:180
+            //! OF_LINE: preprocessor.of:184
             let resolved = await resolve_include(inc_path, abs_path);
-            //! OF_LINE: preprocessor.of:181
+            //! OF_LINE: preprocessor.of:185
             if (resolved) {
-              //! OF_LINE: preprocessor.of:182
-              let sub_deps = await get_all_dependencies(resolved, visited);
-              //! OF_LINE: preprocessor.of:183
-              for (let dep of sub_deps) {
-                //! OF_LINE: preprocessor.of:184
-                arraypush2(deps, dep);
-                //! OF_LINE: preprocessor.of:185
-              }
               //! OF_LINE: preprocessor.of:186
+              let sub_deps = await get_all_dependencies(resolved, visited);
+              //! OF_LINE: preprocessor.of:187
+              for (let dep of sub_deps) {
+                //! OF_LINE: preprocessor.of:188
+                arraypush2(deps, dep);
+                //! OF_LINE: preprocessor.of:189
+              }
+              //! OF_LINE: preprocessor.of:190
             }
-            //! OF_LINE: preprocessor.of:187
+            //! OF_LINE: preprocessor.of:191
           }
-          //! OF_LINE: preprocessor.of:188
+          //! OF_LINE: preprocessor.of:192
         }
-        //! OF_LINE: preprocessor.of:189
-        //! OF_LINE: preprocessor.of:190
+        //! OF_LINE: preprocessor.of:193
+        //! OF_LINE: preprocessor.of:194
         arraypush2(deps, abs_path);
-        //! OF_LINE: preprocessor.of:191
+        //! OF_LINE: preprocessor.of:195
         return deps;
-        //! OF_LINE: preprocessor.of:192
+        //! OF_LINE: preprocessor.of:196
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:193
+    //! OF_LINE: preprocessor.of:197
     global.strip_comments = strip_comments;
     global.resolve_include = resolve_include;
     global.load_source = load_source;
@@ -3414,6 +3427,8 @@ document.addEventListener('click', async (e) => {
     const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
     const parts = html.split(tokenRegex);
     let jsCode = "let _out = '';\n";
+    jsCode += "with(global.vars || {}) {\n";
+    jsCode += "with(context || {}) {\n";
     for (let part of parts) {
       if (!part)
         continue;
@@ -3446,6 +3461,7 @@ document.addEventListener('click', async (e) => {
 `;
       }
     }
+    jsCode += "}\n}\n";
     jsCode += "return _out;";
     const keys = ["context", ...Object.keys(context)];
     const values = [context, ...Object.values(context)];
