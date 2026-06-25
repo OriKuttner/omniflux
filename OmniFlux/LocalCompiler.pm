@@ -40,9 +40,9 @@ sub compile_locally {
     for my $g (qw(
         print printf fprint fprintf readchar read_char fileread file_read filewrite file_write fileexists file_exists
         fileappend file_append filedelete file_delete filecopy file_copy filerename file_rename
-        dirlist dir_list filestat file_stat cacheset cache_set cacheget cache_get
+        dirlist dir_list dircreate dir_create scriptdir script_dir filestat file_stat cacheset cache_set cacheget cache_get
         dbinsert db_insert dbselect db_select dbupdate db_update dbdelete db_delete
-        len strsplit str_split match arraypush array_push arrayunshift array_unshift arraypop array_pop arraycontains array_contains
+        setenv set_env getenv get_env len strsplit str_split match arraypush array_push arrayunshift array_unshift arraypop array_pop arraycontains array_contains
         arrayjoin array_join arrayslice array_slice time dateyear date_year datemonth date_month
         dateday date_day datehour date_hour dateminute date_minute datesecond date_second template describe
         args global console require module process Math JSON Array Object String Number Boolean Error
