@@ -25,6 +25,7 @@ var BUILTINS = [
     "dircreate", "dir_create",
     "scriptdir", "script_dir",
     // Database
+    "dbsetfile", "db_set_file",
     "dbinsert", "db_insert",
     "dbselect", "db_select",
     "dbupdate", "db_update",

@@ -547,13 +547,23 @@ By default, the database is stored in a file named `db.json` in the **current wo
 If your application is deployed to a production environment where the code directory is write-protected, you can easily configure the database file location by setting the `DB_FILE` environment variable:
 ```bash
 # Run the server with the database file saved in a secure, writable directory
-DB_FILE=/var/lib/omniflux/db.json perl omniflux server/proxy.of
+DB_FILE=/var/lib/omniflux/db.json ./omniflux server/proxy.of
+```
+
+#### Programmatic Database Path (`dbsetfile` / `db_set_file`)
+You can also change the database file path directly within your code using the built-in function `dbsetfile(path)` (alias: `db_set_file(path)`). This is useful if you want to determine the path dynamically or read it from a custom config file:
+```omniflux
+# Set a custom database location programmatically
+dbsetfile("/var/lib/omniflux/db.json")
+
+# Any subsequent database calls will read/write to this file
+dbinsert("logs", { event: "startup", time: time() })
 ```
 
 #### Core Concepts for Beginners
-* **Collection (אוסף):** Think of this as a category or a folder of records. For example, `"users"` or `"posts"`. Each collection contains a list of individual items.
-* **Document (מסמך):** A single record in a collection, represented as an object with key-value pairs (like `{ "name": "Alice", "role": "admin" }`).
-* **Filter (סינון):** A simple object used to search for matching records. For example, passing `{ "role": "admin" }` will find only those records where the role is `"admin"`. Passing an empty filter `{}` or `null` will retrieve everything.
+* **Collection:** Think of this as a category or a folder of records. For example, `"users"` or `"posts"`. Each collection contains a list of individual items.
+* **Document:** A single record in a collection, represented as an object with key-value pairs (like `{ "name": "Alice", "role": "admin" }`).
+* **Filter:** A simple object used to search for matching records. For example, passing `{ "role": "admin" }` will find only those records where the role is `"admin"`. Passing an empty filter `{}` or `null` will retrieve everything.
 
 #### 1. Inserting Data (`dbinsert`)
 Adds a new item to a collection. It automatically generates a unique `id` for the record if you don't provide one.
