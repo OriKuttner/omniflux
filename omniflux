@@ -266,17 +266,24 @@ var require_symbols = __commonJS({
       }
       res.cookie(name, value, options);
     }
+    var dbFilePath2 = process.env.DB_FILE || "db.json";
     var cachedDb2 = null;
     var cachedDbMtime2 = 0;
+    function dbsetfile2(path3) {
+      if (typeof path3 !== "string")
+        throw new Error("Database file path must be a string");
+      dbFilePath2 = path3;
+      cachedDb2 = null;
+      cachedDbMtime2 = 0;
+    }
     function loadDb2() {
-      const dbFile = process.env.DB_FILE || "db.json";
       try {
-        if (fs2.existsSync(dbFile)) {
-          const stats = fs2.statSync(dbFile);
+        if (fs2.existsSync(dbFilePath2)) {
+          const stats = fs2.statSync(dbFilePath2);
           if (cachedDb2 && stats.mtimeMs === cachedDbMtime2) {
             return cachedDb2;
           }
-          const content = fs2.readFileSync(dbFile, "utf8");
+          const content = fs2.readFileSync(dbFilePath2, "utf8");
           cachedDb2 = JSON.parse(content || "{}");
           cachedDbMtime2 = stats.mtimeMs;
           return cachedDb2;
@@ -290,12 +297,11 @@ var require_symbols = __commonJS({
       return cachedDb2;
     }
     function saveDb2(data) {
-      const dbFile = process.env.DB_FILE || "db.json";
       cachedDb2 = data;
-      fs2.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf8");
+      fs2.writeFileSync(dbFilePath2, JSON.stringify(data, null, 2), "utf8");
       try {
-        if (fs2.existsSync(dbFile)) {
-          cachedDbMtime2 = fs2.statSync(dbFile).mtimeMs;
+        if (fs2.existsSync(dbFilePath2)) {
+          cachedDbMtime2 = fs2.statSync(dbFilePath2).mtimeMs;
         }
       } catch (e) {
         cachedDbMtime2 = Date.now();
@@ -871,6 +877,8 @@ document.addEventListener('click', async (e) => {
     global.set_cookie = setcookie2;
     global.filestat = filestat2;
     global.file_stat = filestat2;
+    global.dbsetfile = dbsetfile2;
+    global.db_set_file = dbsetfile2;
     global.dbinsert = dbinsert2;
     global.db_insert = dbinsert2;
     global.dbselect = dbselect2;
@@ -1075,320 +1083,323 @@ document.addEventListener('click', async (e) => {
       "script_dir",
       //! OF_LINE: symbols.of:26
       //! OF_LINE: symbols.of:27
+      "dbsetfile",
+      "db_set_file",
+      //! OF_LINE: symbols.of:28
       "dbinsert",
       "db_insert",
-      //! OF_LINE: symbols.of:28
+      //! OF_LINE: symbols.of:29
       "dbselect",
       "db_select",
-      //! OF_LINE: symbols.of:29
+      //! OF_LINE: symbols.of:30
       "dbupdate",
       "db_update",
-      //! OF_LINE: symbols.of:30
+      //! OF_LINE: symbols.of:31
       "dbdelete",
       "db_delete",
-      //! OF_LINE: symbols.of:31
       //! OF_LINE: symbols.of:32
+      //! OF_LINE: symbols.of:33
       "cacheset",
       "cache_set",
-      //! OF_LINE: symbols.of:33
+      //! OF_LINE: symbols.of:34
       "cacheget",
       "cache_get",
-      //! OF_LINE: symbols.of:34
       //! OF_LINE: symbols.of:35
+      //! OF_LINE: symbols.of:36
       "setenv",
       "set_env",
-      //! OF_LINE: symbols.of:36
+      //! OF_LINE: symbols.of:37
       "getenv",
       "get_env",
-      //! OF_LINE: symbols.of:37
       //! OF_LINE: symbols.of:38
-      "exit",
       //! OF_LINE: symbols.of:39
+      "exit",
       //! OF_LINE: symbols.of:40
-      "sha256",
       //! OF_LINE: symbols.of:41
-      "encrypt",
+      "sha256",
       //! OF_LINE: symbols.of:42
-      "decrypt",
+      "encrypt",
       //! OF_LINE: symbols.of:43
+      "decrypt",
       //! OF_LINE: symbols.of:44
+      //! OF_LINE: symbols.of:45
       "getcookie",
       "get_cookie",
-      //! OF_LINE: symbols.of:45
+      //! OF_LINE: symbols.of:46
       "setcookie",
       "set_cookie",
-      //! OF_LINE: symbols.of:46
       //! OF_LINE: symbols.of:47
-      "template",
       //! OF_LINE: symbols.of:48
+      "template",
       //! OF_LINE: symbols.of:49
-      "len",
       //! OF_LINE: symbols.of:50
-      "match",
+      "len",
       //! OF_LINE: symbols.of:51
+      "match",
+      //! OF_LINE: symbols.of:52
       "strsplit",
       "str_split",
-      //! OF_LINE: symbols.of:52
+      //! OF_LINE: symbols.of:53
       "strtrim",
       "str_trim",
-      //! OF_LINE: symbols.of:53
+      //! OF_LINE: symbols.of:54
       "strsub",
       "str_sub",
-      //! OF_LINE: symbols.of:54
+      //! OF_LINE: symbols.of:55
       "strindexof",
       "str_index_of",
-      //! OF_LINE: symbols.of:55
+      //! OF_LINE: symbols.of:56
       "strlastindexof",
       "str_last_index_of",
-      //! OF_LINE: symbols.of:56
+      //! OF_LINE: symbols.of:57
       "strrepeat",
       "str_repeat",
-      //! OF_LINE: symbols.of:57
+      //! OF_LINE: symbols.of:58
       "strreplace",
       "str_replace",
-      //! OF_LINE: symbols.of:58
+      //! OF_LINE: symbols.of:59
       "strupper",
       "str_upper",
-      //! OF_LINE: symbols.of:59
+      //! OF_LINE: symbols.of:60
       "strlower",
       "str_lower",
-      //! OF_LINE: symbols.of:60
       //! OF_LINE: symbols.of:61
+      //! OF_LINE: symbols.of:62
       "arraypush",
       "array_push",
-      //! OF_LINE: symbols.of:62
+      //! OF_LINE: symbols.of:63
       "arrayunshift",
       "array_unshift",
-      //! OF_LINE: symbols.of:63
+      //! OF_LINE: symbols.of:64
       "arraypop",
       "array_pop",
-      //! OF_LINE: symbols.of:64
+      //! OF_LINE: symbols.of:65
       "arrayshift",
       "array_shift",
-      //! OF_LINE: symbols.of:65
+      //! OF_LINE: symbols.of:66
       "arraycontains",
       "array_contains",
-      //! OF_LINE: symbols.of:66
+      //! OF_LINE: symbols.of:67
       "arrayjoin",
       "array_join",
-      //! OF_LINE: symbols.of:67
+      //! OF_LINE: symbols.of:68
       "arrayslice",
       "array_slice",
-      //! OF_LINE: symbols.of:68
+      //! OF_LINE: symbols.of:69
       "arrayreverse",
       "array_reverse",
-      //! OF_LINE: symbols.of:69
+      //! OF_LINE: symbols.of:70
       "arraysort",
       "array_sort",
-      //! OF_LINE: symbols.of:70
+      //! OF_LINE: symbols.of:71
       "arraymap",
       "array_map",
-      //! OF_LINE: symbols.of:71
+      //! OF_LINE: symbols.of:72
       "arrayfilter",
       "array_filter",
-      //! OF_LINE: symbols.of:72
+      //! OF_LINE: symbols.of:73
       "arrayfind",
       "array_find",
-      //! OF_LINE: symbols.of:73
       //! OF_LINE: symbols.of:74
+      //! OF_LINE: symbols.of:75
       "pathjoin",
       "path_join",
-      //! OF_LINE: symbols.of:75
+      //! OF_LINE: symbols.of:76
       "pathresolve",
       "path_resolve",
-      //! OF_LINE: symbols.of:76
+      //! OF_LINE: symbols.of:77
       "pathdirname",
       "path_dir_name",
-      //! OF_LINE: symbols.of:77
+      //! OF_LINE: symbols.of:78
       "pathbasename",
       "path_base_name",
-      //! OF_LINE: symbols.of:78
+      //! OF_LINE: symbols.of:79
       "pathextension",
       "path_extension",
-      //! OF_LINE: symbols.of:79
+      //! OF_LINE: symbols.of:80
       "pathisabsolute",
       "path_is_absolute",
-      //! OF_LINE: symbols.of:80
       //! OF_LINE: symbols.of:81
-      "time",
       //! OF_LINE: symbols.of:82
+      "time",
+      //! OF_LINE: symbols.of:83
       "dateyear",
       "date_year",
-      //! OF_LINE: symbols.of:83
+      //! OF_LINE: symbols.of:84
       "datemonth",
       "date_month",
-      //! OF_LINE: symbols.of:84
+      //! OF_LINE: symbols.of:85
       "dateday",
       "date_day",
-      //! OF_LINE: symbols.of:85
+      //! OF_LINE: symbols.of:86
       "datehour",
       "date_hour",
-      //! OF_LINE: symbols.of:86
+      //! OF_LINE: symbols.of:87
       "dateminute",
       "date_minute",
-      //! OF_LINE: symbols.of:87
+      //! OF_LINE: symbols.of:88
       "datesecond",
       "date_second",
-      //! OF_LINE: symbols.of:88
+      //! OF_LINE: symbols.of:89
       "dateweekday",
       "date_weekday",
-      //! OF_LINE: symbols.of:89
       //! OF_LINE: symbols.of:90
-      "describe",
       //! OF_LINE: symbols.of:91
+      "describe",
       //! OF_LINE: symbols.of:92
+      //! OF_LINE: symbols.of:93
       "jsonparse",
       "json_parse",
-      //! OF_LINE: symbols.of:93
+      //! OF_LINE: symbols.of:94
       "jsondecode",
       "json_decode",
-      //! OF_LINE: symbols.of:94
+      //! OF_LINE: symbols.of:95
       "jsonencode",
       "json_encode",
-      //! OF_LINE: symbols.of:95
       //! OF_LINE: symbols.of:96
+      //! OF_LINE: symbols.of:97
       "args",
       "global",
       "console",
       "require",
       "module",
       "process",
-      //! OF_LINE: symbols.of:97
+      //! OF_LINE: symbols.of:98
       "Math",
       "JSON",
       "Array",
       "Object",
       "String",
       "Number",
-      //! OF_LINE: symbols.of:98
+      //! OF_LINE: symbols.of:99
       "Boolean",
       "Error",
       "setTimeout",
       "setInterval",
-      //! OF_LINE: symbols.of:99
+      //! OF_LINE: symbols.of:100
       "clearTimeout",
       "clearInterval",
       "NaN"
-      //! OF_LINE: symbols.of:100
+      //! OF_LINE: symbols.of:101
     ];
-    //! OF_LINE: symbols.of:101
     //! OF_LINE: symbols.of:102
     //! OF_LINE: symbols.of:103
     //! OF_LINE: symbols.of:104
+    //! OF_LINE: symbols.of:105
     var ASYNC_BUILTINS = [
-      //! OF_LINE: symbols.of:105
-      "input",
       //! OF_LINE: symbols.of:106
+      "input",
+      //! OF_LINE: symbols.of:107
       "cacheset",
       "cache_set",
-      //! OF_LINE: symbols.of:107
+      //! OF_LINE: symbols.of:108
       "cacheget",
       "cache_get",
-      //! OF_LINE: symbols.of:108
+      //! OF_LINE: symbols.of:109
       "arraymap",
       "array_map",
-      //! OF_LINE: symbols.of:109
+      //! OF_LINE: symbols.of:110
       "arrayfilter",
       "array_filter",
-      //! OF_LINE: symbols.of:110
+      //! OF_LINE: symbols.of:111
       "arrayfind",
       "array_find"
-      //! OF_LINE: symbols.of:111
+      //! OF_LINE: symbols.of:112
     ];
-    //! OF_LINE: symbols.of:112
     //! OF_LINE: symbols.of:113
     //! OF_LINE: symbols.of:114
     //! OF_LINE: symbols.of:115
     //! OF_LINE: symbols.of:116
     //! OF_LINE: symbols.of:117
+    //! OF_LINE: symbols.of:118
     async function prescan_tasks2(content) {
       try {
-        //! OF_LINE: symbols.of:118
-        let tasks = {};
         //! OF_LINE: symbols.of:119
+        let tasks = {};
         //! OF_LINE: symbols.of:120
-        let lines = strsplit2(content, "\n");
         //! OF_LINE: symbols.of:121
+        let lines = strsplit2(content, "\n");
+        //! OF_LINE: symbols.of:122
         for (let line of lines) {
-          //! OF_LINE: symbols.of:122
-          let clean = strreplace2(line, "/#[^\n]*/", "");
           //! OF_LINE: symbols.of:123
-          clean = strtrim2(clean);
+          let clean = strreplace2(line, "/#[^\n]*/", "");
           //! OF_LINE: symbols.of:124
+          clean = strtrim2(clean);
           //! OF_LINE: symbols.of:125
-          let m1 = match2(clean, "/^define\\s+task\\s+(\\w+)/i");
           //! OF_LINE: symbols.of:126
+          let m1 = match2(clean, "/^define\\s+task\\s+(\\w+)/i");
+          //! OF_LINE: symbols.of:127
           if (m1) {
-            //! OF_LINE: symbols.of:127
-            tasks[m1[0]] = true;
             //! OF_LINE: symbols.of:128
+            tasks[m1[0]] = true;
+            //! OF_LINE: symbols.of:129
           }
-          //! OF_LINE: symbols.of:129
           //! OF_LINE: symbols.of:130
-          let m2 = match2(clean, "/^fn\\s+(\\w+)/i");
           //! OF_LINE: symbols.of:131
+          let m2 = match2(clean, "/^fn\\s+(\\w+)/i");
+          //! OF_LINE: symbols.of:132
           if (m2) {
-            //! OF_LINE: symbols.of:132
-            tasks[m2[0]] = true;
             //! OF_LINE: symbols.of:133
+            tasks[m2[0]] = true;
+            //! OF_LINE: symbols.of:134
           }
-          //! OF_LINE: symbols.of:134
+          //! OF_LINE: symbols.of:135
         }
-        //! OF_LINE: symbols.of:135
         //! OF_LINE: symbols.of:136
-        return tasks;
         //! OF_LINE: symbols.of:137
+        return tasks;
+        //! OF_LINE: symbols.of:138
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:138
     //! OF_LINE: symbols.of:139
     //! OF_LINE: symbols.of:140
     //! OF_LINE: symbols.of:141
+    //! OF_LINE: symbols.of:142
     async function is_builtin(name) {
       try {
-        //! OF_LINE: symbols.of:142
-        return arraycontains2(BUILTINS, name);
         //! OF_LINE: symbols.of:143
+        return arraycontains2(BUILTINS, name);
+        //! OF_LINE: symbols.of:144
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:144
     //! OF_LINE: symbols.of:145
     //! OF_LINE: symbols.of:146
     //! OF_LINE: symbols.of:147
     //! OF_LINE: symbols.of:148
+    //! OF_LINE: symbols.of:149
     async function is_async(name, user_tasks) {
       try {
-        //! OF_LINE: symbols.of:149
+        //! OF_LINE: symbols.of:150
         if (arraycontains2(ASYNC_BUILTINS, name)) {
-          //! OF_LINE: symbols.of:150
-          return true;
           //! OF_LINE: symbols.of:151
-        }
-        //! OF_LINE: symbols.of:152
-        if (user_tasks[name]) {
-          //! OF_LINE: symbols.of:153
           return true;
-          //! OF_LINE: symbols.of:154
+          //! OF_LINE: symbols.of:152
         }
-        //! OF_LINE: symbols.of:155
-        return false;
+        //! OF_LINE: symbols.of:153
+        if (user_tasks[name]) {
+          //! OF_LINE: symbols.of:154
+          return true;
+          //! OF_LINE: symbols.of:155
+        }
         //! OF_LINE: symbols.of:156
+        return false;
+        //! OF_LINE: symbols.of:157
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:157
     //! OF_LINE: symbols.of:158
-    global.BUILTINS = BUILTINS;
     //! OF_LINE: symbols.of:159
-    global.ASYNC_BUILTINS = ASYNC_BUILTINS;
+    global.BUILTINS = BUILTINS;
     //! OF_LINE: symbols.of:160
+    global.ASYNC_BUILTINS = ASYNC_BUILTINS;
     //! OF_LINE: symbols.of:161
     //! OF_LINE: symbols.of:162
+    //! OF_LINE: symbols.of:163
     global.prescan_tasks = prescan_tasks2;
     global.is_builtin = is_builtin;
     global.is_async = is_async;
@@ -1672,17 +1683,24 @@ var require_preprocessor = __commonJS({
       }
       res.cookie(name, value, options);
     }
+    var dbFilePath2 = process.env.DB_FILE || "db.json";
     var cachedDb2 = null;
     var cachedDbMtime2 = 0;
+    function dbsetfile2(path3) {
+      if (typeof path3 !== "string")
+        throw new Error("Database file path must be a string");
+      dbFilePath2 = path3;
+      cachedDb2 = null;
+      cachedDbMtime2 = 0;
+    }
     function loadDb2() {
-      const dbFile = process.env.DB_FILE || "db.json";
       try {
-        if (fs2.existsSync(dbFile)) {
-          const stats = fs2.statSync(dbFile);
+        if (fs2.existsSync(dbFilePath2)) {
+          const stats = fs2.statSync(dbFilePath2);
           if (cachedDb2 && stats.mtimeMs === cachedDbMtime2) {
             return cachedDb2;
           }
-          const content = fs2.readFileSync(dbFile, "utf8");
+          const content = fs2.readFileSync(dbFilePath2, "utf8");
           cachedDb2 = JSON.parse(content || "{}");
           cachedDbMtime2 = stats.mtimeMs;
           return cachedDb2;
@@ -1696,12 +1714,11 @@ var require_preprocessor = __commonJS({
       return cachedDb2;
     }
     function saveDb2(data) {
-      const dbFile = process.env.DB_FILE || "db.json";
       cachedDb2 = data;
-      fs2.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf8");
+      fs2.writeFileSync(dbFilePath2, JSON.stringify(data, null, 2), "utf8");
       try {
-        if (fs2.existsSync(dbFile)) {
-          cachedDbMtime2 = fs2.statSync(dbFile).mtimeMs;
+        if (fs2.existsSync(dbFilePath2)) {
+          cachedDbMtime2 = fs2.statSync(dbFilePath2).mtimeMs;
         }
       } catch (e) {
         cachedDbMtime2 = Date.now();
@@ -2277,6 +2294,8 @@ document.addEventListener('click', async (e) => {
     global.set_cookie = setcookie2;
     global.filestat = filestat2;
     global.file_stat = filestat2;
+    global.dbsetfile = dbsetfile2;
+    global.db_set_file = dbsetfile2;
     global.dbinsert = dbinsert2;
     global.db_insert = dbinsert2;
     global.dbselect = dbselect2;
@@ -3050,17 +3069,24 @@ var require_system = __commonJS({
       }
       res.cookie(name, value, options);
     }
+    var dbFilePath2 = process.env.DB_FILE || "db.json";
     var cachedDb2 = null;
     var cachedDbMtime2 = 0;
+    function dbsetfile2(path3) {
+      if (typeof path3 !== "string")
+        throw new Error("Database file path must be a string");
+      dbFilePath2 = path3;
+      cachedDb2 = null;
+      cachedDbMtime2 = 0;
+    }
     function loadDb2() {
-      const dbFile = process.env.DB_FILE || "db.json";
       try {
-        if (fs2.existsSync(dbFile)) {
-          const stats = fs2.statSync(dbFile);
+        if (fs2.existsSync(dbFilePath2)) {
+          const stats = fs2.statSync(dbFilePath2);
           if (cachedDb2 && stats.mtimeMs === cachedDbMtime2) {
             return cachedDb2;
           }
-          const content = fs2.readFileSync(dbFile, "utf8");
+          const content = fs2.readFileSync(dbFilePath2, "utf8");
           cachedDb2 = JSON.parse(content || "{}");
           cachedDbMtime2 = stats.mtimeMs;
           return cachedDb2;
@@ -3074,12 +3100,11 @@ var require_system = __commonJS({
       return cachedDb2;
     }
     function saveDb2(data) {
-      const dbFile = process.env.DB_FILE || "db.json";
       cachedDb2 = data;
-      fs2.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf8");
+      fs2.writeFileSync(dbFilePath2, JSON.stringify(data, null, 2), "utf8");
       try {
-        if (fs2.existsSync(dbFile)) {
-          cachedDbMtime2 = fs2.statSync(dbFile).mtimeMs;
+        if (fs2.existsSync(dbFilePath2)) {
+          cachedDbMtime2 = fs2.statSync(dbFilePath2).mtimeMs;
         }
       } catch (e) {
         cachedDbMtime2 = Date.now();
@@ -3655,6 +3680,8 @@ document.addEventListener('click', async (e) => {
     global.set_cookie = setcookie2;
     global.filestat = filestat2;
     global.file_stat = filestat2;
+    global.dbsetfile = dbsetfile2;
+    global.db_set_file = dbsetfile2;
     global.dbinsert = dbinsert2;
     global.db_insert = dbinsert2;
     global.dbselect = dbselect2;
@@ -4181,17 +4208,24 @@ var require_bundler = __commonJS({
       }
       res.cookie(name, value, options);
     }
+    var dbFilePath2 = process.env.DB_FILE || "db.json";
     var cachedDb2 = null;
     var cachedDbMtime2 = 0;
+    function dbsetfile2(path3) {
+      if (typeof path3 !== "string")
+        throw new Error("Database file path must be a string");
+      dbFilePath2 = path3;
+      cachedDb2 = null;
+      cachedDbMtime2 = 0;
+    }
     function loadDb2() {
-      const dbFile = process.env.DB_FILE || "db.json";
       try {
-        if (fs2.existsSync(dbFile)) {
-          const stats = fs2.statSync(dbFile);
+        if (fs2.existsSync(dbFilePath2)) {
+          const stats = fs2.statSync(dbFilePath2);
           if (cachedDb2 && stats.mtimeMs === cachedDbMtime2) {
             return cachedDb2;
           }
-          const content = fs2.readFileSync(dbFile, "utf8");
+          const content = fs2.readFileSync(dbFilePath2, "utf8");
           cachedDb2 = JSON.parse(content || "{}");
           cachedDbMtime2 = stats.mtimeMs;
           return cachedDb2;
@@ -4205,12 +4239,11 @@ var require_bundler = __commonJS({
       return cachedDb2;
     }
     function saveDb2(data) {
-      const dbFile = process.env.DB_FILE || "db.json";
       cachedDb2 = data;
-      fs2.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf8");
+      fs2.writeFileSync(dbFilePath2, JSON.stringify(data, null, 2), "utf8");
       try {
-        if (fs2.existsSync(dbFile)) {
-          cachedDbMtime2 = fs2.statSync(dbFile).mtimeMs;
+        if (fs2.existsSync(dbFilePath2)) {
+          cachedDbMtime2 = fs2.statSync(dbFilePath2).mtimeMs;
         }
       } catch (e) {
         cachedDbMtime2 = Date.now();
@@ -4786,6 +4819,8 @@ document.addEventListener('click', async (e) => {
     global.set_cookie = setcookie2;
     global.filestat = filestat2;
     global.file_stat = filestat2;
+    global.dbsetfile = dbsetfile2;
+    global.db_set_file = dbsetfile2;
     global.dbinsert = dbinsert2;
     global.db_insert = dbinsert2;
     global.dbselect = dbselect2;
@@ -5413,17 +5448,24 @@ var require_validator = __commonJS({
       }
       res.cookie(name, value, options);
     }
+    var dbFilePath2 = process.env.DB_FILE || "db.json";
     var cachedDb2 = null;
     var cachedDbMtime2 = 0;
+    function dbsetfile2(path3) {
+      if (typeof path3 !== "string")
+        throw new Error("Database file path must be a string");
+      dbFilePath2 = path3;
+      cachedDb2 = null;
+      cachedDbMtime2 = 0;
+    }
     function loadDb2() {
-      const dbFile = process.env.DB_FILE || "db.json";
       try {
-        if (fs2.existsSync(dbFile)) {
-          const stats = fs2.statSync(dbFile);
+        if (fs2.existsSync(dbFilePath2)) {
+          const stats = fs2.statSync(dbFilePath2);
           if (cachedDb2 && stats.mtimeMs === cachedDbMtime2) {
             return cachedDb2;
           }
-          const content = fs2.readFileSync(dbFile, "utf8");
+          const content = fs2.readFileSync(dbFilePath2, "utf8");
           cachedDb2 = JSON.parse(content || "{}");
           cachedDbMtime2 = stats.mtimeMs;
           return cachedDb2;
@@ -5437,12 +5479,11 @@ var require_validator = __commonJS({
       return cachedDb2;
     }
     function saveDb2(data) {
-      const dbFile = process.env.DB_FILE || "db.json";
       cachedDb2 = data;
-      fs2.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf8");
+      fs2.writeFileSync(dbFilePath2, JSON.stringify(data, null, 2), "utf8");
       try {
-        if (fs2.existsSync(dbFile)) {
-          cachedDbMtime2 = fs2.statSync(dbFile).mtimeMs;
+        if (fs2.existsSync(dbFilePath2)) {
+          cachedDbMtime2 = fs2.statSync(dbFilePath2).mtimeMs;
         }
       } catch (e) {
         cachedDbMtime2 = Date.now();
@@ -6018,6 +6059,8 @@ document.addEventListener('click', async (e) => {
     global.set_cookie = setcookie2;
     global.filestat = filestat2;
     global.file_stat = filestat2;
+    global.dbsetfile = dbsetfile2;
+    global.db_set_file = dbsetfile2;
     global.dbinsert = dbinsert2;
     global.db_insert = dbinsert2;
     global.dbselect = dbselect2;
@@ -6887,17 +6930,24 @@ var require_transpiler = __commonJS({
       }
       res.cookie(name, value, options);
     }
+    var dbFilePath2 = process.env.DB_FILE || "db.json";
     var cachedDb2 = null;
     var cachedDbMtime2 = 0;
+    function dbsetfile2(path3) {
+      if (typeof path3 !== "string")
+        throw new Error("Database file path must be a string");
+      dbFilePath2 = path3;
+      cachedDb2 = null;
+      cachedDbMtime2 = 0;
+    }
     function loadDb2() {
-      const dbFile = process.env.DB_FILE || "db.json";
       try {
-        if (fs2.existsSync(dbFile)) {
-          const stats = fs2.statSync(dbFile);
+        if (fs2.existsSync(dbFilePath2)) {
+          const stats = fs2.statSync(dbFilePath2);
           if (cachedDb2 && stats.mtimeMs === cachedDbMtime2) {
             return cachedDb2;
           }
-          const content = fs2.readFileSync(dbFile, "utf8");
+          const content = fs2.readFileSync(dbFilePath2, "utf8");
           cachedDb2 = JSON.parse(content || "{}");
           cachedDbMtime2 = stats.mtimeMs;
           return cachedDb2;
@@ -6911,12 +6961,11 @@ var require_transpiler = __commonJS({
       return cachedDb2;
     }
     function saveDb2(data) {
-      const dbFile = process.env.DB_FILE || "db.json";
       cachedDb2 = data;
-      fs2.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf8");
+      fs2.writeFileSync(dbFilePath2, JSON.stringify(data, null, 2), "utf8");
       try {
-        if (fs2.existsSync(dbFile)) {
-          cachedDbMtime2 = fs2.statSync(dbFile).mtimeMs;
+        if (fs2.existsSync(dbFilePath2)) {
+          cachedDbMtime2 = fs2.statSync(dbFilePath2).mtimeMs;
         }
       } catch (e) {
         cachedDbMtime2 = Date.now();
@@ -7492,6 +7541,8 @@ document.addEventListener('click', async (e) => {
     global.set_cookie = setcookie2;
     global.filestat = filestat2;
     global.file_stat = filestat2;
+    global.dbsetfile = dbsetfile2;
+    global.db_set_file = dbsetfile2;
     global.dbinsert = dbinsert2;
     global.db_insert = dbinsert2;
     global.dbselect = dbselect2;
@@ -9224,17 +9275,24 @@ var require_network = __commonJS({
       }
       res.cookie(name, value, options);
     }
+    var dbFilePath2 = process.env.DB_FILE || "db.json";
     var cachedDb2 = null;
     var cachedDbMtime2 = 0;
+    function dbsetfile2(path3) {
+      if (typeof path3 !== "string")
+        throw new Error("Database file path must be a string");
+      dbFilePath2 = path3;
+      cachedDb2 = null;
+      cachedDbMtime2 = 0;
+    }
     function loadDb2() {
-      const dbFile = process.env.DB_FILE || "db.json";
       try {
-        if (fs2.existsSync(dbFile)) {
-          const stats = fs2.statSync(dbFile);
+        if (fs2.existsSync(dbFilePath2)) {
+          const stats = fs2.statSync(dbFilePath2);
           if (cachedDb2 && stats.mtimeMs === cachedDbMtime2) {
             return cachedDb2;
           }
-          const content = fs2.readFileSync(dbFile, "utf8");
+          const content = fs2.readFileSync(dbFilePath2, "utf8");
           cachedDb2 = JSON.parse(content || "{}");
           cachedDbMtime2 = stats.mtimeMs;
           return cachedDb2;
@@ -9248,12 +9306,11 @@ var require_network = __commonJS({
       return cachedDb2;
     }
     function saveDb2(data) {
-      const dbFile = process.env.DB_FILE || "db.json";
       cachedDb2 = data;
-      fs2.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf8");
+      fs2.writeFileSync(dbFilePath2, JSON.stringify(data, null, 2), "utf8");
       try {
-        if (fs2.existsSync(dbFile)) {
-          cachedDbMtime2 = fs2.statSync(dbFile).mtimeMs;
+        if (fs2.existsSync(dbFilePath2)) {
+          cachedDbMtime2 = fs2.statSync(dbFilePath2).mtimeMs;
         }
       } catch (e) {
         cachedDbMtime2 = Date.now();
@@ -9829,6 +9886,8 @@ document.addEventListener('click', async (e) => {
     global.set_cookie = setcookie2;
     global.filestat = filestat2;
     global.file_stat = filestat2;
+    global.dbsetfile = dbsetfile2;
+    global.db_set_file = dbsetfile2;
     global.dbinsert = dbinsert2;
     global.db_insert = dbinsert2;
     global.dbselect = dbselect2;
@@ -10423,17 +10482,24 @@ function setcookie(res, name, value, options = {}) {
   }
   res.cookie(name, value, options);
 }
+var dbFilePath = process.env.DB_FILE || "db.json";
 var cachedDb = null;
 var cachedDbMtime = 0;
+function dbsetfile(path2) {
+  if (typeof path2 !== "string")
+    throw new Error("Database file path must be a string");
+  dbFilePath = path2;
+  cachedDb = null;
+  cachedDbMtime = 0;
+}
 function loadDb() {
-  const dbFile = process.env.DB_FILE || "db.json";
   try {
-    if (fs.existsSync(dbFile)) {
-      const stats = fs.statSync(dbFile);
+    if (fs.existsSync(dbFilePath)) {
+      const stats = fs.statSync(dbFilePath);
       if (cachedDb && stats.mtimeMs === cachedDbMtime) {
         return cachedDb;
       }
-      const content = fs.readFileSync(dbFile, "utf8");
+      const content = fs.readFileSync(dbFilePath, "utf8");
       cachedDb = JSON.parse(content || "{}");
       cachedDbMtime = stats.mtimeMs;
       return cachedDb;
@@ -10447,12 +10513,11 @@ function loadDb() {
   return cachedDb;
 }
 function saveDb(data) {
-  const dbFile = process.env.DB_FILE || "db.json";
   cachedDb = data;
-  fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), "utf8");
+  fs.writeFileSync(dbFilePath, JSON.stringify(data, null, 2), "utf8");
   try {
-    if (fs.existsSync(dbFile)) {
-      cachedDbMtime = fs.statSync(dbFile).mtimeMs;
+    if (fs.existsSync(dbFilePath)) {
+      cachedDbMtime = fs.statSync(dbFilePath).mtimeMs;
     }
   } catch (e) {
     cachedDbMtime = Date.now();
@@ -11028,6 +11093,8 @@ global.setcookie = setcookie;
 global.set_cookie = setcookie;
 global.filestat = filestat;
 global.file_stat = filestat;
+global.dbsetfile = dbsetfile;
+global.db_set_file = dbsetfile;
 global.dbinsert = dbinsert;
 global.db_insert = dbinsert;
 global.dbselect = dbselect;

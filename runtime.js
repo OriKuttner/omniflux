@@ -287,18 +287,25 @@ function setcookie(res, name, value, options = {}) {
 
 
 // --- Databases (Local JSON DB) ---
+let dbFilePath = process.env.DB_FILE || 'db.json';
 let cachedDb = null;
 let cachedDbMtime = 0;
 
+function dbsetfile(path) {
+    if (typeof path !== 'string') throw new Error('Database file path must be a string');
+    dbFilePath = path;
+    cachedDb = null;
+    cachedDbMtime = 0;
+}
+
 function loadDb() {
-    const dbFile = process.env.DB_FILE || 'db.json';
     try {
-        if (fs.existsSync(dbFile)) {
-            const stats = fs.statSync(dbFile);
+        if (fs.existsSync(dbFilePath)) {
+            const stats = fs.statSync(dbFilePath);
             if (cachedDb && stats.mtimeMs === cachedDbMtime) {
                 return cachedDb;
             }
-            const content = fs.readFileSync(dbFile, 'utf8');
+            const content = fs.readFileSync(dbFilePath, 'utf8');
             cachedDb = JSON.parse(content || '{}');
             cachedDbMtime = stats.mtimeMs;
             return cachedDb;
@@ -314,12 +321,11 @@ function loadDb() {
 }
 
 function saveDb(data) {
-    const dbFile = process.env.DB_FILE || 'db.json';
     cachedDb = data;
-    fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), 'utf8');
+    fs.writeFileSync(dbFilePath, JSON.stringify(data, null, 2), 'utf8');
     try {
-        if (fs.existsSync(dbFile)) {
-            cachedDbMtime = fs.statSync(dbFile).mtimeMs;
+        if (fs.existsSync(dbFilePath)) {
+            cachedDbMtime = fs.statSync(dbFilePath).mtimeMs;
         }
     } catch (e) {
         cachedDbMtime = Date.now();
@@ -970,6 +976,8 @@ global.set_cookie = setcookie;
 global.filestat = filestat;
 global.file_stat = filestat;
 
+global.dbsetfile = dbsetfile;
+global.db_set_file = dbsetfile;
 global.dbinsert = dbinsert;
 global.db_insert = dbinsert;
 global.dbselect = dbselect;
