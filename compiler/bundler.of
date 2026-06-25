@@ -1,0 +1,110 @@
+// bundler.of
+// Build manager for the OmniFlux bootstrap compiler.
+// Responsibilities:
+//   - Determine the cache output path for each source file.
+//   - Write generated JS to the .omniflux_cache/ directory.
+//   - Invoke esbuild to bundle everything into a single executable.
+//   - Make the output file executable (chmod +x).
+//   - Print build progress messages to stdout.
+//
+// bundle(main_source, output_file, compiled_files) returns:
+//   { ok: true,  output: "/path/to/output" }
+//   { ok: false, error: "message" }
+
+include "compiler/preprocessor.of"
+include "stdlib/system.of"
+
+// get_cache_path(source_abs_path)
+// Returns the path where the compiled JS for this source file
+// should be stored inside .omniflux_cache/.
+// Example: /project/server/app.of  →  /project/.omniflux_cache/server/app.js
+define task get_cache_path(source_abs_path) {
+    var cwd = pathresolve(".")
+    var cache_dir = pathjoin(cwd, ".omniflux_cache")
+
+    var rel = source_abs_path
+    var prefix = cwd + "/"
+    if strindexof(source_abs_path, prefix) == 0 {
+        rel = strsub(source_abs_path, len(prefix), len(source_abs_path) - len(prefix))
+    }
+
+    var js_rel = strreplace(rel, "/\\.of$/", ".js")
+    if js_rel == rel {
+        js_rel = rel + ".js"
+    }
+
+    return pathjoin(cache_dir, js_rel)
+}
+
+// get_output_path(source_abs_path)
+// Returns the final executable output path for the main source file.
+// Example: /project/server/app.of  →  /project/server/app
+define task get_output_path(source_abs_path) {
+    var dir = pathdirname(source_abs_path)
+    var base = pathbasename(source_abs_path)
+    var name = strreplace(base, "/\\.[^.]+$/", "")
+    return pathjoin(dir, name)
+}
+
+// write_js(cache_path, js_content)
+// Writes compiled JS content to the cache directory, creating it if needed.
+define task write_js(cache_path, js_content) {
+    var dir = pathdirname(cache_path)
+    dircreate(dir)
+    filewrite(cache_path, js_content)
+}
+
+// bundle(main_cache_js, output_file)
+// Runs esbuild on the main compiled JS file and produces a bundled executable.
+// compiled_files is an array of cache JS paths (for informational output only).
+define task bundle(main_cache_js, output_file) {
+    var rel_main = main_cache_js
+
+    print("Bundling with esbuild: %s -> %s...", rel_main, output_file)
+
+    var cmd = "npx -y esbuild \"" + rel_main + "\" --bundle --platform=node --external:mysql2/promise --external:redis --legal-comments=inline --banner:js=\"#!/usr/bin/env node\" --outfile=\"" + output_file + "\""
+
+    // system() inherits stdio so esbuild output is shown; returns exit code string
+    var output = system(cmd)
+
+    if !fileexists(output_file) {
+        return {
+            ok: false,
+            error: "Bundling failed. esbuild did not produce output file."
+        }
+    }
+
+    // Make the output file executable
+    exec("chmod +x \"" + output_file + "\"")
+
+    print("Build Successful -> %s", output_file)
+    return { ok: true, output: output_file }
+}
+
+// build(main_source_path, output_file?, compiled_js_map)
+// High-level entry point: writes all compiled JS files to cache and runs esbuild.
+// compiled_js_map is an object: { "/abs/path/to/file.of": "js content", ... }
+// output_file is optional — defaults to source path without extension.
+define task build(main_source_path, output_file, compiled_js_map) {
+    var abs_main = pathresolve(main_source_path)
+
+    if !output_file {
+        output_file = get_output_path(abs_main)
+    }
+
+    // Write each compiled file to .omniflux_cache/
+    var map_keys = @{ Object.keys(compiled_js_map) @}
+    for source_path of map_keys {
+        var js_content = compiled_js_map[source_path]
+        var cache_path = get_cache_path(source_path)
+        print("Writing cache: %s", cache_path)
+        write_js with cache_path, js_content
+    }
+
+    // Determine the cache path for the main file
+    var main_cache_js = get_cache_path(abs_main)
+
+    // Run esbuild
+    var result = bundle(main_cache_js, output_file)
+    return result
+}

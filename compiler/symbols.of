@@ -1,0 +1,152 @@
+// symbols.of
+// Symbol table management for the OmniFlux bootstrap compiler.
+// Provides:
+//   - BUILTINS: all native runtime functions that are always pre-declared.
+//   - ASYNC_BUILTINS: built-in functions that require `await` in generated JS.
+//   - prescan_tasks(content): scans source code and returns a table of all
+//     user-defined tasks (define task / fn) so the transpiler can auto-await them.
+
+// All native runtime bindings that are always in scope.
+// These map directly to functions registered in runtime.js.
+var BUILTINS = [
+    // I/O
+    "print", "printf", "sprintf", "fprint", "fprintf",
+    "input", "readchar", "read_char",
+    // File system
+    "fileread", "file_read",
+    "filewrite", "file_write",
+    "fileexists", "file_exists",
+    "fileappend", "file_append",
+    "filedelete", "file_delete",
+    "filecopy", "file_copy",
+    "filerename", "file_rename",
+    "filestat", "file_stat",
+    "dirlist", "dir_list",
+    "dircreate", "dir_create",
+    "scriptdir", "script_dir",
+    // Database
+    "dbinsert", "db_insert",
+    "dbselect", "db_select",
+    "dbupdate", "db_update",
+    "dbdelete", "db_delete",
+    // Cache
+    "cacheset", "cache_set",
+    "cacheget", "cache_get",
+    // Environment
+    "setenv", "set_env",
+    "getenv", "get_env",
+    // Process
+    "exit",
+    // Cryptography & Encryption
+    "sha256",
+    "encrypt",
+    "decrypt",
+    // Web & HTTP
+    "getcookie", "get_cookie",
+    "setcookie", "set_cookie",
+    // Template
+    "template",
+    // Strings
+    "len",
+    "match",
+    "strsplit", "str_split",
+    "strtrim", "str_trim",
+    "strsub", "str_sub",
+    "strindexof", "str_index_of",
+    "strlastindexof", "str_last_index_of",
+    "strrepeat", "str_repeat",
+    "strreplace", "str_replace",
+    "strupper", "str_upper",
+    "strlower", "str_lower",
+    // Arrays
+    "arraypush", "array_push",
+    "arrayunshift", "array_unshift",
+    "arraypop", "array_pop",
+    "arrayshift", "array_shift",
+    "arraycontains", "array_contains",
+    "arrayjoin", "array_join",
+    "arrayslice", "array_slice",
+    "arrayreverse", "array_reverse",
+    "arraysort", "array_sort",
+    "arraymap", "array_map",
+    "arrayfilter", "array_filter",
+    "arrayfind", "array_find",
+    // Paths
+    "pathjoin", "path_join",
+    "pathresolve", "path_resolve",
+    "pathdirname", "path_dir_name",
+    "pathbasename", "path_base_name",
+    "pathextension", "path_extension",
+    "pathisabsolute", "path_is_absolute",
+    // Date & Time
+    "time",
+    "dateyear", "date_year",
+    "datemonth", "date_month",
+    "dateday", "date_day",
+    "datehour", "date_hour",
+    "dateminute", "date_minute",
+    "datesecond", "date_second",
+    "dateweekday", "date_weekday",
+    // Utilities
+    "describe",
+    // JavaScript globals that may appear in OmniFlux code
+    "args", "global", "console", "require", "module", "process",
+    "Math", "JSON", "Array", "Object", "String", "Number",
+    "Boolean", "Error", "setTimeout", "setInterval",
+    "clearTimeout", "clearInterval", "NaN"
+]
+
+// Built-in async functions that must always be awaited in generated JS.
+// User-defined tasks are added at compile time by prescan_tasks().
+var ASYNC_BUILTINS = [
+    "cacheset", "cache_set",
+    "cacheget", "cache_get",
+    "arraymap", "array_map",
+    "arrayfilter", "array_filter",
+    "arrayfind", "array_find"
+]
+
+// prescan_tasks(content)
+// Scans raw source code for all `define task` and `fn` declarations.
+// Returns an object where each key is the task name and each value is true.
+// This pre-scan runs before transpilation to handle forward references.
+define task prescan_tasks(content) {
+    var tasks = {}
+
+    var lines = strsplit(content, "\n")
+    for line of lines {
+        var clean = strreplace(line, "/#[^\n]*/", "")
+        clean = strtrim(clean)
+
+        var m1 = match(clean, "/^define\\s+task\\s+(\\w+)/i")
+        if m1 {
+            tasks[m1[0]] = true
+        }
+
+        var m2 = match(clean, "/^fn\\s+(\\w+)/i")
+        if m2 {
+            tasks[m2[0]] = true
+        }
+    }
+
+    return tasks
+}
+
+// is_builtin(name)
+// Returns true if the given name is a known native runtime function.
+define task is_builtin(name) {
+    return arraycontains(BUILTINS, name)
+}
+
+// is_async(name, user_tasks)
+// Returns true if the function call requires `await` in generated JS.
+// Checks both built-in async functions and user-defined tasks.
+define task is_async(name, user_tasks) {
+    if arraycontains(ASYNC_BUILTINS, name) {
+        return true
+    }
+    if user_tasks[name] {
+        return true
+    }
+    return false
+}

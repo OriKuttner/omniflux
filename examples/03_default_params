@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// .omniflux_cache/examples/01_hello_world.js
+// .omniflux_cache/examples/03_default_params.js
 var fs = require("fs");
 var util = require("util");
 var path = require("path");
@@ -968,24 +968,38 @@ process.on("unhandledRejection", (reason) => {
   formatRuntimeError(err, "OmniFlux Runtime Error (Unhandled Rejection)");
   process.exit(1);
 });
-var APP_NAME = "OmniFlux Demo";
-visitor_count = 0;
-async function greet(name) {
+async function greet(name = "Guest", greeting = "Hello") {
   try {
-    global.vars.visitor_count = global.vars.visitor_count + 1;
-    print("Hello, %s! You are visitor number %d.", name, global.vars.visitor_count);
+    print(greeting + ", " + name + "!");
+  } catch (err) {
+    throw err;
+  }
+}
+async function create_user(username, role = "member", active = true) {
+  try {
+    print("User: %s (Role: %s, Active: %s)", username, role, active);
   } catch (err) {
     throw err;
   }
 }
 async function __on_start_1() {
-  printf("Initializing %s...", APP_NAME);
-  printf(" Done!\n");
+  print("=== Testing Default Parameters ===");
+  print("Calling await greet() with no arguments:");
+  await greet();
+  print("\nCalling await greet() with only one argument:");
   await greet("Alice");
-  await greet("Bob");
-  await greet("Charlie");
+  print("\nCalling await greet() with all arguments:");
+  await greet("Bob", "Good morning");
+  print("\n----------------------------------------");
+  print("Calling await create_user with only required argument:");
+  await create_user("charlie");
+  print("\nCalling await create_user overriding the role:");
+  await create_user("david", "admin");
+  print("\nCalling await create_user overriding all arguments:");
+  await create_user("eve", "moderator", false);
 }
 global.greet = greet;
+global.create_user = create_user;
 global.__on_start_hooks = global.__on_start_hooks || [];
 global.__on_start_hooks.push(__on_start_1);
 if (require.main === module) {

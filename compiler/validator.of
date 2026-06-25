@@ -1,0 +1,247 @@
+// validator.of
+// Syntax integrity checker for the OmniFlux bootstrap compiler.
+// Scans source code character-by-character and verifies that all
+// braces {}, parentheses (), and brackets [] are properly matched.
+// Nested define/task/fn/on definitions are also rejected.
+//
+// validate(content, filename) returns an object:
+//   { ok: true }                    — no errors found
+//   { ok: false, error: "message" } — first error found
+
+include "compiler/preprocessor.of"
+
+// validate(content, filename)
+// Performs a structural syntax check on comment-stripped source code.
+// Returns { ok: true } on success or { ok: false, error: "..." } on failure.
+define task validate(content, filename) {
+    var brace_stack   = []   // stack of { line, type } for {
+    var paren_stack   = []   // stack of { line } for (
+    var bracket_stack = []   // stack of { line } for [
+
+    var in_string        = ""
+    var in_node_block    = false
+    var in_block_comment = false
+    var node_block_start = 0
+    var block_comment_start = 0
+    var in_definition_state = false
+    var last_word = ""
+
+    var lines = strsplit(content, "\n")
+    var line_num = 0
+
+    for line of lines {
+        line_num = line_num + 1
+        var length = len(line)
+        var i = 0
+
+        while i < length {
+            var ch = strsub(line, i, 1)
+
+            // Inside a JS escape block — skip until @}
+            if in_node_block {
+                if ch == "@" && strsub(line, i + 1, 1) == "}" {
+                    in_node_block = false
+                    i = i + 2
+                } else {
+                    i = i + 1
+                }
+                continue
+            }
+
+            // Inside a block comment — skip until */
+            if in_block_comment {
+                if ch == "*" && strsub(line, i + 1, 1) == "/" {
+                    in_block_comment = false
+                    i = i + 2
+                } else {
+                    i = i + 1
+                }
+                continue
+            }
+
+            // Inside a string literal — skip until matching closing quote
+            if in_string != "" {
+                if ch == "\\" {
+                    i = i + 2
+                } else if (ch == in_string) {
+                    in_string = ""
+                    i = i + 1
+                } else {
+                    i = i + 1
+                }
+                continue
+            }
+
+            // Detect @{ JS escape block start
+            if ch == "@" && strsub(line, i + 1, 1) == "{" {
+                in_node_block = true
+                node_block_start = line_num
+                i = i + 2
+                continue
+            }
+
+            // Detect block comment /*
+            if ch == "/" && strsub(line, i + 1, 1) == "*" {
+                in_block_comment = true
+                block_comment_start = line_num
+                i = i + 2
+                continue
+            }
+
+            // Detect line comments # or //
+            if ch == "#" {
+                i = length
+                continue
+            }
+            if ch == "/" && strsub(line, i + 1, 1) == "/" {
+                i = length
+                continue
+            }
+
+            // Detect start of string literal
+            if ch == "\"" || ch == "'" {
+                in_string = ch
+                last_word = ""
+                i = i + 1
+                continue
+            }
+
+            // Skip whitespace
+            if ch == " " || ch == "\t" || ch == "\r" {
+                i = i + 1
+                continue
+            }
+
+            // Collect word tokens to detect define/task/fn/on keywords
+            var word_match = match(strsub(line, i, length - i), "/^([a-zA-Z_]\\w*)/")
+            if word_match {
+                var word = word_match[0]
+                last_word = word
+                if word == "define" || word == "task" || word == "fn" || word == "on" || word == "GET" || word == "POST" || word == "PUT" || word == "DELETE" || word == "PATCH" {
+                    in_definition_state = true
+                }
+                i = i + len(word)
+                continue
+            }
+
+            // Opening brace {
+            if ch == "{" {
+                if in_definition_state && len(brace_stack) > 0 {
+                    return {
+                        ok: false,
+                        error: "SyntaxError in " + filename + " on line " + line_num + ": Nested definition of task or lifecycle hook is not allowed"
+                    }
+                }
+                arraypush(brace_stack, { line: line_num, type: last_word || "block" })
+                last_word = ""
+                in_definition_state = false
+                i = i + 1
+                continue
+            }
+
+            // Closing brace }
+            if ch == "}" {
+                if len(brace_stack) == 0 {
+                    return {
+                        ok: false,
+                        error: "SyntaxError in " + filename + " on line " + line_num + ": Unexpected closing brace '}' without a matching '{'"
+                    }
+                }
+                arraypop(brace_stack)
+                last_word = ""
+                i = i + 1
+                continue
+            }
+
+            // Opening parenthesis (
+            if ch == "(" {
+                arraypush(paren_stack, { line: line_num })
+                last_word = ""
+                i = i + 1
+                continue
+            }
+
+            // Closing parenthesis )
+            if ch == ")" {
+                if len(paren_stack) == 0 {
+                    return {
+                        ok: false,
+                        error: "SyntaxError in " + filename + " on line " + line_num + ": Unexpected closing parenthesis ')' without a matching '('"
+                    }
+                }
+                arraypop(paren_stack)
+                last_word = ""
+                i = i + 1
+                continue
+            }
+
+            // Opening bracket [
+            if ch == "[" {
+                arraypush(bracket_stack, { line: line_num })
+                last_word = ""
+                i = i + 1
+                continue
+            }
+
+            // Closing bracket ]
+            if ch == "]" {
+                if len(bracket_stack) == 0 {
+                    return {
+                        ok: false,
+                        error: "SyntaxError in " + filename + " on line " + line_num + ": Unexpected closing bracket ']' without a matching '['"
+                    }
+                }
+                arraypop(bracket_stack)
+                last_word = ""
+                i = i + 1
+                continue
+            }
+
+            // Any other character resets definition state
+            last_word = ""
+            in_definition_state = false
+            i = i + 1
+        }
+    }
+
+    // End-of-file checks for unclosed constructs
+    if in_block_comment {
+        return {
+            ok: false,
+            error: "SyntaxError in " + filename + ": Unclosed block comment opened on line " + block_comment_start
+        }
+    }
+
+    if in_node_block {
+        return {
+            ok: false,
+            error: "SyntaxError in " + filename + ": Unclosed JS escape block opened on line " + node_block_start
+        }
+    }
+
+    if len(brace_stack) > 0 {
+        var first_brace = brace_stack[0]
+        return {
+            ok: false,
+            error: "SyntaxError in " + filename + ": Unclosed block '" + first_brace.type + "' opened on line " + first_brace.line
+        }
+    }
+
+    if len(paren_stack) > 0 {
+        var first_paren = paren_stack[0]
+        return {
+            ok: false,
+            error: "SyntaxError in " + filename + ": Unclosed parenthesis '(' opened on line " + first_paren.line
+        }
+    }
+
+    if len(bracket_stack) > 0 {
+        var first_bracket = bracket_stack[0]
+        return {
+            ok: false,
+            error: "SyntaxError in " + filename + ": Unclosed bracket '[' opened on line " + first_bracket.line
+        }
+    }
+
+    return { ok: true }
+}

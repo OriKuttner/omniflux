@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// .omniflux_cache/examples/01_hello_world.js
+// .omniflux_cache/compiler/symbols.js
 var fs = require("fs");
 var util = require("util");
 var path = require("path");
@@ -968,26 +968,369 @@ process.on("unhandledRejection", (reason) => {
   formatRuntimeError(err, "OmniFlux Runtime Error (Unhandled Rejection)");
   process.exit(1);
 });
-var APP_NAME = "OmniFlux Demo";
-visitor_count = 0;
-async function greet(name) {
+//! OF_LINE: symbols.of:1
+//! OF_LINE: symbols.of:2
+//! OF_LINE: symbols.of:3
+//! OF_LINE: symbols.of:4
+//! OF_LINE: symbols.of:5
+//! OF_LINE: symbols.of:6
+//! OF_LINE: symbols.of:7
+//! OF_LINE: symbols.of:8
+//! OF_LINE: symbols.of:9
+//! OF_LINE: symbols.of:10
+var BUILTINS = [
+  //! OF_LINE: symbols.of:11
+  //! OF_LINE: symbols.of:12
+  "print",
+  "printf",
+  "sprintf",
+  "fprint",
+  "fprintf",
+  //! OF_LINE: symbols.of:13
+  "input",
+  "readchar",
+  "read_char",
+  //! OF_LINE: symbols.of:14
+  //! OF_LINE: symbols.of:15
+  "fileread",
+  "file_read",
+  //! OF_LINE: symbols.of:16
+  "filewrite",
+  "file_write",
+  //! OF_LINE: symbols.of:17
+  "fileexists",
+  "file_exists",
+  //! OF_LINE: symbols.of:18
+  "fileappend",
+  "file_append",
+  //! OF_LINE: symbols.of:19
+  "filedelete",
+  "file_delete",
+  //! OF_LINE: symbols.of:20
+  "filecopy",
+  "file_copy",
+  //! OF_LINE: symbols.of:21
+  "filerename",
+  "file_rename",
+  //! OF_LINE: symbols.of:22
+  "filestat",
+  "file_stat",
+  //! OF_LINE: symbols.of:23
+  "dirlist",
+  "dir_list",
+  //! OF_LINE: symbols.of:24
+  "dircreate",
+  "dir_create",
+  //! OF_LINE: symbols.of:25
+  "scriptdir",
+  "script_dir",
+  //! OF_LINE: symbols.of:26
+  //! OF_LINE: symbols.of:27
+  "dbinsert",
+  "db_insert",
+  //! OF_LINE: symbols.of:28
+  "dbselect",
+  "db_select",
+  //! OF_LINE: symbols.of:29
+  "dbupdate",
+  "db_update",
+  //! OF_LINE: symbols.of:30
+  "dbdelete",
+  "db_delete",
+  //! OF_LINE: symbols.of:31
+  //! OF_LINE: symbols.of:32
+  "cacheset",
+  "cache_set",
+  //! OF_LINE: symbols.of:33
+  "cacheget",
+  "cache_get",
+  //! OF_LINE: symbols.of:34
+  //! OF_LINE: symbols.of:35
+  "setenv",
+  "set_env",
+  //! OF_LINE: symbols.of:36
+  "getenv",
+  "get_env",
+  //! OF_LINE: symbols.of:37
+  //! OF_LINE: symbols.of:38
+  "exit",
+  //! OF_LINE: symbols.of:39
+  //! OF_LINE: symbols.of:40
+  "sha256",
+  //! OF_LINE: symbols.of:41
+  "encrypt",
+  //! OF_LINE: symbols.of:42
+  "decrypt",
+  //! OF_LINE: symbols.of:43
+  //! OF_LINE: symbols.of:44
+  "getcookie",
+  "get_cookie",
+  //! OF_LINE: symbols.of:45
+  "setcookie",
+  "set_cookie",
+  //! OF_LINE: symbols.of:46
+  //! OF_LINE: symbols.of:47
+  "template",
+  //! OF_LINE: symbols.of:48
+  //! OF_LINE: symbols.of:49
+  "len",
+  //! OF_LINE: symbols.of:50
+  "match",
+  //! OF_LINE: symbols.of:51
+  "strsplit",
+  "str_split",
+  //! OF_LINE: symbols.of:52
+  "strtrim",
+  "str_trim",
+  //! OF_LINE: symbols.of:53
+  "strsub",
+  "str_sub",
+  //! OF_LINE: symbols.of:54
+  "strindexof",
+  "str_index_of",
+  //! OF_LINE: symbols.of:55
+  "strlastindexof",
+  "str_last_index_of",
+  //! OF_LINE: symbols.of:56
+  "strrepeat",
+  "str_repeat",
+  //! OF_LINE: symbols.of:57
+  "strreplace",
+  "str_replace",
+  //! OF_LINE: symbols.of:58
+  "strupper",
+  "str_upper",
+  //! OF_LINE: symbols.of:59
+  "strlower",
+  "str_lower",
+  //! OF_LINE: symbols.of:60
+  //! OF_LINE: symbols.of:61
+  "arraypush",
+  "array_push",
+  //! OF_LINE: symbols.of:62
+  "arrayunshift",
+  "array_unshift",
+  //! OF_LINE: symbols.of:63
+  "arraypop",
+  "array_pop",
+  //! OF_LINE: symbols.of:64
+  "arrayshift",
+  "array_shift",
+  //! OF_LINE: symbols.of:65
+  "arraycontains",
+  "array_contains",
+  //! OF_LINE: symbols.of:66
+  "arrayjoin",
+  "array_join",
+  //! OF_LINE: symbols.of:67
+  "arrayslice",
+  "array_slice",
+  //! OF_LINE: symbols.of:68
+  "arrayreverse",
+  "array_reverse",
+  //! OF_LINE: symbols.of:69
+  "arraysort",
+  "array_sort",
+  //! OF_LINE: symbols.of:70
+  "arraymap",
+  "array_map",
+  //! OF_LINE: symbols.of:71
+  "arrayfilter",
+  "array_filter",
+  //! OF_LINE: symbols.of:72
+  "arrayfind",
+  "array_find",
+  //! OF_LINE: symbols.of:73
+  //! OF_LINE: symbols.of:74
+  "pathjoin",
+  "path_join",
+  //! OF_LINE: symbols.of:75
+  "pathresolve",
+  "path_resolve",
+  //! OF_LINE: symbols.of:76
+  "pathdirname",
+  "path_dir_name",
+  //! OF_LINE: symbols.of:77
+  "pathbasename",
+  "path_base_name",
+  //! OF_LINE: symbols.of:78
+  "pathextension",
+  "path_extension",
+  //! OF_LINE: symbols.of:79
+  "pathisabsolute",
+  "path_is_absolute",
+  //! OF_LINE: symbols.of:80
+  //! OF_LINE: symbols.of:81
+  "time",
+  //! OF_LINE: symbols.of:82
+  "dateyear",
+  "date_year",
+  //! OF_LINE: symbols.of:83
+  "datemonth",
+  "date_month",
+  //! OF_LINE: symbols.of:84
+  "dateday",
+  "date_day",
+  //! OF_LINE: symbols.of:85
+  "datehour",
+  "date_hour",
+  //! OF_LINE: symbols.of:86
+  "dateminute",
+  "date_minute",
+  //! OF_LINE: symbols.of:87
+  "datesecond",
+  "date_second",
+  //! OF_LINE: symbols.of:88
+  "dateweekday",
+  "date_weekday",
+  //! OF_LINE: symbols.of:89
+  //! OF_LINE: symbols.of:90
+  "describe",
+  //! OF_LINE: symbols.of:91
+  //! OF_LINE: symbols.of:92
+  "args",
+  "global",
+  "console",
+  "require",
+  "module",
+  "process",
+  //! OF_LINE: symbols.of:93
+  "Math",
+  "JSON",
+  "Array",
+  "Object",
+  "String",
+  "Number",
+  //! OF_LINE: symbols.of:94
+  "Boolean",
+  "Error",
+  "setTimeout",
+  "setInterval",
+  //! OF_LINE: symbols.of:95
+  "clearTimeout",
+  "clearInterval",
+  "NaN"
+  //! OF_LINE: symbols.of:96
+];
+//! OF_LINE: symbols.of:97
+//! OF_LINE: symbols.of:98
+//! OF_LINE: symbols.of:99
+//! OF_LINE: symbols.of:100
+var ASYNC_BUILTINS = [
+  //! OF_LINE: symbols.of:101
+  "cacheset",
+  "cache_set",
+  //! OF_LINE: symbols.of:102
+  "cacheget",
+  "cache_get",
+  //! OF_LINE: symbols.of:103
+  "arraymap",
+  "array_map",
+  //! OF_LINE: symbols.of:104
+  "arrayfilter",
+  "array_filter",
+  //! OF_LINE: symbols.of:105
+  "arrayfind",
+  "array_find"
+  //! OF_LINE: symbols.of:106
+];
+//! OF_LINE: symbols.of:107
+//! OF_LINE: symbols.of:108
+//! OF_LINE: symbols.of:109
+//! OF_LINE: symbols.of:110
+//! OF_LINE: symbols.of:111
+//! OF_LINE: symbols.of:112
+//! OF_LINE: symbols.of:113
+//! OF_LINE: symbols.of:114
+async function prescan_tasks(content) {
   try {
-    global.vars.visitor_count = global.vars.visitor_count + 1;
-    print("Hello, %s! You are visitor number %d.", name, global.vars.visitor_count);
+    //! OF_LINE: symbols.of:115
+    let tasks = {};
+    //! OF_LINE: symbols.of:116
+    //! OF_LINE: symbols.of:117
+    let lines = strsplit(content, "\n");
+    //! OF_LINE: symbols.of:118
+    for (let line of lines) {
+      //! OF_LINE: symbols.of:119
+      //! OF_LINE: symbols.of:120
+      //! OF_LINE: symbols.of:121
+      //! OF_LINE: symbols.of:122
+      let clean = strreplace(line, "/#[^\n]*/", "");
+      //! OF_LINE: symbols.of:123
+      clean = strtrim(clean);
+      //! OF_LINE: symbols.of:124
+      //! OF_LINE: symbols.of:125
+      //! OF_LINE: symbols.of:126
+      let m1 = match(clean, "/^define\\s+task\\s+(\\w+)/i");
+      //! OF_LINE: symbols.of:127
+      if (m1) {
+        //! OF_LINE: symbols.of:128
+        tasks[m1[0]] = true;
+        //! OF_LINE: symbols.of:129
+      }
+      //! OF_LINE: symbols.of:130
+      //! OF_LINE: symbols.of:131
+      //! OF_LINE: symbols.of:132
+      let m2 = match(clean, "/^fn\\s+(\\w+)/i");
+      //! OF_LINE: symbols.of:133
+      if (m2) {
+        //! OF_LINE: symbols.of:134
+        tasks[m2[0]] = true;
+        //! OF_LINE: symbols.of:135
+      }
+      //! OF_LINE: symbols.of:136
+    }
+    //! OF_LINE: symbols.of:137
+    //! OF_LINE: symbols.of:138
+    return tasks;
+    //! OF_LINE: symbols.of:139
   } catch (err) {
     throw err;
   }
 }
-async function __on_start_1() {
-  printf("Initializing %s...", APP_NAME);
-  printf(" Done!\n");
-  await greet("Alice");
-  await greet("Bob");
-  await greet("Charlie");
+//! OF_LINE: symbols.of:140
+//! OF_LINE: symbols.of:141
+//! OF_LINE: symbols.of:142
+//! OF_LINE: symbols.of:143
+async function is_builtin(name) {
+  try {
+    //! OF_LINE: symbols.of:144
+    return arraycontains(BUILTINS, name);
+    //! OF_LINE: symbols.of:145
+  } catch (err) {
+    throw err;
+  }
 }
-global.greet = greet;
-global.__on_start_hooks = global.__on_start_hooks || [];
-global.__on_start_hooks.push(__on_start_1);
+//! OF_LINE: symbols.of:146
+//! OF_LINE: symbols.of:147
+//! OF_LINE: symbols.of:148
+//! OF_LINE: symbols.of:149
+//! OF_LINE: symbols.of:150
+async function is_async(name, user_tasks) {
+  try {
+    //! OF_LINE: symbols.of:151
+    if (arraycontains(ASYNC_BUILTINS, name)) {
+      //! OF_LINE: symbols.of:152
+      return true;
+      //! OF_LINE: symbols.of:153
+    }
+    //! OF_LINE: symbols.of:154
+    if (user_tasks[name]) {
+      //! OF_LINE: symbols.of:155
+      return true;
+      //! OF_LINE: symbols.of:156
+    }
+    //! OF_LINE: symbols.of:157
+    return false;
+    //! OF_LINE: symbols.of:158
+  } catch (err) {
+    throw err;
+  }
+}
+//! OF_LINE: symbols.of:159
+global.prescan_tasks = prescan_tasks;
+global.is_builtin = is_builtin;
+global.is_async = is_async;
 if (require.main === module) {
   (async () => {
     const hooks = global.__on_start_hooks || [];

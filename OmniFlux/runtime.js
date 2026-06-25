@@ -827,6 +827,8 @@ document.addEventListener('click', async (e) => {
         const parts = html.split(tokenRegex);
         
         let jsCode = "let _out = '';\n";
+        jsCode += "with(global.vars || {}) {\n";
+        jsCode += "with(context || {}) {\n";
         
         for (let part of parts) {
             if (!part) continue;
@@ -857,6 +859,7 @@ document.addEventListener('click', async (e) => {
             }
         }
         
+        jsCode += "}\n}\n";
         jsCode += "return _out;";
         
         const keys = ['context', ...Object.keys(context)];
