@@ -516,6 +516,16 @@ OmniFlux provides native bindings to common backend services, making setups extr
 * **Web & HTTP Utilities:** Native HTTP helpers:
   * `getcookie(req, name)`: Extracts and returns the value of the cookie `name` from the incoming request `req`. Returns `null` if not found.
   * `setcookie(res, name, value, options?)`: Sets a cookie on the outgoing response `res` with the specified `name` and `value`. The optional `options` object supports standard cookie attributes (such as `httpOnly`, `secure`, `maxAge`, `path`, etc.). *Note: Because cookies are sent in HTTP headers, this must be called before sending any response body (like HTML or JSON) to the client.*
+* **JSON Utilities:**
+  * `jsonparse(str)` / `jsondecode(str)`: Parses a JSON string and returns the resulting object or array. Returns `null` if the string is not valid JSON. (`jsondecode` is an alias — choose whichever reads more naturally alongside `jsonencode`.)
+    ```omniflux
+    var data = jsondecode(fileread("settings.json"))
+    print(data.name)
+    ```
+  * `jsonencode(val, pretty?)`: Serializes an object or array into a JSON string. The optional `pretty` parameter (default `false`) formats the output with indentation when set to `true`.
+    ```omniflux
+    filewrite("settings.json", jsonencode(data, true))
+    ```
 * **Template Engine:** HTML template rendering and layout generation:
   * `template(source, context)`: Parses, compiles, and renders an HTML template. Automatically detects if `source` is a file path (loading it from disk) or a raw HTML string. Supports:
     * **Dynamic Expressions:** `{{ user.name }}`

@@ -91,7 +91,31 @@ function printf(format, ...args) {
 }
 
 // --- Input & Terminal ---
+// Persistent readline interface for TTY sessions (enables up/down arrow history)
+let _rl = null;
+function _getRL() {
+    if (!_rl && process.stdin.isTTY) {
+        const readline = require('readline');
+        _rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+            terminal: true,
+            historySize: 200
+        });
+        _rl.on('close', () => { _rl = null; });
+    }
+    return _rl;
+}
+
 function input(promptMessage) {
+    const rl = _getRL();
+    if (rl) {
+        // TTY mode: async readline with history and line-editing
+        return new Promise((resolve) => {
+            rl.question(promptMessage !== undefined ? String(promptMessage) : '', resolve);
+        });
+    }
+    // Non-TTY (pipe / script): synchronous raw read
     if (promptMessage !== undefined) {
         process.stdout.write(String(promptMessage));
     }
@@ -104,6 +128,7 @@ function input(promptMessage) {
     }
     return buffer.toString('utf8', 0, bytesRead).replace(/\r?\n$/, '');
 }
+global.input = input;
 
 function readchar() {
     const hasRaw = typeof process.stdin.setRawMode === 'function';
@@ -454,6 +479,18 @@ function describe(val) {
     return typeof val;
 }
 global.describe = describe;
+
+// --- JSON ---
+function jsonparse(str) {
+    try { return JSON.parse(String(str || '')); } catch(e) { return null; }
+}
+global.jsonparse = jsonparse;
+global.jsondecode = jsonparse;   // alias
+
+function jsonencode(val, pretty = false) {
+    try { return pretty ? JSON.stringify(val, null, 2) : JSON.stringify(val); } catch(e) { return 'null'; }
+}
+global.jsonencode = jsonencode;
 
 // --- Arrays & Lists ---
 function len(val) {

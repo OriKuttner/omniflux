@@ -7,8 +7,11 @@
             const lib = urlObj.protocol === 'https:' ? require('https') : require('http');
             const reqOptions = {
                 method: options.method || 'GET',
-                headers: options.headers || {},
+                headers: { ...(options.headers || {}) },
             };
+            if (options.body) {
+                reqOptions.headers['Content-Length'] = Buffer.byteLength(options.body);
+            }
             const req = lib.request(url, reqOptions, (res) => {
                 let data = '';
                 res.on('data', (chunk) => data += chunk);
