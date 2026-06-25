@@ -209,6 +209,12 @@ function getenv(name) {
     return process.env[name] !== undefined ? process.env[name] : null;
 }
 
+function sha256(text) {
+    if (typeof text !== 'string') throw new Error('Input to sha256 must be a string');
+    const crypto = require('crypto');
+    return crypto.createHash('sha256').update(text).digest('hex');
+}
+
 // --- Databases (Local JSON DB) ---
 let cachedDb = null;
 let cachedDbMtime = 0;
@@ -704,6 +710,8 @@ global.set_env = setenv;
 
 global.getenv = getenv;
 global.get_env = getenv;
+
+global.sha256 = sha256;
 
 global.filestat = filestat;
 global.file_stat = filestat;
