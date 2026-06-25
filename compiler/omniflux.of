@@ -126,6 +126,8 @@ define task compile_file(abs_path, runtime_js, global_user_tasks) {
 // Returns: { ok, output_file } or { ok: false, error }
 // ---------------------------------------------------------------------------
 define task build_once(input_file, compile_only) {
+    var start_time = 0
+    @{ start_time = Date.now(); @}
     var abs_input = pathresolve(input_file)
 
     if !fileexists(abs_input) {
@@ -170,6 +172,13 @@ define task build_once(input_file, compile_only) {
     // Bundle
     var output_file = get_output_path(abs_input)
     var bresult = build(abs_input, output_file, compiled_map)
+
+    if bresult.ok {
+        var end_time = 0
+        @{ end_time = Date.now(); @}
+        var duration = end_time - start_time
+        print("Build Successful -> %s (%dms)", output_file, duration)
+    }
     return bresult
 }
 

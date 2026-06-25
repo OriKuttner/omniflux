@@ -82,7 +82,6 @@ define task bundle(main_cache_js, output_file) {
     // Make the output file executable
     exec("chmod +x \"" + output_file + "\"")
 
-    print("Build Successful -> %s", output_file)
     return { ok: true, output: output_file }
 }
 

@@ -101,6 +101,10 @@ define task transpile_line(raw_line, filename, user_tasks, line_num, state) {
                 return state.strings_list[parseInt(idx, 10)];
             });
         @}
+        if line_num > 0 {
+            var fn = pathbasename(filename)
+            restored_line = restored_line + " //! OF_LINE: " + fn + ":" + line_num
+        }
         arraypush(restored_out, restored_line)
     }
     return restored_out
@@ -137,6 +141,45 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         arraypush(out, "require('" + rel_require_path + "');")
         return out
     }
+
+    // --- $VAR → global.vars.VAR ---
+    line = replace_globals(line)
+
+    // --- background TASK(...) → TASK(...) without await ---
+    // Mark with NONBLOCKING_ prefix so insert_awaits skips it, then strip prefix
+    line = strreplace(line, "/\\bbackground\\s+(\\w+)/g", "NONBLOCKING_$1")
+
+    // --- call / call with statement ---
+    line = strreplace(line, "/\\bcall\\s+([\\w$.]+)\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/gi", "await $1($2)")
+    line = strreplace(line, "/\\bNONBLOCKING_call\\s+([\\w$.]+)\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/gi", "$1($2)")
+    line = strreplace(line, "/\\bcall\\s+([\\w$.]+)\\s*(?=\\s*(?:\/\/|;|$))/gi", "await $1()")
+    line = strreplace(line, "/\\bNONBLOCKING_call\\s+([\\w$.]+)\\s*(?=\\s*(?:\/\/|;|$))/gi", "$1()")
+
+    // --- var → let ---
+    line = strreplace(line, "/\\bvar\\b/g", "let")
+
+    // --- ref TASK → TASK (strip ref keyword — pass function reference) ---
+    line = strreplace(line, "/\\bref\\s+(\\w+)/g", "$1")
+
+    // --- TASK with ARGS → await TASK(ARGS) (only at start of statement) ---
+    var user_task_list = @{ Object.keys(user_tasks) @}
+    for tname3 of user_task_list {
+        var with_pat = "/^(\\s*)" + tname3 + "\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/m"
+        line = strreplace(line, with_pat, "$1await " + tname3 + "($2)")
+    }
+
+    // --- Insert awaits for all async calls ---
+    line = insert_awaits(line, user_tasks)
+
+    // --- Strip NONBLOCKING_ prefix (background calls must NOT be awaited) ---
+    line = strreplace(line, "/NONBLOCKING_/g", "")
+
+    // --- as int / as string ---
+    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+int\\b/g", "parseInt($1, 10)")
+    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+string\\b/g", "String($1)")
+
+    // --- describe VAR ---
+    line = strreplace(line, "/\\bdescribe\\s+([^,)]+)/g", "(typeof $1 !== 'undefined' ? describe($1) : 'undefined')")
 
     // --- define task / fn ---
     var task_with = match(line, "/^(?:define\\s+task|fn)\\s+(\\w+)\\s+with\\s+([^{]+)\\s*\\{/i")
@@ -373,36 +416,6 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
 
 
 
-    // --- $VAR → global.vars.VAR ---
-    line = replace_globals(line)
-
-    // --- background TASK(...) → TASK(...) without await ---
-    // Mark with NONBLOCKING_ prefix so insert_awaits skips it, then strip prefix
-    line = strreplace(line, "/\\bbackground\\s+(\\w+)/g", "NONBLOCKING_$1")
-
-    // --- var → let ---
-    line = strreplace(line, "/\\bvar\\b/g", "let")
-
-    // --- ref TASK → TASK (strip ref keyword — pass function reference) ---
-    line = strreplace(line, "/\\bref\\s+(\\w+)/g", "$1")
-
-    // --- TASK with ARGS → await TASK(ARGS) (only at start of statement) ---
-    var user_task_list = @{ Object.keys(user_tasks) @}
-    for tname3 of user_task_list {
-        var with_pat = "/^(\\s*)" + tname3 + "\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/m"
-        line = strreplace(line, with_pat, "$1await " + tname3 + "($2)")
-    }
-
-    // --- Insert awaits for all async calls ---
-    line = insert_awaits(line, user_tasks)
-
-    // --- Strip NONBLOCKING_ prefix (background calls must NOT be awaited) ---
-    line = strreplace(line, "/NONBLOCKING_/g", "")
-
-    // --- as int / as string ---
-    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+int\\b/g", "parseInt($1, 10)")
-    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+string\\b/g", "String($1)")
-
     // --- Count unmatched opens and closes in the line ---
     var local_stack = []
     var unmatched_closes = 0
@@ -523,14 +536,16 @@ define task transpile(content, filename, user_tasks, runtime_js) {
     arraypush(output_lines, "")
 
     var source_lines = strsplit(content_with_placeholders, "\n")
+    var line_idx = 1
 
     for src_line of source_lines {
-        var result_lines = transpile_line(src_line, filename, user_tasks, 0, state)
+        var result_lines = transpile_line(src_line, filename, user_tasks, line_idx, state)
         if result_lines {
             for ol of result_lines {
                 arraypush(output_lines, ol)
             }
         }
+        line_idx = line_idx + 1
     }
 
     // Export all user tasks to global scope
