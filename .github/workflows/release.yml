@@ -1,0 +1,77 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-level: '20'
+
+      - name: Compile Native Self-Hosting Compiler
+        run: |
+          # Use the existing native compiler to compile itself (Self-Hosting Bootstrap)
+          chmod +x ./compiler/omniflux
+          ./compiler/omniflux compiler/omniflux.of --strict --compile-only
+
+      - name: Test Native Compiler
+        run: |
+          # Verify that the native compiler can successfully compile a hello-world program
+          ./compiler/omniflux examples/01_hello_world.of --compile-only
+          ./examples/01_hello_world
+
+      - name: Package VS Code Extension (VSIX)
+        run: |
+          make vsix
+
+      - name: Build Debian Package (DEB)
+        run: |
+          make deb
+
+      - name: Package Linux Binary Archive
+        run: |
+          mkdir -p release-dist/linux
+          cp compiler/omniflux release-dist/linux/omniflux
+          chmod +x release-dist/linux/omniflux
+          tar -czf omniflux-linux.tar.gz -C release-dist/linux omniflux
+
+      - name: Package macOS Binary Archive
+        run: |
+          mkdir -p release-dist/macos
+          cp compiler/omniflux release-dist/macos/omniflux
+          chmod +x release-dist/macos/omniflux
+          tar -czf omniflux-macos.tar.gz -C release-dist/macos omniflux
+
+      - name: Package Windows Binary Archive
+        run: |
+          mkdir -p release-dist/windows
+          cp compiler/omniflux release-dist/windows/omniflux
+          # Create a batch file helper for Windows execution
+          echo '@echo off' > release-dist/windows/omniflux.cmd
+          echo 'node "%~dp0\omniflux" %*' >> release-dist/windows/omniflux.cmd
+          zip -j omniflux-windows.zip release-dist/windows/omniflux release-dist/windows/omniflux.cmd
+
+      - name: Create Draft GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            omniflux.deb
+            omniflux-linux.tar.gz
+            omniflux-macos.tar.gz
+            omniflux-windows.zip
+            editors/vscode/*.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
