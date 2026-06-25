@@ -28,7 +28,7 @@ define task parse_args(argv) {
         strict: false,
         watch: false,
         run_args: []
-    }
+    };
     var after_dashdash = false
     for arg of argv {
         if after_dashdash {
@@ -67,11 +67,15 @@ define task print_usage() {
 // read_runtime: loads runtime.js from the OmniFlux library directory
 // ---------------------------------------------------------------------------
 define task read_runtime() {
-    var parent_dir = pathdirname(scriptdir)
+    var parent_dir = pathdirname(scriptdir())
     var candidates = [
-        pathjoin(scriptdir, "OmniFlux/runtime.js"),
+        pathjoin(scriptdir(), "runtime.js"),
+        pathjoin(scriptdir(), "OmniFlux/runtime.js"),
+        pathjoin(parent_dir, "runtime.js"),
         pathjoin(parent_dir, "OmniFlux/runtime.js"),
+        "/usr/local/share/omniflux/runtime.js",
         "/usr/local/share/omniflux/OmniFlux/runtime.js",
+        "/usr/share/omniflux/runtime.js",
         "/usr/share/omniflux/OmniFlux/runtime.js"
     ]
     for path of candidates {
@@ -107,7 +111,7 @@ define task compile_file(abs_path, runtime_js, global_user_tasks) {
 
     // Transpile
     var user_task_keys = @{ Object.keys(global_user_tasks) @}
-    var tresult = transpile(content, filename, global_user_tasks, runtime_js)
+    var tresult = transpile(content, abs_path, global_user_tasks, runtime_js)
     if !tresult.ok {
         print("Transpile Error in %s:", filename)
         print("%s", tresult.error)

@@ -52,22 +52,104 @@ define task insert_awaits(line, user_tasks) {
 // ---------------------------------------------------------------------------
 define task transpile_line(raw_line, filename, user_tasks, line_num, state) {
     var line = strtrim(raw_line)
-    var out = []
+
+    var node_open = "@" + "{"
+    var node_close = "@" + "}"
+    var node_pattern = "/@\\" + "{|@\\" + "}/g"
+
+    // --- Handle JS escape blocks (@{ ... @}) ---
+    if state.in_node_block {
+        var out = []
+        var has_close = strindexof(raw_line, node_close)
+        if has_close >= 0 {
+            state.in_node_block = false
+        }
+        var clean = strreplace(raw_line, node_pattern, "")
+        arraypush(out, clean)
+        return out
+    }
+
+    var has_open = strindexof(raw_line, node_open)
+    if has_open >= 0 {
+        var out = []
+        var has_close2 = strindexof(raw_line, node_close)
+        if has_close2 >= 0 {
+            var clean2 = strreplace(raw_line, node_pattern, "")
+            arraypush(out, clean2)
+            return out
+        } else {
+            state.in_node_block = true
+            var clean3 = strreplace(raw_line, node_pattern, "")
+            arraypush(out, clean3)
+            return out
+        }
+    }
 
     // Skip empty lines
     if line == "" {
+        var out = []
         arraypush(out, "")
         return out
     }
 
+    if match(line, "/^include\\b/i") {
+        return transpile_line_core(line, filename, user_tasks, line_num, state)
+    }
+
+    var strings_list = []
+    var line_with_placeholders = line
+    @{
+        const str_regex = /("(\\.|[^\\"])*"|'(\\.|[^\\'])*')/g;
+        line_with_placeholders = line.replace(str_regex, (match) => {
+            strings_list.push(match);
+            return "__STR_PLACEHOLDER_" + (strings_list.length - 1) + "__";
+        });
+    @}
+
+    var raw_out = transpile_line_core(line_with_placeholders, filename, user_tasks, line_num, state)
+
+    var restored_out = []
+    for ol of raw_out {
+        var restored_line = ol
+        @{
+            restored_line = ol.replace(/__STR_PLACEHOLDER_(\d+)__/g, (match, idx) => {
+                return strings_list[parseInt(idx, 10)];
+            });
+        @}
+        arraypush(restored_out, restored_line)
+    }
+    return restored_out
+}
+
+define task transpile_line_core(raw_line, filename, user_tasks, line_num, state) {
+    var line = strtrim(raw_line)
+    var out = []
+
     // --- include → require ---
     var inc_match = match(line, "/^include\\s+[\"']?([^\"'\\s;]+)[\"']?/i")
     if inc_match {
-        var inc_path = strreplace(inc_match[0], "/.of$/", ".js")
-        if !match(inc_path, "/^\\./") {
-            inc_path = "./" + inc_path
+        var inc_path = inc_match[0]
+        var resolved = resolve_include(inc_path, filename)
+        var rel_require_path = ""
+        if resolved {
+            var dep_cache = get_cache_path(resolved)
+            var current_cache = get_cache_path(filename)
+            @{
+                const path = require('path');
+                let rel = path.relative(path.dirname(current_cache), dep_cache);
+                if (!rel.startsWith('.')) {
+                    rel = './' + rel;
+                }
+                rel_require_path = rel;
+            @}
+        } else {
+            var inc_js = strreplace(inc_path, "/\\.of$/", ".js")
+            if !match(inc_js, "/^\\./") {
+                inc_js = "./" + inc_js
+            }
+            rel_require_path = inc_js
         }
-        arraypush(out, "require('" + inc_path + "');")
+        arraypush(out, "require('" + rel_require_path + "');")
         return out
     }
 
@@ -304,32 +386,7 @@ define task transpile_line(raw_line, filename, user_tasks, line_num, state) {
         return out
     }
 
-    // --- Closing brace } ---
-    if match(line, "/^\\}\\s*$/") {
-        var top = ""
-        if len(state.block_stack) > 0 {
-            top = arraypop(state.block_stack)
-        }
-        if match(top, "/^every:/") {
-            var ev_ms_val = strsub(top, 6, len(top) - 6)
-            arraypush(out, "}, " + ev_ms_val + ");")
-        } else if (top == "route") {
-            arraypush(out, "} catch (err) {")
-            arraypush(out, "    if (typeof next === 'function') { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } }")
-            arraypush(out, "} });")
-        } else if (top == "route_error") {
-            arraypush(out, "} });")
-        } else if (top == "task") {
-            arraypush(out, "} catch (err) { throw err; }")
-            arraypush(out, "}")
-        } else if (top == "task_error") {
-            arraypush(out, "}")
-            arraypush(out, "}")
-        } else {
-            arraypush(out, "}")
-        }
-        return out
-    }
+
 
     // --- $VAR → global.vars.VAR ---
     line = replace_globals(line)
@@ -361,6 +418,66 @@ define task transpile_line(raw_line, filename, user_tasks, line_num, state) {
     line = strreplace(line, "/\\b(\\S+)\\s+as\\s+int\\b/g", "parseInt($1, 10)")
     line = strreplace(line, "/\\b(\\S+)\\s+as\\s+string\\b/g", "String($1)")
 
+    // --- Count unmatched opens and closes in the line ---
+    var local_stack = []
+    var unmatched_closes = 0
+    var unmatched_opens = 0
+    var line_len = len(line)
+    var char_idx = 0
+    while char_idx < line_len {
+        var char = strsub(line, char_idx, 1)
+        if char == "{" {
+            arraypush(local_stack, "{")
+        } else if char == "}" {
+            if len(local_stack) > 0 {
+                arraypop(local_stack)
+            } else {
+                unmatched_closes = unmatched_closes + 1
+            }
+        }
+        char_idx = char_idx + 1
+    }
+    unmatched_opens = len(local_stack)
+
+    if unmatched_closes > 0 {
+        var c_idx = 0
+        while c_idx < unmatched_closes {
+            var top = ""
+            if len(state.block_stack) > 0 {
+                top = arraypop(state.block_stack)
+            }
+            
+            // Generate closing JS
+            var close_js = "}"
+            if match(top, "/^every:/") {
+                var ev_ms_val = strsub(top, 6, len(top) - 6)
+                close_js = "}, " + ev_ms_val + ");"
+            } else if top == "route" {
+                close_js = "} catch (err) {\n    if (typeof next === 'function') { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } }\n} });"
+            } else if top == "route_error" {
+                close_js = "} });"
+            } else if top == "task" {
+                close_js = "} catch (err) { throw err; }\n}"
+            } else if top == "task_error" {
+                close_js = "}\n}"
+            }
+            
+            // Replace the first unmatched '}' in line with close_js
+            @{
+                line = line.replace('}', close_js);
+            @}
+            c_idx = c_idx + 1
+        }
+    }
+
+    if unmatched_opens > 0 {
+        var o_idx = 0
+        while o_idx < unmatched_opens {
+            arraypush(state.block_stack, "normal")
+            o_idx = o_idx + 1
+        }
+    }
+
     arraypush(out, line)
     return out
 }
@@ -381,8 +498,9 @@ define task transpile(content, filename, user_tasks, runtime_js) {
         on_shutdown_count: 0,
         on_error_count: 0,
         on_request_count: 0,
-        server_port: ""
-    }
+        server_port: "",
+        in_node_block: false
+    };
 
     var output_lines = []
 

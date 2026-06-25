@@ -61,7 +61,7 @@ on start {
             { name: "cache" + "set", desc: "High performance Redis caching" },
             { name: "template", desc: "Angular-style HTML template compilation" }
         ]
-    }
+    };
     
     # 3. Context for a standard member with no modules
     var guest_context = {
@@ -71,7 +71,7 @@ on start {
             is_admin: false
         },
         modules: []
-    }
+    };
     
     # 4. Render and print the Admin view
     print("\n--- Rendering Admin View ---")
