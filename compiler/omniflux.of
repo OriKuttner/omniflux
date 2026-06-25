@@ -16,7 +16,9 @@
 include "compiler/bundler.of"
 include "compiler/validator.of"
 include "compiler/transpiler.of"
+include "compiler/symbols.of"
 include "stdlib/system.of"
+include "stdlib/network.of"
 
 // ---------------------------------------------------------------------------
 // CLI argument parsing
@@ -61,6 +63,251 @@ define task print_usage() {
     print("  --strict         Fail if compilation requires AI assistance")
     print("  --watch          Watch for changes and rebuild automatically")
     print("  --               Pass remaining arguments to the compiled program")
+}
+
+// ---------------------------------------------------------------------------
+// config_path: returns path to ~/.omnifluxrc
+// ---------------------------------------------------------------------------
+define task config_path() {
+    var home = getenv("HOME")
+    return home + "/.omnifluxrc"
+}
+
+// ---------------------------------------------------------------------------
+// config_exists: returns true if config file exists
+// ---------------------------------------------------------------------------
+define task config_exists() {
+    return fileexists(config_path())
+}
+
+// ---------------------------------------------------------------------------
+// config_load: reads and parses ~/.omnifluxrc
+// ---------------------------------------------------------------------------
+define task config_load() {
+    var raw = fileread(config_path())
+    return jsonparse(raw)
+}
+
+// ---------------------------------------------------------------------------
+// config_save: writes config object to ~/.omnifluxrc
+// ---------------------------------------------------------------------------
+define task config_save(cfg) {
+    filewrite(config_path(), jsonencode(cfg, true))
+}
+
+// ---------------------------------------------------------------------------
+// run_wizard: interactive setup wizard for first-time users
+// ---------------------------------------------------------------------------
+define task run_wizard() {
+    print("=== Welcome to OmniFlux ===")
+    print("It looks like this is your first time running OmniFlux.")
+    print("")
+    print("What AI model do you want to use?")
+    print("1) gemini-3.5-flash (Recommended - Fast & Cost-Effective)")
+    print("2) gemini-3.5-pro (High Intelligence)")
+    print("3) claude-3-5-sonnet")
+    print("4) gpt-4o")
+    print("5) Custom")
+    var choice = input("Choose (1-5) [default: 1]: ")
+    if choice == "" {
+        choice = "1"
+    }
+
+    var model = "gemini-3.5-flash"
+    var base_url = "https://generativelanguage.googleapis.com/v1beta/openai"
+
+    if choice == "2" {
+        model = "gemini-3.5-pro"
+    } else if choice == "3" {
+        model = "claude-3-5-sonnet"
+        base_url = "https://api.anthropic.com/v1"
+    } else if choice == "4" {
+        model = "gpt-4o"
+        base_url = "https://api.openai.com/v1"
+    } else if choice == "5" {
+        model = input("Enter custom model identifier: ")
+        base_url = input("Enter custom Base URL: ")
+    }
+
+    var api_key = input("\nSorry I have no API key defined, what is your API key?\nKey > ")
+    if api_key == "" {
+        print("Error: API key required.")
+        exit(1)
+    }
+
+    var cfg = { api_key: api_key, model: model, base_url: base_url, temperature: 0.2 }
+    config_save(cfg)
+    print("\n[OmniFlux Setup]: Successfully configured!\n")
+    return cfg
+}
+
+// ---------------------------------------------------------------------------
+// send_ai_request: sends messages to the AI API and returns the response text
+// ---------------------------------------------------------------------------
+define task send_ai_request(cfg, messages) {
+    var url = cfg.base_url + "/chat/completions"
+    var body = { model: cfg.model, messages: messages, temperature: cfg.temperature }
+    var headers = { "Authorization": "Bearer " + cfg.api_key }
+    var response = networkpost(url, body, headers)
+    if !response || !response.choices {
+        return null
+    }
+    return response.choices[0].message.content
+}
+
+// ---------------------------------------------------------------------------
+// format_chat_response: basic markdown formatting for terminal output
+// ---------------------------------------------------------------------------
+define task format_chat_response(txt) {
+    if !txt {
+        return ""
+    }
+    // Strip fenced code block markers and indent content
+    txt = strreplace(txt, "/```[a-zA-Z0-9]*\\n([\\s\\S]*?)\\n```/gm", "\n$1\n")
+    // Bold: **text**
+    txt = strreplace(txt, "/\\*\\*([^*]+)\\*\\*/g", "$1")
+    // Headers: ## text
+    txt = strreplace(txt, "/^#{1,6}\\s+(.+)$/gm", "$1")
+    return txt
+}
+
+// ---------------------------------------------------------------------------
+// read_system_prompt: loads the OmniFlux system prompt file
+// ---------------------------------------------------------------------------
+define task read_system_prompt() {
+    var candidates = [
+        pathjoin(scriptdir(), "../omniflux.prompt"),
+        pathjoin(scriptdir(), "omniflux.prompt"),
+        "omniflux.prompt",
+        "/usr/local/share/omniflux/omniflux.prompt",
+        "/usr/share/omniflux/omniflux.prompt"
+    ]
+    for cpath of candidates {
+        if fileexists(cpath) {
+            return fileread(cpath)
+        }
+    }
+    return ""
+}
+
+// ---------------------------------------------------------------------------
+// ai_compile_file: send source to AI and write compiled JS to target path
+// ---------------------------------------------------------------------------
+define task ai_compile_file(cfg, src_path, target_js, system_prompt) {
+    var source_code = fileread(src_path)
+    source_code = strip_comments(source_code)
+
+    // Replace include statements with require
+    source_code = strreplace(source_code, "/\\binclude\\s+[\"']?([^\\.\"'\\s;]+(?:\\.[a-z]+)?)[\"']?/g", "require('./$1')")
+
+    print("Falling back to AI Compiler...")
+
+    var messages = [
+        { role: "system", content: system_prompt },
+        { role: "user",   content: "Please compile this code:\n\n" + source_code }
+    ]
+
+    var done = false
+    while !done {
+        print("Thinking...")
+        var ai_response = send_ai_request(cfg, messages)
+        if ai_response == null {
+            print("Error: AI request failed.")
+            return false
+        }
+
+        if match(ai_response, "/\\[OmniFlux Question\\]:/") {
+            print("%s", format_chat_response(ai_response))
+            var user_answer = input("Your response > ")
+            arraypush(messages, { role: "assistant", content: ai_response })
+            arraypush(messages, { role: "user", content: user_answer })
+        } else {
+            // Strip wrapper markers
+            ai_response = strreplace(ai_response, "/\\[OmniFlux Ready\\]\\s*/g", "")
+            ai_response = strreplace(ai_response, "/^```(?:javascript|js)?\\s*\\n/i", "")
+            ai_response = strreplace(ai_response, "/\\n```\\s*$/", "")
+            var dir = pathdirname(target_js)
+            dircreate(dir)
+            filewrite(target_js, ai_response)
+            done = true
+        }
+    }
+    return true
+}
+
+// ---------------------------------------------------------------------------
+// interactive_chat: runs the interactive chat REPL
+// ---------------------------------------------------------------------------
+define task interactive_chat(cfg) {
+    var system_prompt = read_system_prompt()
+    if system_prompt != "" {
+        system_prompt = system_prompt + "\n\n[INTERACTIVE CHAT MODE]: You are in interactive chat mode with the developer. Do NOT transpile or compile the code to Javascript yourself, and do not output [OmniFlux Ready]. Instead, write clean, raw OmniFlux code within ```omniflux code blocks. Help the developer design and write OmniFlux programs. IMPORTANT: When explaining code or concepts, do NOT assume the developer knows JavaScript. Do NOT mention JavaScript-specific concepts such as 'importing modules', 'asynchronous execution', or 'auto-await'. Explain the logic purely using OmniFlux syntax and native functions. Never compare OmniFlux to object-oriented programming (OOP) or other languages, and never mention, use, or reference the terms 'object-oriented', 'OOP', 'methods', 'object methods', 'methods on objects', 'member functions', 'classes', or 'properties', and never suggest that the language is limited/restricted or lacks features. Simply explain that OmniFlux is designed for simplicity, meaning objects function like C structs, and all operations are performed via global functions or natural language."
+    }
+
+    var messages = [{ role: "system", content: system_prompt }]
+
+    print("=== OmniFlux Interactive Compiler ===")
+    print("Type a file name (e.g., script.of) to compile it,")
+    print("or just type a message to chat with the compiler.")
+    print("Type 'exit' or 'quit' to exit.")
+    print("")
+
+    while true {
+        var user_input = input("OmniFlux > ")
+        if user_input == null || user_input == "" {
+            continue
+        }
+        if user_input == "exit" || user_input == "quit" {
+            break
+        }
+        if user_input == "run" {
+            if fileexists("sandbox.of") {
+                var br = build_once("sandbox.of", false, false, cfg)
+                if br.ok {
+                    var chat_out = system(br.output)
+                    printf("%s", chat_out)
+                }
+            } else {
+                print("Error: No code found in sandbox.of. Please ask the compiler to generate some code first!")
+                print("")
+            }
+            continue
+        }
+        if fileexists(user_input) {
+            var fbr = build_once(user_input, false, false, cfg)
+            if fbr.ok {
+                var fout = system(fbr.output)
+                printf("%s", fout)
+            }
+            continue
+        }
+
+        arraypush(messages, { role: "user", content: user_input })
+        print("Thinking...")
+        var response = send_ai_request(cfg, messages)
+        if response == null {
+            print("Error: AI request failed.")
+            continue
+        }
+
+        print("")
+        print("%s", format_chat_response(response))
+        print("")
+
+        // Save first code block to sandbox.of
+        var code_m = match(response, "/```(?:omniflux|of|[a-zA-Z0-9]*)\\s*\\n([\\s\\S]*?)\\n```/")
+        var code_saved = false
+        if code_m {
+            filewrite("sandbox.of", code_m[0])
+            code_saved = true
+        }
+        if code_saved {
+            print("\x1b[1;32m[Code saved to sandbox.of. Type 'run' to execute it!]\x1b[0m")
+            print("")
+        }
+
+        arraypush(messages, { role: "assistant", content: response })
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -125,7 +372,7 @@ define task compile_file(abs_path, runtime_js, global_user_tasks) {
 // build_once: full build pipeline for a given entry file
 // Returns: { ok, output_file } or { ok: false, error }
 // ---------------------------------------------------------------------------
-define task build_once(input_file, compile_only) {
+define task build_once(input_file, compile_only, strict, cfg) {
     var start_time = 0
     @{ start_time = Date.now(); @}
     var abs_input = pathresolve(input_file)
@@ -140,6 +387,7 @@ define task build_once(input_file, compile_only) {
 
     // Load runtime once
     var runtime_js = read_runtime()
+    var system_prompt = read_system_prompt()
 
     // Compile all files
     var compiled_map = {}
@@ -158,8 +406,20 @@ define task build_once(input_file, compile_only) {
     for dep_path of deps {
         var js = compile_file(dep_path, runtime_js, global_user_tasks)
         if !js {
-            ok = false
-            break
+            // Local compilation failed — try AI fallback
+            if strict || !cfg {
+                print("\x1b[1;31mStrict Mode Error: Local compilation failed on %s. AI compilation is disabled.\x1b[0m", dep_path)
+                ok = false
+                break
+            }
+            var cache_path = get_cache_path(dep_path)
+            var ai_ok = ai_compile_file(cfg, dep_path, cache_path, system_prompt)
+            if !ai_ok {
+                ok = false
+                break
+            }
+            // Read back what AI wrote
+            js = fileread(cache_path)
         }
         compiled_map[dep_path] = js
         print("Compiled: %s", dep_path)
@@ -204,7 +464,7 @@ define task watch_loop(input_file, compile_only) {
     var last_build_ok = false
     var output_file = ""
 
-    var result = build_once(input_file, compile_only)
+    var result = build_once(input_file, compile_only, false, null)
     if result.ok {
         last_build_ok = true
         output_file = result.output
@@ -247,7 +507,7 @@ define task watch_loop(input_file, compile_only) {
 
         if changed {
             print("\nChange detected. Rebuilding...")
-            var new_result = build_once(input_file, compile_only)
+            var new_result = build_once(input_file, compile_only, false, null)
             if new_result.ok {
                 output_file = new_result.output
                 if !compile_only {
@@ -271,20 +531,96 @@ define task watch_loop(input_file, compile_only) {
 }
 
 // ---------------------------------------------------------------------------
+// watch_loop_ai: rebuild and restart on file changes (AI-aware)
+// ---------------------------------------------------------------------------
+define task watch_loop_ai(input_file, compile_only, strict, cfg) {
+    var output_file = ""
+
+    var result = build_once(input_file, compile_only, strict, cfg)
+    if result.ok {
+        output_file = result.output
+        if !compile_only {
+            exec(output_file + " &")
+        }
+    }
+
+    print("Watching for changes... (Press Ctrl+C to stop)")
+
+    var abs_input = pathresolve(input_file)
+    var deps = get_all_dependencies(abs_input, null)
+
+    var mod_times = {}
+    for dep_path of deps {
+        var stat = filestat(dep_path)
+        if stat {
+            mod_times[dep_path] = stat.mtime
+        }
+    }
+
+    while true {
+        wait 1 second
+
+        var changed = false
+        for dep_path of deps {
+            if !fileexists(dep_path) {
+                changed = true
+                break
+            }
+            var stat2 = filestat(dep_path)
+            if stat2 && mod_times[dep_path] && stat2.mtime > mod_times[dep_path] {
+                changed = true
+                break
+            }
+        }
+
+        if changed {
+            print("\nChange detected. Rebuilding...")
+            var new_result = build_once(input_file, compile_only, strict, cfg)
+            if new_result.ok {
+                output_file = new_result.output
+                if !compile_only {
+                    exec(output_file + " &")
+                }
+            } else {
+                print("Rebuild failed. Waiting for fixes...")
+            }
+
+            deps = get_all_dependencies(abs_input, null)
+            mod_times = {}
+            for dep_path2 of deps {
+                var stat3 = filestat(dep_path2)
+                if stat3 {
+                    mod_times[dep_path2] = stat3.mtime
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Entry point
 // ---------------------------------------------------------------------------
 on start {
     var cli = parse_args(args)
 
+    // Load or create config
+    var cfg = null
+    if !config_exists() {
+        cfg = run_wizard()
+    } else {
+        cfg = config_load()
+    }
+
+    // No input file → interactive chat mode
     if cli.input_file == "" {
-        print_usage()
+        interactive_chat(cfg)
         exit(0)
     }
 
     if cli.watch {
-        watch_loop with cli.input_file, cli.compile_only
+        watch_loop_ai(cli.input_file, cli.compile_only, cli.strict, cfg)
     } else {
-        var result = build_once(cli.input_file, cli.compile_only)
+        var result = build_once(cli.input_file, cli.compile_only, cli.strict, cfg)
         if !result.ok {
             exit(1)
         }

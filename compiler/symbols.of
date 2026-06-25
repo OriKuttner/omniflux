@@ -89,6 +89,10 @@ var BUILTINS = [
     "dateweekday", "date_weekday",
     // Utilities
     "describe",
+    // JSON
+    "jsonparse", "json_parse",
+    "jsondecode", "json_decode",
+    "jsonencode", "json_encode",
     // JavaScript globals that may appear in OmniFlux code
     "args", "global", "console", "require", "module", "process",
     "Math", "JSON", "Array", "Object", "String", "Number",
@@ -99,6 +103,7 @@ var BUILTINS = [
 // Built-in async functions that must always be awaited in generated JS.
 // User-defined tasks are added at compile time by prescan_tasks().
 var ASYNC_BUILTINS = [
+    "input",
     "cacheset", "cache_set",
     "cacheget", "cache_get",
     "arraymap", "array_map",
@@ -150,3 +155,7 @@ define task is_async(name, user_tasks) {
     }
     return false
 }
+
+global.BUILTINS = BUILTINS
+global.ASYNC_BUILTINS = ASYNC_BUILTINS
+

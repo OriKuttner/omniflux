@@ -44,7 +44,7 @@ sub compile_locally {
     # 1. Identify all declared variables and functions
     my %declared;
     for my $g (qw(
-        print printf fprint fprintf readchar read_char fileread file_read filewrite file_write fileexists file_exists
+        print printf fprint fprintf input readchar read_char fileread file_read filewrite file_write fileexists file_exists
         fileappend file_append filedelete file_delete filecopy file_copy filerename file_rename
         dirlist dir_list dircreate dir_create scriptdir script_dir filestat file_stat cacheset cache_set cacheget cache_get
         dbinsert db_insert dbselect db_select dbupdate db_update dbdelete db_delete
@@ -54,7 +54,8 @@ sub compile_locally {
         strtrim str_trim strsub str_sub strindexof str_index_of strlastindexof str_last_index_of strrepeat str_repeat strreplace str_replace strupper str_upper strlower str_lower
         pathjoin path_join pathresolve path_resolve pathdirname path_dir_name pathbasename path_base_name pathextension path_extension pathisabsolute path_is_absolute
         exit arrayreverse array_reverse arraysort array_sort arraymap array_map arrayfilter array_filter arrayshift array_shift arrayfind array_find
-        args global console require module process Math JSON Array Object String Number Boolean Error
+        networkget networkpost network_get network_post
+        args global console require module process Math JSON Array Object String Number Boolean Error Buffer URL
         setTimeout setInterval clearTimeout clearInterval NaN
     )) {
         $declared{$g} = 1;

@@ -33,13 +33,21 @@ define task insert_awaits(line, user_tasks) {
     var result = line
     var all_async = @{ Array.isArray(global.ASYNC_BUILTINS) ? global.ASYNC_BUILTINS : Array.from(global.ASYNC_BUILTINS || []) @}
     for name of all_async {
-        var pattern = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)" + name + "\\b/g"
-        result = strreplace(result, pattern, "await " + name)
+        // Already has parens — just add await
+        var pat_with = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)" + name + "(?=\\s*\\()/g"
+        result = strreplace(result, pat_with, "await " + name)
+        // Bare call — add await and ()
+        var pat_bare = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)" + name + "\\b(?!\\s*\\()/g"
+        result = strreplace(result, pat_bare, "await " + name + "()")
     }
     var task_names = @{ Object.keys(user_tasks) @}
     for name2 of task_names {
-        var pattern2 = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!REFERENCE_)" + name2 + "\\b/g"
-        result = strreplace(result, pattern2, "await " + name2)
+        // Already has parens — just add await
+        var pat2_with = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!REFERENCE_)" + name2 + "(?=\\s*\\()/g"
+        result = strreplace(result, pat2_with, "await " + name2)
+        // Bare call — add await and ()
+        var pat2_bare = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!REFERENCE_)" + name2 + "\\b(?!\\s*\\()/g"
+        result = strreplace(result, pat2_bare, "await " + name2 + "()")
     }
     return result
 }
@@ -110,6 +118,68 @@ define task transpile_line(raw_line, filename, user_tasks, line_num, state) {
     return restored_out
 }
 
+define task count_braces(str) {
+    var open_count = 0
+    var close_count = 0
+    var i = 0
+    var length = len(str)
+    while i < length {
+        var ch = strsub(str, i, 1)
+        if ch == "{" {
+            open_count = open_count + 1
+        } else if ch == "}" {
+            close_count = close_count + 1
+        }
+        i = i + 1
+    }
+    return open_count - close_count
+}
+
+define task pre_process_line(raw_line, user_tasks) {
+    var line = strtrim(raw_line)
+
+    // --- $VAR → global.vars.VAR ---
+    line = replace_globals(line)
+
+    // --- background TASK(...) → TASK(...) without await ---
+    line = strreplace(line, "/\\bbackground\\s+(\\w+)/g", "NONBLOCKING_$1")
+
+    // --- call / call with statement ---
+    line = strreplace(line, "/\\bcall\\s+([\\w$.]+)\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/gi", "await $1($2)")
+    line = strreplace(line, "/\\bNONBLOCKING_call\\s+([\\w$.]+)\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/gi", "$1($2)")
+    line = strreplace(line, "/\\bcall\\s+([\\w$.]+)\\s*(?=\\s*(?:\/\/|;|$))/gi", "await $1()")
+    line = strreplace(line, "/\\bNONBLOCKING_call\\s+([\\w$.]+)\\s*(?=\\s*(?:\/\/|;|$))/gi", "$1()")
+
+    // --- var → let ---
+    line = strreplace(line, "/\\bvar\\b/g", "let")
+
+    // --- ref TASK → REFERENCE_TASK (stripped after await insertion) ---
+    line = strreplace(line, "/\\bref\\s+(\\w+)/g", "REFERENCE_$1")
+
+    // --- TASK with ARGS → await TASK(ARGS) ---
+    var user_task_list = @{ Object.keys(user_tasks) @}
+    for tname3 of user_task_list {
+        var with_pat = "/^(\\s*)" + tname3 + "\\s+with\\s+(.*?)(?=\\s*(?:\\/\\/|;|$))/m"
+        line = strreplace(line, with_pat, "$1await " + tname3 + "($2)")
+    }
+
+    // --- Insert awaits for all async calls ---
+    line = insert_awaits(line, user_tasks)
+
+    // --- Strip NONBLOCKING_ and REFERENCE_ prefixes ---
+    line = strreplace(line, "/NONBLOCKING_/g", "")
+    line = strreplace(line, "/REFERENCE_/g", "")
+
+    // --- as int / as string ---
+    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+int\\b/g", "parseInt($1, 10)")
+    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+string\\b/g", "String($1)")
+
+    // --- describe VAR ---
+    line = strreplace(line, "/\\bdescribe\\s+([^,)]+)/g", "(typeof $1 !== 'undefined' ? describe($1) : 'undefined')")
+
+    return line
+}
+
 define task transpile_line_core(raw_line, filename, user_tasks, line_num, state) {
     var line = strtrim(raw_line)
     var out = []
@@ -142,44 +212,7 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         return out
     }
 
-    // --- $VAR → global.vars.VAR ---
-    line = replace_globals(line)
-
-    // --- background TASK(...) → TASK(...) without await ---
-    // Mark with NONBLOCKING_ prefix so insert_awaits skips it, then strip prefix
-    line = strreplace(line, "/\\bbackground\\s+(\\w+)/g", "NONBLOCKING_$1")
-
-    // --- call / call with statement ---
-    line = strreplace(line, "/\\bcall\\s+([\\w$.]+)\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/gi", "await $1($2)")
-    line = strreplace(line, "/\\bNONBLOCKING_call\\s+([\\w$.]+)\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/gi", "$1($2)")
-    line = strreplace(line, "/\\bcall\\s+([\\w$.]+)\\s*(?=\\s*(?:\/\/|;|$))/gi", "await $1()")
-    line = strreplace(line, "/\\bNONBLOCKING_call\\s+([\\w$.]+)\\s*(?=\\s*(?:\/\/|;|$))/gi", "$1()")
-
-    // --- var → let ---
-    line = strreplace(line, "/\\bvar\\b/g", "let")
-
-    // --- ref TASK → TASK (strip ref keyword — pass function reference) ---
-    line = strreplace(line, "/\\bref\\s+(\\w+)/g", "$1")
-
-    // --- TASK with ARGS → await TASK(ARGS) (only at start of statement) ---
-    var user_task_list = @{ Object.keys(user_tasks) @}
-    for tname3 of user_task_list {
-        var with_pat = "/^(\\s*)" + tname3 + "\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/m"
-        line = strreplace(line, with_pat, "$1await " + tname3 + "($2)")
-    }
-
-    // --- Insert awaits for all async calls ---
-    line = insert_awaits(line, user_tasks)
-
-    // --- Strip NONBLOCKING_ prefix (background calls must NOT be awaited) ---
-    line = strreplace(line, "/NONBLOCKING_/g", "")
-
-    // --- as int / as string ---
-    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+int\\b/g", "parseInt($1, 10)")
-    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+string\\b/g", "String($1)")
-
-    // --- describe VAR ---
-    line = strreplace(line, "/\\bdescribe\\s+([^,)]+)/g", "(typeof $1 !== 'undefined' ? describe($1) : 'undefined')")
+    line = pre_process_line(line, user_tasks)
 
     // --- define task / fn ---
     var task_with = match(line, "/^(?:define\\s+task|fn)\\s+(\\w+)\\s+with\\s+([^{]+)\\s*\\{/i")
@@ -293,7 +326,14 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     }
 
     // --- HTTP route handlers ---
-    var route_m = match(line, "/^(GET|POST|PUT|DELETE)\\s+[\"']([^\"']+)[\"']\\s*\\(([^)]*)\\)\\s*\\{/i")
+    var route_line = line
+    @{
+        route_line = line.replace(/__STR_PLACEHOLDER_(\d+)__/g, (match, idx) => {
+            return state.strings_list[parseInt(idx, 10)];
+        });
+    @}
+
+    var route_m = match(route_line, "/^(GET|POST|PUT|DELETE)\\s+[\"']([^\"']+)[\"']\\s*\\(([^)]*)\\)\\s*\\{/i")
     if route_m {
         var route_method = strlower(route_m[0])
         var route_path = route_m[1]
@@ -304,7 +344,7 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     }
 
     // --- redirect to ---
-    var redir_m = match(line, "/^redirect\\s+to\\s+[\"']?([^\"'\\s]+)[\"']?(?:\\s+with\\s+status\\s+(\\d+))?/i")
+    var redir_m = match(route_line, "/^redirect\\s+to\\s+[\"']?([^\"'\\s]+)[\"']?(?:\\s+with\\s+status\\s+(\\d+))?/i")
     if redir_m {
         var redir_url = redir_m[0]
         var redir_status = redir_m[1]
@@ -322,6 +362,17 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         var rs_status = resp_status_m[0]
         var rs_type = strlower(resp_status_m[1])
         var rs_content = strtrim(resp_status_m[2])
+
+        // Collect multi-line content if braces are unbalanced
+        var depth = count_braces(rs_content)
+        while depth > 0 && (state.current_index + 1 < len(state.source_lines)) {
+            state.current_index = state.current_index + 1
+            var next_line = state.source_lines[state.current_index]
+            next_line = pre_process_line(next_line, user_tasks)
+            rs_content = rs_content + " " + strtrim(next_line)
+            depth = count_braces(rs_content)
+        }
+
         if rs_type == "json" {
             arraypush(out, "res.status(" + rs_status + ").json(" + rs_content + ");")
         } else if (rs_type == "file") {
@@ -339,6 +390,17 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     if resp_m {
         var r_type = strlower(resp_m[0])
         var r_content = strtrim(resp_m[1])
+
+        // Collect multi-line content if braces are unbalanced
+        var depth2 = count_braces(r_content)
+        while depth2 > 0 && (state.current_index + 1 < len(state.source_lines)) {
+            state.current_index = state.current_index + 1
+            var next_line2 = state.source_lines[state.current_index]
+            next_line2 = pre_process_line(next_line2, user_tasks)
+            r_content = r_content + " " + strtrim(next_line2)
+            depth2 = count_braces(r_content)
+        }
+
         if r_type == "json" {
             arraypush(out, "res.json(" + r_content + ");")
         } else if (r_type == "file") {
@@ -370,8 +432,12 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     // --- } on error (e) { ---
     var catch_m = match(line, "/^\\}\\s*on\\s+error\\s*\\(([^)]*)\\)\\s*\\{/i")
     if catch_m {
-        arraypop(state.block_stack)
-        arraypush(state.block_stack, "task_error")
+        var popped_block = arraypop(state.block_stack)
+        if popped_block == "route" {
+            arraypush(state.block_stack, "route_error")
+        } else {
+            arraypush(state.block_stack, "task_error")
+        }
         arraypush(out, "} catch (" + catch_m[0] + ") {")
         return out
     }
@@ -379,22 +445,26 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     // --- else if COND (with or without leading }) ---
     var elif_m = match(line, "/^(\\}\\s*)?else\\s+if\\s+(.*?)\\s*\\{/i")
     if elif_m {
+        var prefix = ""
         if elif_m[0] {
             arraypop(state.block_stack)
+            prefix = "} "
         }
         arraypush(state.block_stack, "normal")
-        arraypush(out, "} else if " + ensure_parens(elif_m[1]) + " {")
+        arraypush(out, prefix + "else if " + ensure_parens(elif_m[1]) + " {")
         return out
     }
 
     // --- else (with or without leading }) ---
     var else_m = match(line, "/^(\\}\\s*)?else\\s*\\{/i")
     if else_m {
+        var prefix2 = ""
         if else_m[0] {
             arraypop(state.block_stack)
+            prefix2 = "} "
         }
         arraypush(state.block_stack, "normal")
-        arraypush(out, "} else {")
+        arraypush(out, prefix2 + "else {")
         return out
     }
 
@@ -527,6 +597,7 @@ define task transpile(content, filename, user_tasks, runtime_js) {
     };
 
     var output_lines = []
+    var deferred_stmts = []
 
     // Prepend the runtime library
     var runtime_lines = strsplit(runtime_js, "\n")
@@ -536,16 +607,27 @@ define task transpile(content, filename, user_tasks, runtime_js) {
     arraypush(output_lines, "")
 
     var source_lines = strsplit(content_with_placeholders, "\n")
-    var line_idx = 1
+    state.source_lines = source_lines
 
-    for src_line of source_lines {
-        var result_lines = transpile_line(src_line, filename, user_tasks, line_idx, state)
+    var num_lines = len(source_lines)
+    var i = 0
+    while i < num_lines {
+        state.current_index = i
+        var src_line = source_lines[i]
+        var was_toplevel = len(state.block_stack) == 0
+        var result_lines = transpile_line(src_line, filename, user_tasks, i + 1, state)
         if result_lines {
             for ol of result_lines {
-                arraypush(output_lines, ol)
+                // Top-level awaited statements can't exist in CJS output.
+                // Defer them into the main IIFE so they run correctly.
+                if was_toplevel && match(ol, "/^await /") {
+                    arraypush(deferred_stmts, ol)
+                } else {
+                    arraypush(output_lines, ol)
+                }
             }
         }
-        line_idx = line_idx + 1
+        i = state.current_index + 1
     }
 
     // Export all user tasks to global scope
@@ -610,6 +692,10 @@ define task transpile(content, filename, user_tasks, runtime_js) {
     // Entry point runner
     arraypush(output_lines, "if (require.main === module) {")
     arraypush(output_lines, "    (async () => {")
+    // Inject top-level awaited statements that can't be at module scope in CJS
+    for ds of deferred_stmts {
+        arraypush(output_lines, "        " + ds)
+    }
     arraypush(output_lines, "        const hooks = global.__on_start_hooks || [];")
     arraypush(output_lines, "        for (const hook of hooks) { await hook(); }")
     arraypush(output_lines, "    })().catch(err => {")
