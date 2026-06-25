@@ -6663,52 +6663,43 @@ document.addEventListener('click', async (e) => {
         let node_open = "@{";
         let node_close = "@}";
         let node_pattern = "/@\\{|@\\}/g";
+        let out = [];
         if (state.in_node_block) {
-          let out = [];
           let has_close = strindexof2(raw_line, node_close);
           if (has_close >= 0) {
             state.in_node_block = false;
           }
           let clean = strreplace2(raw_line, node_pattern, "");
           arraypush2(out, clean);
-          return out;
-        }
-        let has_open = strindexof2(raw_line, node_open);
-        if (has_open >= 0) {
-          let out = [];
-          let has_close2 = strindexof2(raw_line, node_close);
-          if (has_close2 >= 0) {
-            let clean2 = strreplace2(raw_line, node_pattern, "");
-            arraypush2(out, clean2);
-            return out;
+        } else {
+          let has_open = strindexof2(raw_line, node_open);
+          if (has_open >= 0) {
+            let has_close2 = strindexof2(raw_line, node_close);
+            if (has_close2 >= 0) {
+              let clean2 = strreplace2(raw_line, node_pattern, "");
+              arraypush2(out, clean2);
+            } else {
+              state.in_node_block = true;
+              let clean3 = strreplace2(raw_line, node_pattern, "");
+              arraypush2(out, clean3);
+            }
           } else {
-            state.in_node_block = true;
-            let clean3 = strreplace2(raw_line, node_pattern, "");
-            arraypush2(out, clean3);
-            return out;
+            if (line == "") {
+              arraypush2(out, "");
+            } else {
+              if (match2(line, "/^include\\b/i")) {
+                out = await transpile_line_core(line, filename, user_tasks, line_num, state);
+              } else {
+                out = await transpile_line_core(line, filename, user_tasks, line_num, state);
+              }
+            }
           }
         }
-        if (line == "") {
-          let out = [];
-          arraypush2(out, "");
-          return out;
-        }
-        if (match2(line, "/^include\\b/i")) {
-          return await transpile_line_core(line, filename, user_tasks, line_num, state);
-        }
-        let strings_list = [];
-        let line_with_placeholders = line;
-        const str_regex = /("(\\.|[^\\"])*"|'(\\.|[^\\'])*')/g;
-        line_with_placeholders = line.replace(str_regex, (match3) => {
-          strings_list.push(match3);
-          return "__STR_PLACEHOLDER_" + (strings_list.length - 1) + "__";
-        });
-        let raw_out = await transpile_line_core(line_with_placeholders, filename, user_tasks, line_num, state);
         let restored_out = [];
-        for (let ol of raw_out) {
+        for (let ol of out) {
           let restored_line = ol;
           restored_line = ol.replace(/__STR_PLACEHOLDER_(\d+)__/g, (match3, idx) => {
-            return strings_list[parseInt(idx, 10)];
+            return state.strings_list[parseInt(idx, 10)];
           });
           arraypush2(restored_out, restored_line);
         }
@@ -7017,6 +7008,28 @@ document.addEventListener('click', async (e) => {
     }
     async function transpile2(content, filename, user_tasks, runtime_js) {
       try {
+        let strings_list = [];
+        let content_with_placeholders = content;
+        const dq = String.fromCharCode(34);
+        const sq = String.fromCharCode(39);
+        const pattern = "(\\binclude\\s+)(" + dq + "(\\\\.|[^\\\\\\" + dq + "])*" + dq + "|" + sq + "(\\\\.|[^\\\\\\" + sq + "])*" + sq + ")|(" + dq + "(\\\\.|[^\\\\\\" + dq + "])*" + dq + "|" + sq + "(\\\\.|[^\\\\\\" + sq + "])*" + sq + ")";
+        const str_regex = new RegExp(pattern, "g");
+        content_with_placeholders = content.replace(str_regex, (match3, p1, p2, p3, p4, p5) => {
+          if (p1) {
+            return match3;
+          }
+          const newlines = match3.split("\n").length - 1;
+          let safe_str = match3;
+          if (newlines > 0) {
+            if (match3.startsWith('"') || match3.startsWith("'")) {
+              const quote = match3[0];
+              const inner = match3.slice(1, -1).replace(/\n/g, "\\n");
+              safe_str = quote + inner + quote;
+            }
+          }
+          strings_list.push(safe_str);
+          return "__STR_PLACEHOLDER_" + (strings_list.length - 1) + "__" + "\n".repeat(newlines);
+        });
         let state = {
           block_stack: [],
           tasks: [],
@@ -7029,7 +7042,8 @@ document.addEventListener('click', async (e) => {
           on_error_count: 0,
           on_request_count: 0,
           server_port: "",
-          in_node_block: false
+          in_node_block: false,
+          strings_list
         };
         let output_lines = [];
         let runtime_lines = strsplit2(runtime_js, "\n");
@@ -7037,7 +7051,7 @@ document.addEventListener('click', async (e) => {
           arraypush2(output_lines, rtl);
         }
         arraypush2(output_lines, "");
-        let source_lines = strsplit2(content, "\n");
+        let source_lines = strsplit2(content_with_placeholders, "\n");
         for (let src_line of source_lines) {
           let result_lines = await transpile_line(src_line, filename, user_tasks, 0, state);
           if (result_lines) {
@@ -8247,7 +8261,8 @@ async function run_output(output_file, run_args) {
     }
     print("Running: %s", output_file);
     print("----------------------------------------");
-    await system(cmd);
+    let out = await system(cmd);
+    printf("%s", out);
     print("----------------------------------------");
   } catch (err) {
     throw err;
