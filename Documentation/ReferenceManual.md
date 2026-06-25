@@ -170,6 +170,14 @@ OmniFlux provides simple tools to read input and arguments when building command
   if len($args) > 0 {
       print("First CLI argument: %s", $args[0])
   }
+* **`getenv(name)`**: Retrieves the value of the environment variable `name` from the host system. Returns `null` if the variable is not set.
+  ```omniflux
+  var path = getenv("PATH")
+  print("System PATH: %s", path)
+  ```
+* **`setenv(name, value)`**: Sets the environment variable `name` to the given `value` (which is cast to a string).
+  ```omniflux
+  setenv("PORT", 8080)
   ```
 
 ---
@@ -417,6 +425,8 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `filecopy(src, dest)`: Copies a file from `src` to `dest`.
   * `filerename(src, dest)`: Renames or moves a file from `src` to `dest`.
   * `dirlist(path)`: Lists the contents of a directory (returns an array of strings).
+  * `dircreate(path)`: Creates a directory recursively (including any missing parent directories).
+  * `scriptdir()`: Returns the absolute path of the directory containing the currently running script.
   * `filestat(path)`: Returns an object containing file metadata: `{ size, isdirectory, isfile, createdat, modifiedat }`.
 * **Arrays & Lists:** Procedural array and string operations:
   * `len(val)`: Returns the length of an array or string.
@@ -447,6 +457,18 @@ OmniFlux provides native bindings to common backend services, making setups extr
 ### 4.1 Local JSON Database 🗄️
 
 OmniFlux includes a built-in, zero-setup database that stores your data in a local file (`db.json`). It runs entirely in memory for lightning-fast reads, making it perfect for blogs, catalogs, and basic websites.
+
+#### Database Location & Production Environment Config (`DB_FILE`)
+By default, the database is stored in a file named `db.json` in the **current working directory (CWD)** from which the process was started. 
+
+> [!WARNING]
+> **Security Best Practice:** Never store the database file (`db.json`) inside a public directory served by web servers like Apache or Nginx (e.g. `public/`, `www/`, or `public_html/`). Doing so allows anyone to download your entire database directly via a browser. Always configure `DB_FILE` to point to a secure, non-public directory (like `/var/lib/omniflux/db.json` or a folder outside of your web root).
+
+If your application is deployed to a production environment where the code directory is write-protected, you can easily configure the database file location by setting the `DB_FILE` environment variable:
+```bash
+# Run the server with the database file saved in a secure, writable directory
+DB_FILE=/var/lib/omniflux/db.json perl omniflux server/proxy.of
+```
 
 #### Core Concepts for Beginners
 * **Collection (אוסף):** Think of this as a category or a folder of records. For example, `"users"` or `"posts"`. Each collection contains a list of individual items.

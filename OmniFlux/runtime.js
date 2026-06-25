@@ -189,30 +189,64 @@ function filestat(path) {
     };
 }
 
+function dircreate(path) {
+    if (typeof path !== 'string') throw new Error('Directory path must be a string');
+    fs.mkdirSync(path, { recursive: true });
+}
+
+function scriptdir() {
+    const path = require('path');
+    return path.dirname(require.main.filename);
+}
+
+function setenv(name, value) {
+    if (typeof name !== 'string') throw new Error('Environment variable name must be a string');
+    process.env[name] = value !== undefined ? String(value) : '';
+}
+
+function getenv(name) {
+    if (typeof name !== 'string') throw new Error('Environment variable name must be a string');
+    return process.env[name] !== undefined ? process.env[name] : null;
+}
+
 // --- Databases (Local JSON DB) ---
-const DB_FILE = process.env.DB_FILE || 'db.json';
 let cachedDb = null;
+let cachedDbMtime = 0;
 
 function loadDb() {
-    if (cachedDb) {
-        return cachedDb;
-    }
+    const dbFile = process.env.DB_FILE || 'db.json';
     try {
-        if (fs.existsSync(DB_FILE)) {
-            const content = fs.readFileSync(DB_FILE, 'utf8');
+        if (fs.existsSync(dbFile)) {
+            const stats = fs.statSync(dbFile);
+            if (cachedDb && stats.mtimeMs === cachedDbMtime) {
+                return cachedDb;
+            }
+            const content = fs.readFileSync(dbFile, 'utf8');
             cachedDb = JSON.parse(content || '{}');
+            cachedDbMtime = stats.mtimeMs;
             return cachedDb;
         }
     } catch (e) {
         // Fallback to empty if read/parse fails
     }
-    cachedDb = {};
+    if (!cachedDb) {
+        cachedDb = {};
+        cachedDbMtime = 0;
+    }
     return cachedDb;
 }
 
 function saveDb(data) {
+    const dbFile = process.env.DB_FILE || 'db.json';
     cachedDb = data;
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
+    fs.writeFileSync(dbFile, JSON.stringify(data, null, 2), 'utf8');
+    try {
+        if (fs.existsSync(dbFile)) {
+            cachedDbMtime = fs.statSync(dbFile).mtimeMs;
+        }
+    } catch (e) {
+        cachedDbMtime = Date.now();
+    }
 }
 
 function dbinsert(collection, doc) {
@@ -658,6 +692,18 @@ global.file_rename = filerename;
 
 global.dirlist = dirlist;
 global.dir_list = dirlist;
+
+global.dircreate = dircreate;
+global.dir_create = dircreate;
+
+global.scriptdir = scriptdir;
+global.script_dir = scriptdir;
+
+global.setenv = setenv;
+global.set_env = setenv;
+
+global.getenv = getenv;
+global.get_env = getenv;
 
 global.filestat = filestat;
 global.file_stat = filestat;
