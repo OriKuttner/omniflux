@@ -179,6 +179,10 @@ OmniFlux provides simple tools to read input and arguments when building command
   ```omniflux
   setenv("PORT", 8080)
   ```
+* **`exit(code)`**: Terminates the current process immediately with the specified integer exit `code` (defaults to `0`).
+  ```omniflux
+  exit(1)
+  ```
 
 ---
 
@@ -444,16 +448,38 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `dircreate(path)`: Creates a directory recursively (including any missing parent directories).
   * `scriptdir()`: Returns the absolute path of the directory containing the currently running script.
   * `filestat(path)`: Returns an object containing file metadata: `{ size, isdirectory, isfile, createdat, modifiedat }`.
-* **Arrays & Lists:** Procedural array and string operations:
+* **Strings & Text Processing:**
   * `len(val)`: Returns the length of an array or string.
-  * `strsplit(str, sep)`: Splits a string into an array of substrings using the specified separator.
-  * `match(str, regex)`: Performs a regular expression match on `str`. Returns `true` if there is a match (without capturing groups), `false` if there is no match, or an array of captured groups (excluding the full match, so index 0 is the first captured group) if capturing groups exist in the `regex` and the match succeeds. The `regex` parameter supports `RegExp` objects or string-based patterns. When using strings, you can use standard delimiters like `/` (e.g. `"/\\d+/i"`) or alternate delimiters like `~` (e.g. `"~\\d+~i"`) or `#`.
+  * `strsplit(str, sep)`: Splits a string into an array of substrings using the specified separator (supports string or regex separators).
+  * `match(str, regex)`: Performs a regular expression match on `str`. Returns `true` if there is a match (without capturing groups), `false` if there is no match, or an array of captured groups (excluding the full match, so index 0 is the first captured group) if capturing groups exist in the `regex` and the match succeeds. The `regex` parameter supports `RegExp` objects or string-based patterns.
+  * `strtrim(str, side)`: Removes whitespace. `side` is optional and can be `"both"` (default), `"left"`, or `"right"`.
+  * `strsub(str, start, length)`: Extracts a substring starting at index `start` with optional `length`.
+  * `strindexof(str, search)`: Returns the position of the first occurrence of `search`, or `-1` if not found.
+  * `strlastindexof(str, search)`: Returns the position of the last occurrence of `search`, or `-1` if not found.
+  * `strrepeat(str, n)`: Repeats the string `n` times.
+  * `strreplace(str, search, replacement)`: Replaces occurrences of `search` (string or regex) with `replacement`. If a string is passed as `search`, all occurrences are replaced.
+  * `strupper(str)`: Converts the string to uppercase.
+  * `strlower(str)`: Converts the string to lowercase.
+* **Arrays & Lists:** Procedural array operations:
   * `arraypush(arr, item)`: Appends an item to the end of the array.
   * `arrayunshift(arr, item)`: Prepends an item to the beginning of the array.
   * `arraypop(arr)`: Removes and returns the last item of the array.
+  * `arrayshift(arr)`: Removes and returns the first item of the array.
   * `arraycontains(arr, item)`: Returns `true` if the item is present in the array, `false` otherwise.
   * `arrayjoin(arr, sep)`: Joins array elements into a string separated by `sep`.
   * `arrayslice(arr, start, end)`: Returns a slice of the array from `start` (inclusive) to `end` (exclusive).
+  * `arrayreverse(arr)`: Returns a new array with elements in reversed order.
+  * `arraysort(arr)`: Returns a new array with elements sorted.
+  * `arraymap(arr, task)`: Maps elements using an async callback task.
+  * `arrayfilter(arr, task)`: Filters elements using an async callback task.
+  * `arrayfind(arr, task)`: Finds the first matching element using an async callback task.
+* **Path Utilities:** Cross-platform path handling:
+  * `pathjoin(...paths)`: Joins multiple path segments safely.
+  * `pathresolve(base, relative)`: Resolves a relative path to absolute against base.
+  * `pathdirname(filepath)`: Returns the parent directory name of a path.
+  * `pathbasename(filepath)`: Returns the last portion (filename) of a path.
+  * `pathextension(filepath)`: Returns the extension of a file path.
+  * `pathisabsolute(filepath)`: Returns `true` if the path is absolute, `false` otherwise.
 * **Date & Time:** Procedural time and date components:
   * `time()`: Returns the current Unix timestamp in seconds.
   * `dateyear(ts)`: Returns the year of the given Unix timestamp `ts` (or the current year if `ts` is not provided).
