@@ -48,9 +48,9 @@ sub compile_locally {
         fileappend file_append filedelete file_delete filecopy file_copy filerename file_rename
         dirlist dir_list dircreate dir_create scriptdir script_dir filestat file_stat cacheset cache_set cacheget cache_get
         dbinsert db_insert dbselect db_select dbupdate db_update dbdelete db_delete
-        setenv set_env getenv get_env sha256 getcookie get_cookie len strsplit str_split match arraypush array_push arrayunshift array_unshift arraypop array_pop arraycontains array_contains
+        setenv set_env getenv get_env sha256 encrypt decrypt getcookie get_cookie setcookie set_cookie len strsplit str_split match arraypush array_push arrayunshift array_unshift arraypop array_pop arraycontains array_contains
         arrayjoin array_join arrayslice array_slice time dateyear date_year datemonth date_month
-        dateday date_day datehour date_hour dateminute date_minute datesecond date_second template describe
+        dateday date_day datehour date_hour dateminute date_minute datesecond date_second dateweekday date_weekday template describe
         strtrim str_trim strsub str_sub strindexof str_index_of strlastindexof str_last_index_of strrepeat str_repeat strreplace str_replace strupper str_upper strlower str_lower
         pathjoin path_join pathresolve path_resolve pathdirname path_dir_name pathbasename path_base_name pathextension path_extension pathisabsolute path_is_absolute
         exit arrayreverse array_reverse arraysort array_sort arraymap array_map arrayfilter array_filter arrayshift array_shift arrayfind array_find

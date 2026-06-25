@@ -451,7 +451,7 @@ OmniFlux provides native bindings to common backend services, making setups extr
 * **Strings & Text Processing:**
   * `len(val)`: Returns the length of an array or string.
   * `strsplit(str, sep)`: Splits a string into an array of substrings using the specified separator (supports string or regex separators).
-  * `match(str, regex)`: Performs a regular expression match on `str`. Returns `true` if there is a match (without capturing groups), `false` if there is no match, or an array of captured groups (excluding the full match, so index 0 is the first captured group) if capturing groups exist in the `regex` and the match succeeds. The `regex` parameter supports `RegExp` objects or string-based patterns.
+  * `match(str, regex)`: Matches `str` against a regular expression. Returns `true` on success, `false` on failure. If the regex contains capture groups (parentheses) and matches, it returns an array of the captured values.
   * `strtrim(str, side)`: Removes whitespace. `side` is optional and can be `"both"` (default), `"left"`, or `"right"`.
   * `strsub(str, start, length)`: Extracts a substring starting at index `start` with optional `length`.
   * `strindexof(str, search)`: Returns the position of the first occurrence of `search`, or `-1` if not found.
@@ -473,13 +473,33 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `arraymap(arr, task)`: Maps elements using an async callback task.
   * `arrayfilter(arr, task)`: Filters elements using an async callback task.
   * `arrayfind(arr, task)`: Finds the first matching element using an async callback task.
-* **Path Utilities:** Cross-platform path handling:
-  * `pathjoin(...paths)`: Joins multiple path segments safely.
-  * `pathresolve(base, relative)`: Resolves a relative path to absolute against base.
-  * `pathdirname(filepath)`: Returns the parent directory name of a path.
-  * `pathbasename(filepath)`: Returns the last portion (filename) of a path.
-  * `pathextension(filepath)`: Returns the extension of a file path.
-  * `pathisabsolute(filepath)`: Returns `true` if the path is absolute, `false` otherwise.
+* **Path Utilities:** Cross-platform path handling helpers:
+  * `pathjoin(...paths)`: Joins multiple path segments together, normalizing directory separators.
+    ```omniflux
+    pathjoin("src", "utils", "parser.of")  # Returns "src/utils/parser.of"
+    ```
+  * `pathresolve(base, relative?)`: Resolves a relative path (or sequence of paths) into an absolute path. If `relative` is omitted, resolves `base` against the current working directory.
+    ```omniflux
+    pathresolve("/home/user", "docs")       # Returns "/home/user/docs"
+    pathresolve("/home/user/docs", "../")   # Returns "/home/user"
+    ```
+  * `pathdirname(filepath)`: Returns the directory portion of a file path.
+    ```omniflux
+    pathdirname("/src/utils/parser.of")     # Returns "/src/utils"
+    ```
+  * `pathbasename(filepath)`: Returns the last segment of a path (usually the filename).
+    ```omniflux
+    pathbasename("/src/utils/parser.of")    # Returns "parser.of"
+    ```
+  * `pathextension(filepath)`: Returns the file extension (including the dot).
+    ```omniflux
+    pathextension("/src/utils/parser.of")   # Returns ".of"
+    ```
+  * `pathisabsolute(filepath)`: Returns `true` if the path is absolute, or `false` if it is relative.
+    ```omniflux
+    pathisabsolute("/src/main.of")          # Returns true
+    pathisabsolute("main.of")               # Returns false
+    ```
 * **Date & Time:** Procedural time and date components:
   * `time()`: Returns the current Unix timestamp in seconds.
   * `dateyear(ts)`: Returns the year of the given Unix timestamp `ts` (or the current year if `ts` is not provided).
@@ -488,10 +508,14 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `datehour(ts)`: Returns the hour (0-23) of the given Unix timestamp `ts`.
   * `dateminute(ts)`: Returns the minute (0-59) of the given Unix timestamp `ts`.
   * `datesecond(ts)`: Returns the second (0-59) of the given Unix timestamp `ts`.
-* **Cryptography & Hashing:** Native secure cryptographic hashing:
+  * `dateweekday(ts, format?)`: Returns the day of the week for the given Unix timestamp `ts` (or the current day if `ts` is not provided). The `format` parameter is optional and defaults to `"number"` (returning `0-6` where Sunday is `0`). Alternatively, passing `"short"` or `"text"` returns a 3-letter day abbreviation (e.g., `"Sun"`, `"Mon"`).
+* **Cryptography & Encryption:** Secure hashing and symmetric encryption helpers:
   * `sha256(text)`: Returns the SHA-256 hexadecimal hash string of the input text. Useful for secure password hashing.
+  * `encrypt(text, key)`: Encrypts `text` using the `key` via the secure AES-256-CBC algorithm. Generates a unique, random initialization vector (IV) for each call to ensure identical inputs result in different ciphertexts, and returns the result packed as `iv:ciphertext`.
+  * `decrypt(encryptedText, key)`: Decrypts `encryptedText` (in the `iv:ciphertext` format) using the provided `key`. Returns the original decrypted string, or `null` if decryption fails (e.g., due to an incorrect key or corrupted input).
 * **Web & HTTP Utilities:** Native HTTP helpers:
   * `getcookie(req, name)`: Extracts and returns the value of the cookie `name` from the incoming request `req`. Returns `null` if not found.
+  * `setcookie(res, name, value, options?)`: Sets a cookie on the outgoing response `res` with the specified `name` and `value`. The optional `options` object supports standard cookie attributes (such as `httpOnly`, `secure`, `maxAge`, `path`, etc.). *Note: Because cookies are sent in HTTP headers, this must be called before sending any response body (like HTML or JSON) to the client.*
 * **Template Engine:** HTML template rendering and layout generation:
   * `template(source, context)`: Parses, compiles, and renders an HTML template. Automatically detects if `source` is a file path (loading it from disk) or a raw HTML string. Supports:
     * **Dynamic Expressions:** `{{ user.name }}`
