@@ -1,0 +1,176 @@
+@include("views/header.html")
+
+<main class="container" style="margin-top: 3rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -0.04em;">Developer Dashboard</h1>
+            <p style="color: var(--text-secondary);">Manage your proxy credentials and monitor your token balance.</p>
+        </div>
+        @if (role == "admin") {
+            <a href="/admin" class="btn btn-purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                Admin Panel
+            </a>
+        @}
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Sidebar Stats -->
+        <div class="dashboard-sidebar">
+            <div class="stat-card">
+                <div class="stat-glow"></div>
+                <div class="stat-label">Remaining Balance</div>
+                <div class="stat-val" id="token-balance">{{ tokens_remaining }}</div>
+                <div class="stat-desc">Tokens remaining for API calls</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-glow purple"></div>
+                <div class="stat-label">Access Level</div>
+                <div class="stat-val" style="text-transform: capitalize;">{{ role }}</div>
+                <div class="stat-desc">Your permissions in the system</div>
+            </div>
+        </div>
+
+        <!-- Main Panel -->
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+            <!-- API Key Card -->
+            <div class="panel-card">
+                <h2 class="panel-title">API Authentication Key</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                    Use this key as a Bearer token in your requests to the proxy endpoint. Keep it secret.
+                </p>
+                
+                <div class="key-box">
+                    <input type="password" id="api-key-input" class="form-input key-input" value="{{ api_key }}" readonly>
+                    <button onclick="toggleKeyVisibility()" class="btn btn-secondary" id="toggle-key-btn">Reveal</button>
+                    <button onclick="copyApiKey()" class="btn btn-cyan">Copy</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 2rem;">
+                    <label class="form-label">Example curl Request</label>
+                    <div class="code-card" style="margin-top: 0.5rem;">
+                        <div class="code-body" style="padding: 1rem; font-size: 0.85rem; background: rgba(3, 7, 18, 0.4);">
+                            <pre id="curl-example" style="white-space: pre-wrap; word-break: break-all;">curl -X POST \
+  -H "Authorization: Bearer {{ api_key }}" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello!"}]}' \
+  http://localhost:3000/v1/chat/completions</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Token Shop / Purchase Simulation -->
+            <div class="panel-card">
+                <h2 class="panel-title">Purchase Tokens</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                    Instantly top up your balance. Choose a package below to simulate a checkout.
+                </p>
+                
+                <div class="packages-grid">
+                    <div class="package-card">
+                        <div>
+                            <div class="package-tokens">500,000</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">Tokens Package</div>
+                        </div>
+                        <div>
+                            <div class="package-price">$10.00</div>
+                            <button onclick="simulatePurchase('10.00')" class="btn btn-primary" style="width: 100%;">Buy Lite</button>
+                        </div>
+                    </div>
+                    
+                    <div class="package-card">
+                        <div>
+                            <div class="package-tokens">1,500,000</div>
+                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem;">Tokens Package</div>
+                        </div>
+                        <div>
+                            <div class="package-price">$25.00</div>
+                            <button onclick="simulatePurchase('25.00')" class="btn btn-purple" style="width: 100%;">Buy Pro</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Promo Codes -->
+            <div class="panel-card">
+                <h2 class="panel-title">Redeem Promo Code</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                    Have an invite code or promo code? Claim your tokens here.
+                </p>
+                
+                <form onsubmit="handleRedeemPromo(event)" style="display: flex; gap: 0.5rem;">
+                    <input type="text" id="promo-code" class="form-input" style="flex-grow: 1;" required>
+                    <button type="submit" class="btn btn-cyan">Redeem</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    function toggleKeyVisibility() {
+        const input = document.getElementById('api-key-input');
+        const btn = document.getElementById('toggle-key-btn');
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = 'Hide';
+        } else {
+            input.type = 'password';
+            btn.textContent = 'Reveal';
+        }
+    }
+
+    function copyApiKey() {
+        const input = document.getElementById('api-key-input');
+        navigator.clipboard.writeText(input.value);
+        showToast('API Key copied to clipboard!');
+    }
+
+    async function handleRedeemPromo(event) {
+        event.preventDefault();
+        const code = document.getElementById('promo-code').value;
+        
+        try {
+            const response = await fetch('/api/billing/redeem-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ invite_code: code })
+            });
+            
+            const data = await response.json();
+            if (response.ok) {
+                showToast(data.message || 'Promo code redeemed successfully!');
+                document.getElementById('token-balance').textContent = data.tokens_remaining;
+                document.getElementById('promo-code').value = '';
+            } else {
+                showToast(data.error || 'Failed to redeem promo code', 'error');
+            }
+        } catch (err) {
+            showToast('Connection error', 'error');
+        }
+    }
+
+    async function simulatePurchase(amount) {
+        try {
+            const response = await fetch('/api/billing/simulate-purchase', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: amount })
+            });
+            
+            const data = await response.json();
+            if (response.ok) {
+                showToast(data.message || 'Purchase completed successfully!');
+                document.getElementById('token-balance').textContent = data.tokens_remaining;
+            } else {
+                showToast(data.error || 'Purchase failed', 'error');
+            }
+        } catch (err) {
+            showToast('Connection error', 'error');
+        }
+    }
+</script>
+
+@include("views/footer.html")

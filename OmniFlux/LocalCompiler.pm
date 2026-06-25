@@ -42,7 +42,7 @@ sub compile_locally {
         fileappend file_append filedelete file_delete filecopy file_copy filerename file_rename
         dirlist dir_list dircreate dir_create scriptdir script_dir filestat file_stat cacheset cache_set cacheget cache_get
         dbinsert db_insert dbselect db_select dbupdate db_update dbdelete db_delete
-        setenv set_env getenv get_env sha256 len strsplit str_split match arraypush array_push arrayunshift array_unshift arraypop array_pop arraycontains array_contains
+        setenv set_env getenv get_env sha256 getcookie get_cookie len strsplit str_split match arraypush array_push arrayunshift array_unshift arraypop array_pop arraycontains array_contains
         arrayjoin array_join arrayslice array_slice time dateyear date_year datemonth date_month
         dateday date_day datehour date_hour dateminute date_minute datesecond date_second template describe
         args global console require module process Math JSON Array Object String Number Boolean Error
@@ -728,7 +728,7 @@ sub compile_locally {
             if ($type eq 'json') {
                 $push_out->("res.status($status).json($content);", $orig_num);
             } elsif ($type eq 'file') {
-                $push_out->("res.status($status).sendFile($content);", $orig_num);
+                $push_out->("res.status($status).sendFile(path.resolve(global.__app_root, $content));", $orig_num);
             } elsif ($type eq 'template') {
                 my $tpl_call = ($content =~ /^\s*\(/) ? "template$content" : "template($content)";
                 $push_out->("res.status($status).send($tpl_call);", $orig_num);
@@ -759,7 +759,7 @@ sub compile_locally {
             if ($type eq 'json') {
                 $push_out->("res.json($content);", $orig_num);
             } elsif ($type eq 'file') {
-                $push_out->("res.sendFile($content);", $orig_num);
+                $push_out->("res.sendFile(path.resolve(global.__app_root, $content));", $orig_num);
             } elsif ($type eq 'template') {
                 my $tpl_call = ($content =~ /^\s*\(/) ? "template$content" : "template($content)";
                 $push_out->("res.send($tpl_call);", $orig_num);
@@ -876,27 +876,50 @@ sub compile_locally {
             next;
         }
         
-        # Handle block openings and closings
-        if ($line =~ /\{/ && $line !~ /\}/) {
-            push @block_stack, { type => 'normal' };
+        # Handle block openings and closings using a robust unmatched brace tracking parser
+        my $unmatched_opens = 0;
+        my $unmatched_closes = 0;
+        my @local_stack;
+        my @chars = ($line =~ /([{}])/g);
+        for my $char (@chars) {
+            if ($char eq '{') {
+                push @local_stack, '{';
+            } elsif ($char eq '}') {
+                if (@local_stack && $local_stack[-1] eq '{') {
+                    pop @local_stack;
+                } else {
+                    $unmatched_closes++;
+                }
+            }
         }
-        
-        if ($line =~ /\}/ && $line !~ /\{/) {
-            my $block = pop @block_stack;
-            if ($block && $block->{type} eq 'every') {
-                $line =~ s/\}/\}, $block->{ms}\)/;
+        $unmatched_opens = scalar(@local_stack);
+
+        if ($unmatched_closes > 0) {
+            for (my $i = 0; $i < $unmatched_closes; $i++) {
+                my $block = pop @block_stack;
+                if ($block) {
+                    if ($block->{type} eq 'every') {
+                        $line =~ s/\}/\}, $block->{ms}\)/;
+                    }
+                    elsif ($block->{type} eq 'route') {
+                        $line =~ s/\}/\n    } catch (err) {\n        if (typeof next === "function") { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } } \n    }\n\}\);/;
+                    }
+                    elsif ($block->{type} eq 'route_error') {
+                        $line =~ s/\}/\}\n\}\);/;
+                    }
+                    elsif ($block->{type} eq 'task') {
+                        $line =~ s/\}/\n    } catch (err) { throw err; }\n\}/;
+                    }
+                    elsif ($block->{type} eq 'task_error') {
+                        $line =~ s/\}/\}\n\}/;
+                    }
+                }
             }
-            elsif ($block && $block->{type} eq 'route') {
-                $line =~ s/\}/\n    } catch (err) {\n        if (typeof next === "function") { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } } \n    }\n\}\);/;
-            }
-            elsif ($block && $block->{type} eq 'route_error') {
-                $line =~ s/\}/\}\n\}\);/;
-            }
-            elsif ($block && $block->{type} eq 'task') {
-                $line =~ s/\}/\n    } catch (err) { throw err; }\n\}/;
-            }
-            elsif ($block && $block->{type} eq 'task_error') {
-                $line =~ s/\}/\}\n\}/;
+        }
+
+        if ($unmatched_opens > 0) {
+            for (my $i = 0; $i < $unmatched_opens; $i++) {
+                push @block_stack, { type => 'normal' };
             }
         }
         
@@ -992,6 +1015,7 @@ EOF
     
     # Start server
     if ($has_server && $server_port) {
+        $push_out->("global.__app_root = process.cwd();", 0);
         $push_out->("app.listen($server_port, () => console.log('Server started on port ' + $server_port));", 0);
     }
     

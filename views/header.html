@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} | OmniFlux Developer Portal</title>
+    <meta name="description" content="Secure, frictionless proxy credentials and real-time AI token management powered by OmniFlux.">
+    <link rel="stylesheet" href="/public/css/style.css">
+</head>
+<body>
+    <header>
+        <div class="container nav-container">
+            <a href="/" class="logo">
+                <img src="/public/logo.png" alt="OmniFlux Logo" class="logo-img">
+                OmniFlux
+            </a>
+            <nav class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                @if (email != null) {
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    @if (role == "admin") {
+                        <a href="/admin" class="nav-link">Admin Panel</a>
+                    @}
+                    <span class="nav-link" style="color: var(--text-muted);">{{ email }}</span>
+                    <button onclick="logout()" class="btn btn-secondary">Logout</button>
+                @else {
+                    <a href="/login" class="btn btn-secondary">Sign In</a>
+                    <a href="/login?register=true" class="btn btn-primary">Get Started</a>
+                @}
+            </nav>
+        </div>
+    </header>
+    
+    <div id="toast-container" style="position: fixed; bottom: 2rem; right: 2rem; z-index: 1000;"></div>
+    
+    <script>
+        function logout() {
+            document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+            window.location.href = "/login";
+        }
+        
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type}`;
+            toast.style.display = 'block';
+            toast.style.marginBottom = '0.5rem';
+            toast.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
+            toast.style.backdropFilter = 'blur(10px)';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+    </script>

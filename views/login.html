@@ -1,0 +1,143 @@
+@include("views/header.html")
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2 id="auth-title-text" class="auth-title">Sign In</h2>
+            <p id="auth-subtitle-text" class="auth-subtitle">Access your OmniFlux developer dashboard</p>
+        </div>
+        
+        <div id="error-alert" class="alert alert-error"></div>
+        <div id="success-alert" class="alert alert-success"></div>
+        
+        <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" class="form-input" required autocomplete="email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" class="form-input" required autocomplete="current-password">
+            </div>
+            
+            <div class="form-group" id="invite-group" style="display: none;">
+                <label for="invite_code" class="form-label">Invitation Code (Optional)</label>
+                <input type="text" id="invite_code" class="form-input" autocomplete="off">
+            </div>
+            
+            <button type="submit" id="submit-btn" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 0.8rem;">Sign In</button>
+        </form>
+        
+        <div class="auth-footer">
+            <span id="footer-text">New to OmniFlux?</span>
+            <a href="javascript:void(0)" id="toggle-auth-btn" onclick="toggleAuthMode()" class="auth-link">Create an account</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let isRegisterMode = false;
+    
+    // Check query params to default to register mode
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('register') === 'true') {
+            setAuthMode(true);
+        }
+    });
+
+    function setAuthMode(register) {
+        isRegisterMode = register;
+        const titleText = document.getElementById('auth-title-text');
+        const subtitleText = document.getElementById('auth-subtitle-text');
+        const inviteGroup = document.getElementById('invite-group');
+        const submitBtn = document.getElementById('submit-btn');
+        const footerText = document.getElementById('footer-text');
+        const toggleBtn = document.getElementById('toggle-auth-btn');
+        const errorAlert = document.getElementById('error-alert');
+        const successAlert = document.getElementById('success-alert');
+        
+        errorAlert.style.display = 'none';
+        successAlert.style.display = 'none';
+        
+        if (isRegisterMode) {
+            titleText.textContent = "Create Account";
+            subtitleText.textContent = "Sign up and claim your free trial tokens";
+            inviteGroup.style.display = "block";
+            submitBtn.textContent = "Create Account";
+            footerText.textContent = "Already have an account?";
+            toggleBtn.textContent = "Sign in here";
+        } else {
+            titleText.textContent = "Sign In";
+            subtitleText.textContent = "Access your OmniFlux developer dashboard";
+            inviteGroup.style.display = "none";
+            submitBtn.textContent = "Sign In";
+            footerText.textContent = "New to OmniFlux?";
+            toggleBtn.textContent = "Create an account";
+        }
+    }
+
+    function toggleAuthMode() {
+        setAuthMode(!isRegisterMode);
+    }
+    
+    async function handleAuthSubmit(event) {
+        event.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const inviteCode = document.getElementById('invite_code').value;
+        const errorAlert = document.getElementById('error-alert');
+        const successAlert = document.getElementById('success-alert');
+        
+        errorAlert.style.display = 'none';
+        successAlert.style.display = 'none';
+        
+        const url = isRegisterMode ? '/api/auth/register' : '/api/auth/login';
+        const body = { email, password };
+        if (isRegisterMode && inviteCode) {
+            body.invite_code = inviteCode;
+        }
+        
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                errorAlert.textContent = data.error || 'Authentication failed. Please try again.';
+                errorAlert.style.display = 'block';
+                return;
+            }
+            
+            if (isRegisterMode) {
+                successAlert.textContent = "Account created successfully! Signing in...";
+                successAlert.style.display = 'block';
+                // Wait briefly then log in automatically
+                setTimeout(() => {
+                    setAuthMode(false);
+                    document.getElementById('password').value = password;
+                    handleAuthSubmit(event);
+                }, 1500);
+            } else {
+                // Set cookie
+                document.cookie = `auth_token=${data.api_key}; path=/; max-age=2592000; SameSite=Strict`;
+                successAlert.textContent = "Login successful! Redirecting...";
+                successAlert.style.display = 'block';
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
+            }
+        } catch (err) {
+            errorAlert.textContent = 'Server connection error. Please try again later.';
+            errorAlert.style.display = 'block';
+        }
+    }
+</script>
+
+@include("views/footer.html")

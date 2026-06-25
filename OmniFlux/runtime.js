@@ -215,6 +215,16 @@ function sha256(text) {
     return crypto.createHash('sha256').update(text).digest('hex');
 }
 
+function getcookie(req, name) {
+    if (!req || !req.headers || !req.headers.cookie) return null;
+    const cookies = req.headers.cookie.split(';');
+    for (let c of cookies) {
+        const parts = c.split('=');
+        if (parts[0].trim() === name) return parts[1].trim();
+    }
+    return null;
+}
+
 // --- Databases (Local JSON DB) ---
 let cachedDb = null;
 let cachedDbMtime = 0;
@@ -532,11 +542,16 @@ function datesecond(ts) {
 function template(source, context = {}) {
     if (typeof source !== 'string') return '';
     
+    // Resolve paths relative to the startup working directory (Passenger-safe)
+    const appRoot = (typeof global !== 'undefined' && global.__app_root) ? global.__app_root : process.cwd();
+    const resolvePath = (p) => path.isAbsolute(p) ? p : path.resolve(appRoot, p);
+    
     let html = source;
     try {
         // 1. Auto-detect if source is a file path that exists
-        if (fs.existsSync(source)) {
-            html = fs.readFileSync(source, 'utf8');
+        const resolvedSource = resolvePath(source);
+        if (fs.existsSync(resolvedSource)) {
+            html = fs.readFileSync(resolvedSource, 'utf8');
         }
         
         // 2. Resolve includes recursively
@@ -544,10 +559,11 @@ function template(source, context = {}) {
         const maxIncludeDepth = 10;
         while (/@include\s*\(\s*["'](.*?)["']\s*\)/.test(html) && includeDepth < maxIncludeDepth) {
             html = html.replace(/@include\s*\(\s*["'](.*?)["']\s*\)/g, (match, filepath) => {
-                if (!fs.existsSync(filepath)) {
+                const resolvedInclude = resolvePath(filepath);
+                if (!fs.existsSync(resolvedInclude)) {
                     throw new Error(`Include file not found: '${filepath}'`);
                 }
-                return fs.readFileSync(filepath, 'utf8');
+                return fs.readFileSync(resolvedInclude, 'utf8');
             });
             includeDepth++;
         }
@@ -712,6 +728,9 @@ global.getenv = getenv;
 global.get_env = getenv;
 
 global.sha256 = sha256;
+
+global.getcookie = getcookie;
+global.get_cookie = getcookie;
 
 global.filestat = filestat;
 global.file_stat = filestat;
