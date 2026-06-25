@@ -446,6 +446,8 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `datehour(ts)`: Returns the hour (0-23) of the given Unix timestamp `ts`.
   * `dateminute(ts)`: Returns the minute (0-59) of the given Unix timestamp `ts`.
   * `datesecond(ts)`: Returns the second (0-59) of the given Unix timestamp `ts`.
+* **Cryptography & Hashing:** Native secure cryptographic hashing:
+  * `sha256(text)`: Returns the SHA-256 hexadecimal hash string of the input text. Useful for secure password hashing.
 * **Template Engine:** HTML template rendering and layout generation:
   * `template(source, context)`: Parses, compiles, and renders an HTML template. Automatically detects if `source` is a file path (loading it from disk) or a raw HTML string. Supports:
     * **Dynamic Expressions:** `{{ user.name }}`
