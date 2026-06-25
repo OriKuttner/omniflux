@@ -398,6 +398,8 @@ OmniFlux provides simple, procedural statements for sending HTTP responses, full
   * `respond file "/path/to/file.png"`
   * `respond status 200 and file "/path/to/file.png"`
 
+  Paths can be absolute or relative. Relative paths are **always resolved relative to the working directory at server startup** — not at request time — making them safe when deployed under process managers like Phusion Passenger.
+
 * **Redirects:**
   * `redirect to "/login"`
   * `redirect to "/login" with status 301` (for permanent redirects)
@@ -405,6 +407,20 @@ OmniFlux provides simple, procedural statements for sending HTTP responses, full
 * **Template Responses (renders and sends HTML templates):**
   * `respond template("views/index.html", { "title": "Home" })`
   * `respond status 200 and template("views/index.html")`
+
+  The template engine reads the `.html` file and processes `{{ variable }}` interpolation and `@if`/`@else`/`@for` control blocks. It also recursively resolves `@include("path/to/partial.html")` directives. Like `respond file`, all paths are resolved relative to the startup working directory, ensuring correct behavior under Passenger.
+
+> **Deployment Note (Apache + Phusion Passenger):**
+> When running an OmniFlux server behind Apache with Passenger, Apache's document root is typically set to the `public/` directory. This means any static assets placed in `public/` (CSS, images, JS) are served **directly by Apache** and never reach the OmniFlux application. This is more efficient than serving them through Node.js. Dynamic routes (`GET "/"`, `POST "/api/..."`, etc.) are transparently proxied by Passenger to the OmniFlux process.
+>
+> To serve static assets when running **standalone** (without Apache), define a single wildcard route:
+> ```
+> GET "/public/*file" (req, res) {
+>     var file_path = req.params.file.join("/")
+>     respond with file "public/" + file_path
+> }
+> ```
+> This route is harmlessly ignored under Apache, since Apache intercepts those requests first.
 
 ---
 
@@ -448,6 +464,8 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `datesecond(ts)`: Returns the second (0-59) of the given Unix timestamp `ts`.
 * **Cryptography & Hashing:** Native secure cryptographic hashing:
   * `sha256(text)`: Returns the SHA-256 hexadecimal hash string of the input text. Useful for secure password hashing.
+* **Web & HTTP Utilities:** Native HTTP helpers:
+  * `getcookie(req, name)`: Extracts and returns the value of the cookie `name` from the incoming request `req`. Returns `null` if not found.
 * **Template Engine:** HTML template rendering and layout generation:
   * `template(source, context)`: Parses, compiles, and renders an HTML template. Automatically detects if `source` is a file path (loading it from disk) or a raw HTML string. Supports:
     * **Dynamic Expressions:** `{{ user.name }}`
