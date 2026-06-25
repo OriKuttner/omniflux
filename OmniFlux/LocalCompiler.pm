@@ -20,6 +20,12 @@ sub compile_locally {
         cacheset => 1,
         cache_get => 1,
         cacheget => 1,
+        arraymap => 1,
+        array_map => 1,
+        arrayfilter => 1,
+        array_filter => 1,
+        arrayfind => 1,
+        array_find => 1,
     );
     if ($ext_funcs_ref) {
         for my $f (@$ext_funcs_ref) {
@@ -45,6 +51,9 @@ sub compile_locally {
         setenv set_env getenv get_env sha256 getcookie get_cookie len strsplit str_split match arraypush array_push arrayunshift array_unshift arraypop array_pop arraycontains array_contains
         arrayjoin array_join arrayslice array_slice time dateyear date_year datemonth date_month
         dateday date_day datehour date_hour dateminute date_minute datesecond date_second template describe
+        strtrim str_trim strsub str_sub strindexof str_index_of strlastindexof str_last_index_of strrepeat str_repeat strreplace str_replace strupper str_upper strlower str_lower
+        pathjoin path_join pathresolve path_resolve pathdirname path_dir_name pathbasename path_base_name pathextension path_extension pathisabsolute path_is_absolute
+        exit arrayreverse array_reverse arraysort array_sort arraymap array_map arrayfilter array_filter arrayshift array_shift arrayfind array_find
         args global console require module process Math JSON Array Object String Number Boolean Error
         setTimeout setInterval clearTimeout clearInterval NaN
     )) {

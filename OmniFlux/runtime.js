@@ -425,41 +425,95 @@ function len(val) {
     return val.length || 0;
 }
 
-function strsplit(str, sep) {
-    if (typeof str === 'string') {
-        return str.split(sep);
-    }
-    return [];
-}
-
-function match(str, regex) {
-    if (str === null || str === undefined) return false;
-    let regexObj;
+function toRegExp(regex) {
     if (regex instanceof RegExp) {
-        regexObj = regex;
-    } else if (typeof regex === 'string') {
+        return regex;
+    }
+    if (typeof regex === 'string') {
         const firstChar = regex.charAt(0);
         if (/^[^a-zA-Z0-9\s\\]/.test(firstChar)) {
             const lastDelim = regex.lastIndexOf(firstChar);
             if (lastDelim > 0) {
                 const pattern = regex.substring(1, lastDelim);
                 const flags = regex.substring(lastDelim + 1);
-                regexObj = new RegExp(pattern, flags);
-            } else {
-                regexObj = new RegExp(regex);
+                return new RegExp(pattern, flags);
             }
-        } else {
-            regexObj = new RegExp(regex);
         }
-    } else {
-        return false;
+        return new RegExp(regex);
     }
+    return null;
+}
+
+function strsplit(str, sep) {
+    if (typeof str !== 'string') return [];
+    if (sep === undefined) return [str];
+    const regexObj = toRegExp(sep);
+    if (regexObj) {
+        return str.split(regexObj);
+    }
+    return str.split(sep);
+}
+
+function match(str, regex) {
+    if (str === null || str === undefined) return false;
+    const regexObj = toRegExp(regex);
+    if (!regexObj) return false;
     const res = String(str).match(regexObj);
     if (!res) return false;
     if (res.length > 1) {
         return res.slice(1);
     }
     return true;
+}
+
+function strtrim(str, side = 'both') {
+    const s = String(str || '');
+    if (side === 'left') return s.trimStart();
+    if (side === 'right') return s.trimEnd();
+    return s.trim();
+}
+
+function strsub(str, start, length) {
+    const s = String(str || '');
+    if (length === undefined) {
+        return s.substring(start);
+    }
+    return s.substring(start, start + length);
+}
+
+function strindexof(str, search) {
+    const s = String(str || '');
+    return s.indexOf(search);
+}
+
+function strlastindexof(str, search) {
+    const s = String(str || '');
+    return s.lastIndexOf(search);
+}
+
+function strrepeat(str, n) {
+    const s = String(str || '');
+    const count = parseInt(n, 10);
+    if (isNaN(count) || count <= 0) return '';
+    return s.repeat(count);
+}
+
+function strreplace(str, search, replacement) {
+    const s = String(str || '');
+    const r = String(replacement !== undefined ? replacement : '');
+    const regexObj = toRegExp(search);
+    if (regexObj) {
+        return s.replace(regexObj, r);
+    }
+    return s.replaceAll(search, r);
+}
+
+function strupper(str) {
+    return String(str || '').toUpperCase();
+}
+
+function strlower(str) {
+    return String(str || '').toLowerCase();
 }
 
 function arraypush(arr, item) {
@@ -501,6 +555,94 @@ function arrayslice(arr, start, end) {
         return arr.slice(start, end);
     }
     return [];
+}
+
+// --- Path Utilities ---
+function pathjoin(...paths) {
+    const path = require('path');
+    return path.join(...paths.map(p => String(p || '')));
+}
+
+function pathresolve(base, relative) {
+    const path = require('path');
+    if (relative === undefined) {
+        return path.resolve(String(base || ''));
+    }
+    return path.resolve(String(base || ''), String(relative || ''));
+}
+
+function pathdirname(filepath) {
+    const path = require('path');
+    return path.dirname(String(filepath || ''));
+}
+
+function pathbasename(filepath) {
+    const path = require('path');
+    return path.basename(String(filepath || ''));
+}
+
+function pathextension(filepath) {
+    const path = require('path');
+    return path.extname(String(filepath || ''));
+}
+
+function pathisabsolute(filepath) {
+    const path = require('path');
+    return path.isAbsolute(String(filepath || ''));
+}
+
+// --- Process Control ---
+function exit(code = 0) {
+    process.exit(parseInt(code, 10) || 0);
+}
+
+// --- Advanced Array Utilities ---
+function arrayreverse(arr) {
+    if (!Array.isArray(arr)) return [];
+    return [...arr].reverse();
+}
+
+function arraysort(arr) {
+    if (!Array.isArray(arr)) return [];
+    return [...arr].sort();
+}
+
+async function arraymap(arr, task) {
+    if (!Array.isArray(arr)) return [];
+    if (typeof task !== 'function') return [...arr];
+    const results = [];
+    for (let i = 0; i < arr.length; i++) {
+        results.push(await task(arr[i], i, arr));
+    }
+    return results;
+}
+
+async function arrayfilter(arr, task) {
+    if (!Array.isArray(arr)) return [];
+    if (typeof task !== 'function') return [...arr];
+    const results = [];
+    for (let i = 0; i < arr.length; i++) {
+        if (await task(arr[i], i, arr)) {
+            results.push(arr[i]);
+        }
+    }
+    return results;
+}
+
+function arrayshift(arr) {
+    if (!Array.isArray(arr)) return null;
+    return arr.shift();
+}
+
+async function arrayfind(arr, task) {
+    if (!Array.isArray(arr)) return null;
+    if (typeof task !== 'function') return null;
+    for (let i = 0; i < arr.length; i++) {
+        if (await task(arr[i], i, arr)) {
+            return arr[i];
+        }
+    }
+    return null;
 }
 
 // --- Date & Time ---
@@ -774,6 +916,55 @@ global.array_join = arrayjoin;
 
 global.arrayslice = arrayslice;
 global.array_slice = arrayslice;
+
+// New String bindings
+global.strtrim = strtrim;
+global.str_trim = strtrim;
+global.strsub = strsub;
+global.str_sub = strsub;
+global.strindexof = strindexof;
+global.str_index_of = strindexof;
+global.strlastindexof = strlastindexof;
+global.str_last_index_of = strlastindexof;
+global.strrepeat = strrepeat;
+global.str_repeat = strrepeat;
+global.strreplace = strreplace;
+global.str_replace = strreplace;
+global.strupper = strupper;
+global.str_upper = strupper;
+global.strlower = strlower;
+global.str_lower = strlower;
+
+// New Path bindings
+global.pathjoin = pathjoin;
+global.path_join = pathjoin;
+global.pathresolve = pathresolve;
+global.path_resolve = pathresolve;
+global.pathdirname = pathdirname;
+global.path_dir_name = pathdirname;
+global.pathbasename = pathbasename;
+global.path_base_name = pathbasename;
+global.pathextension = pathextension;
+global.path_extension = pathextension;
+global.pathisabsolute = pathisabsolute;
+global.path_is_absolute = pathisabsolute;
+
+// New Process bindings
+global.exit = exit;
+
+// New Array bindings
+global.arrayreverse = arrayreverse;
+global.array_reverse = arrayreverse;
+global.arraysort = arraysort;
+global.array_sort = arraysort;
+global.arraymap = arraymap;
+global.array_map = arraymap;
+global.arrayfilter = arrayfilter;
+global.array_filter = arrayfilter;
+global.arrayshift = arrayshift;
+global.array_shift = arrayshift;
+global.arrayfind = arrayfind;
+global.array_find = arrayfind;
 
 global.time = time;
 
