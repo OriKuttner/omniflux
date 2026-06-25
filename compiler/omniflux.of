@@ -183,7 +183,8 @@ define task run_output(output_file, run_args) {
     }
     print("Running: %s", output_file)
     print("----------------------------------------")
-    system(cmd)
+    var out = system(cmd)
+    printf("%s", out)
     print("----------------------------------------")
 }
 
