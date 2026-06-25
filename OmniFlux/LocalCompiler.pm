@@ -846,6 +846,20 @@ sub compile_locally {
             push @block_stack, { type => 'normal' };
             next;
         }
+        elsif ($line =~ /^\s*\}\s*else\s+if\s+(.*?)\s*\{/i) {
+            my $cond = $1;
+            $cond = "($cond)" if $cond !~ /^\(.*\)$/;
+            pop @block_stack;
+            push @block_stack, { type => 'normal' };
+            $push_out->("} else if $cond {", $orig_num);
+            next;
+        }
+        elsif ($line =~ /^\s*\}\s*else\s*\{/i) {
+            pop @block_stack;
+            push @block_stack, { type => 'normal' };
+            $push_out->("} else {", $orig_num);
+            next;
+        }
         elsif ($line =~ /^\s*\}\s*on\s+error\s*\((.*?)\)\s*\{/i) {
             my $var = $1;
             my $block = pop @block_stack;

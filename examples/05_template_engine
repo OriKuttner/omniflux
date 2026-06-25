@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// .omniflux_cache/examples/01_hello_world.js
+// .omniflux_cache/examples/05_template_engine.js
 var fs = require("fs");
 var util = require("util");
 var path = require("path");
@@ -739,6 +739,8 @@ document.addEventListener('click', async (e) => {
     const tokenRegex = /(@if\s*\(.*?\)\s*\{|@else\s*if\s*\(.*?\)\s*\{|@else\s*\{|@for\s*\(.*?\)\s*\{|@\})/g;
     const parts = html.split(tokenRegex);
     let jsCode = "let _out = '';\n";
+    jsCode += "with(global.vars || {}) {\n";
+    jsCode += "with(context || {}) {\n";
     for (let part of parts) {
       if (!part)
         continue;
@@ -771,6 +773,7 @@ document.addEventListener('click', async (e) => {
 `;
       }
     }
+    jsCode += "}\n}\n";
     jsCode += "return _out;";
     const keys = ["context", ...Object.keys(context)];
     const values = [context, ...Object.values(context)];
@@ -968,24 +971,153 @@ process.on("unhandledRejection", (reason) => {
   formatRuntimeError(err, "OmniFlux Runtime Error (Unhandled Rejection)");
   process.exit(1);
 });
-var APP_NAME = "OmniFlux Demo";
-visitor_count = 0;
-async function greet(name) {
-  try {
-    global.vars.visitor_count = global.vars.visitor_count + 1;
-    print("Hello, %s! You are visitor number %d.", name, global.vars.visitor_count);
-  } catch (err) {
-    throw err;
-  }
-}
+//! OF_LINE: 05_template_engine.of:1
+//! OF_LINE: 05_template_engine.of:2
+//! OF_LINE: 05_template_engine.of:3
+//! OF_LINE: 05_template_engine.of:4
+global.vars.site_name = "OmniFlux Documentation";
+//! OF_LINE: 05_template_engine.of:5
+//! OF_LINE: 05_template_engine.of:6
 async function __on_start_1() {
-  printf("Initializing %s...", APP_NAME);
-  printf(" Done!\n");
-  await greet("Alice");
-  await greet("Bob");
-  await greet("Charlie");
+  //! OF_LINE: 05_template_engine.of:7
+  print("=== OmniFlux HTML Template Engine Demo ===");
+  //! OF_LINE: 05_template_engine.of:8
+  //! OF_LINE: 05_template_engine.of:9
+  //! OF_LINE: 05_template_engine.of:10
+  let page_template = "<!DOCTYPE html><html><head><title>{{ page_title }}</title></head>";
+  //! OF_LINE: 05_template_engine.of:11
+  page_template = page_template + '<body style="font-family: Arial, sans-serif; padding: 20px; background-color: #fafafa;">';
+  //! OF_LINE: 05_template_engine.of:12
+  page_template = page_template + '<header style="background: #0284c7; color: white; padding: 15px; border-radius: 4px;">';
+  //! OF_LINE: 05_template_engine.of:13
+  page_template = page_template + "<h1>Welcome to {{ site_name }}</h1></header>";
+  //! OF_LINE: 05_template_engine.of:14
+  page_template = page_template + '<main style="margin-top: 20px; background: white; padding: 20px; border-radius: 4px; border: 1px solid #e2e8f0;">';
+  //! OF_LINE: 05_template_engine.of:15
+  page_template = page_template + "<h2>Hello, {{ user.name }}!</h2>";
+  //! OF_LINE: 05_template_engine.of:16
+  //! OF_LINE: 05_template_engine.of:17
+  //! OF_LINE: 05_template_engine.of:18
+  page_template = page_template + "@if (user.is_admin) {";
+  //! OF_LINE: 05_template_engine.of:19
+  page_template = page_template + '<p style="color: #0284c7; font-weight: bold;">System Administrator Console Active.</p>';
+  //! OF_LINE: 05_template_engine.of:20
+  page_template = page_template + "@else {";
+  //! OF_LINE: 05_template_engine.of:21
+  page_template = page_template + '<p style="color: #64748b;">Standard developer access.</p>';
+  //! OF_LINE: 05_template_engine.of:22
+  page_template = page_template + "@}";
+  //! OF_LINE: 05_template_engine.of:23
+  //! OF_LINE: 05_template_engine.of:24
+  page_template = page_template + "<h3>Available Modules:</h3>";
+  //! OF_LINE: 05_template_engine.of:25
+  //! OF_LINE: 05_template_engine.of:26
+  //! OF_LINE: 05_template_engine.of:27
+  page_template = page_template + "@if (len(modules) > 0) {";
+  //! OF_LINE: 05_template_engine.of:28
+  page_template = page_template + "<ul>";
+  //! OF_LINE: 05_template_engine.of:29
+  page_template = page_template + "@for (module of modules) {";
+  //! OF_LINE: 05_template_engine.of:30
+  page_template = page_template + "<li><strong>{{ module.name }}</strong>: {{ module.desc }}</li>";
+  //! OF_LINE: 05_template_engine.of:31
+  page_template = page_template + "@}";
+  //! OF_LINE: 05_template_engine.of:32
+  page_template = page_template + "</ul>";
+  //! OF_LINE: 05_template_engine.of:33
+  page_template = page_template + "@else {";
+  //! OF_LINE: 05_template_engine.of:34
+  page_template = page_template + "<p>No modules loaded.</p>";
+  //! OF_LINE: 05_template_engine.of:35
+  page_template = page_template + "@}";
+  //! OF_LINE: 05_template_engine.of:36
+  //! OF_LINE: 05_template_engine.of:37
+  //! OF_LINE: 05_template_engine.of:38
+  page_template = page_template + '<div id="newsContainer" style="margin-top: 20px; padding: 15px; border-top: 1px solid #e2e8f0;">';
+  //! OF_LINE: 05_template_engine.of:39
+  page_template = page_template + "<h3>Newsletter Subscription</h3>";
+  //! OF_LINE: 05_template_engine.of:40
+  page_template = page_template + '<form action="/subscribe" method="POST" of-target="#newsContainer">';
+  //! OF_LINE: 05_template_engine.of:41
+  page_template = page_template + '<input type="email" name="email" required>';
+  //! OF_LINE: 05_template_engine.of:42
+  page_template = page_template + '<button type="submit">Subscribe</button>';
+  //! OF_LINE: 05_template_engine.of:43
+  page_template = page_template + "</form>";
+  //! OF_LINE: 05_template_engine.of:44
+  page_template = page_template + "</div>";
+  //! OF_LINE: 05_template_engine.of:45
+  //! OF_LINE: 05_template_engine.of:46
+  page_template = page_template + "</main>";
+  //! OF_LINE: 05_template_engine.of:47
+  page_template = page_template + '<footer style="margin-top: 20px; text-align: center; color: #64748b; font-size: 12px;">';
+  //! OF_LINE: 05_template_engine.of:48
+  page_template = page_template + "&copy; {{ dateyear(time()) }} {{ site_name }}. Built with OmniFlux.";
+  //! OF_LINE: 05_template_engine.of:49
+  page_template = page_template + "</footer></body></html>";
+  //! OF_LINE: 05_template_engine.of:50
+  //! OF_LINE: 05_template_engine.of:51
+  //! OF_LINE: 05_template_engine.of:52
+  let admin_context = {
+    //! OF_LINE: 05_template_engine.of:53
+    page_title: "Admin Dashboard",
+    //! OF_LINE: 05_template_engine.of:54
+    user: {
+      //! OF_LINE: 05_template_engine.of:55
+      name: "Alice",
+      //! OF_LINE: 05_template_engine.of:56
+      is_admin: true
+      //! OF_LINE: 05_template_engine.of:57
+    },
+    //! OF_LINE: 05_template_engine.of:58
+    modules: [
+      //! OF_LINE: 05_template_engine.of:59
+      { name: "dbquery", desc: "Native MySQL prepared statement queries" },
+      //! OF_LINE: 05_template_engine.of:60
+      { name: "cacheset", desc: "High performance Redis caching" },
+      //! OF_LINE: 05_template_engine.of:61
+      { name: "template", desc: "Angular-style HTML template compilation" }
+      //! OF_LINE: 05_template_engine.of:62
+    ]
+    //! OF_LINE: 05_template_engine.of:63
+  };
+  //! OF_LINE: 05_template_engine.of:64
+  //! OF_LINE: 05_template_engine.of:65
+  //! OF_LINE: 05_template_engine.of:66
+  let guest_context = {
+    //! OF_LINE: 05_template_engine.of:67
+    page_title: "Guest Portal",
+    //! OF_LINE: 05_template_engine.of:68
+    user: {
+      //! OF_LINE: 05_template_engine.of:69
+      name: "Bob",
+      //! OF_LINE: 05_template_engine.of:70
+      is_admin: false
+      //! OF_LINE: 05_template_engine.of:71
+    },
+    //! OF_LINE: 05_template_engine.of:72
+    modules: []
+    //! OF_LINE: 05_template_engine.of:73
+  };
+  //! OF_LINE: 05_template_engine.of:74
+  //! OF_LINE: 05_template_engine.of:75
+  //! OF_LINE: 05_template_engine.of:76
+  print("\n--- Rendering Admin View ---");
+  //! OF_LINE: 05_template_engine.of:77
+  let admin_html = template(page_template, admin_context);
+  //! OF_LINE: 05_template_engine.of:78
+  print("%s", admin_html);
+  //! OF_LINE: 05_template_engine.of:79
+  //! OF_LINE: 05_template_engine.of:80
+  //! OF_LINE: 05_template_engine.of:81
+  print("\n--- Rendering Guest View ---");
+  //! OF_LINE: 05_template_engine.of:82
+  let guest_html = template(page_template, guest_context);
+  //! OF_LINE: 05_template_engine.of:83
+  print("%s", guest_html);
+  //! OF_LINE: 05_template_engine.of:84
 }
-global.greet = greet;
+//! OF_LINE: 05_template_engine.of:85
 global.__on_start_hooks = global.__on_start_hooks || [];
 global.__on_start_hooks.push(__on_start_1);
 if (require.main === module) {

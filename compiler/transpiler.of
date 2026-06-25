@@ -1,0 +1,478 @@
+// transpiler.of
+// Core code generator for the OmniFlux bootstrap compiler.
+// Takes stripped, validated source code and produces JavaScript.
+//
+// transpile(content, filename, user_tasks, runtime_js) returns:
+//   { ok: true, js: "..." }
+//   { ok: false, error: "message" }
+
+include "compiler/symbols.of"
+
+// ---------------------------------------------------------------------------
+// Helper: wrap a condition with parentheses if not already wrapped
+// ---------------------------------------------------------------------------
+define task ensure_parens(cond) {
+    var trimmed = strtrim(cond)
+    if strsub(trimmed, 0, 1) == "(" && strsub(trimmed, len(trimmed) - 1, 1) == ")" {
+        return trimmed
+    }
+    return "(" + trimmed + ")"
+}
+
+// ---------------------------------------------------------------------------
+// Helper: replace all $VAR references with global.vars.VAR
+// ---------------------------------------------------------------------------
+define task replace_globals(line) {
+    return strreplace(line, "/\\$([a-zA-Z_]\\w*)/g", "global.vars.$1")
+}
+
+// ---------------------------------------------------------------------------
+// Helper: insert await before all async task calls on a line
+// ---------------------------------------------------------------------------
+define task insert_awaits(line, user_tasks) {
+    var result = line
+    var all_async = @{ Array.isArray(global.ASYNC_BUILTINS) ? global.ASYNC_BUILTINS : Array.from(global.ASYNC_BUILTINS || []) @}
+    for name of all_async {
+        var pattern = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)" + name + "\\b/g"
+        result = strreplace(result, pattern, "await " + name)
+    }
+    var task_names = @{ Object.keys(user_tasks) @}
+    for name2 of task_names {
+        var pattern2 = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!REFERENCE_)" + name2 + "\\b/g"
+        result = strreplace(result, pattern2, "await " + name2)
+    }
+    return result
+}
+
+// ---------------------------------------------------------------------------
+// transpile_line: process a single source line and return its JS equivalent.
+// Returns an array of output JS lines (usually one, sometimes more).
+// Returns null to signal that this line was already handled by the caller.
+// state is a mutable object tracking block_stack, on_start_funcs, etc.
+// ---------------------------------------------------------------------------
+define task transpile_line(raw_line, filename, user_tasks, line_num, state) {
+    var line = strtrim(raw_line)
+    var out = []
+
+    // Skip empty lines
+    if line == "" {
+        arraypush(out, "")
+        return out
+    }
+
+    // --- include → require ---
+    var inc_match = match(line, "/^include\\s+[\"']?([^\"'\\s;]+)[\"']?/i")
+    if inc_match {
+        var inc_path = strreplace(inc_match[0], "/.of$/", ".js")
+        if !match(inc_path, "/^\\./") {
+            inc_path = "./" + inc_path
+        }
+        arraypush(out, "require('" + inc_path + "');")
+        return out
+    }
+
+    // --- define task / fn ---
+    var task_with = match(line, "/^(?:define\\s+task|fn)\\s+(\\w+)\\s+with\\s+([^{]+)\\s*\\{/i")
+    if task_with {
+        var tname = task_with[0]
+        var tparams = strtrim(task_with[1])
+        arraypush(state.tasks, tname)
+        arraypush(state.block_stack, "task")
+        arraypush(out, "async function " + tname + "(" + tparams + ") { try {")
+        return out
+    }
+    var task_paren = match(line, "/^(?:define\\s+task|fn)\\s+(\\w+)\\s*(?:\\(([^)]*)\\))?\\s*\\{/i")
+    if task_paren {
+        var tname2 = task_paren[0]
+        var tparams2 = task_paren[1] || ""
+        arraypush(state.tasks, tname2)
+        arraypush(state.block_stack, "task")
+        arraypush(out, "async function " + tname2 + "(" + tparams2 + ") { try {")
+        return out
+    }
+
+    // --- Lifecycle hooks ---
+    if match(line, "/^on\\s+start\\s*\\{/i") {
+        state.on_start_count = state.on_start_count + 1
+        var fn_name = "__on_start_" + state.on_start_count
+        arraypush(state.on_start_funcs, fn_name)
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "async function " + fn_name + "() {")
+        return out
+    }
+    if match(line, "/^on\\s+shutdown\\s*\\{/i") {
+        state.on_shutdown_count = state.on_shutdown_count + 1
+        var fn_sd = "__on_shutdown_" + state.on_shutdown_count
+        arraypush(state.on_shutdown_funcs, fn_sd)
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "async function " + fn_sd + "() {")
+        return out
+    }
+    var on_error_m = match(line, "/^on\\s+error\\s*\\(([^)]*)\\)\\s*\\{/i")
+    if on_error_m {
+        state.on_error_count = state.on_error_count + 1
+        var fn_err = "__on_error_" + state.on_error_count
+        arraypush(state.on_error_funcs, fn_err)
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "async function " + fn_err + "(" + on_error_m[0] + ") {")
+        return out
+    }
+    var on_req_m = match(line, "/^on\\s+request\\s*\\(([^)]*)\\)\\s*\\{/i")
+    if on_req_m {
+        state.on_request_count = state.on_request_count + 1
+        var fn_req = "__on_request_" + state.on_request_count
+        arraypush(state.on_request_funcs, fn_req)
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "async function " + fn_req + "(" + on_req_m[0] + ") {")
+        return out
+    }
+
+    // --- every N seconds|minutes|hours block ---
+    var every_m = match(line, "/^every\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)\\s*\\{/i")
+    if every_m {
+        var ev_val = every_m[0]
+        var ev_unit = every_m[1]
+        var ev_mult = "1000"
+        if match(ev_unit, "/^min/i") {
+            ev_mult = "60000"
+        }
+        if match(ev_unit, "/^hour/i") {
+            ev_mult = "3600000"
+        }
+        var ev_ms = ev_val + " * " + ev_mult
+        arraypush(state.block_stack, "every:" + ev_ms)
+        arraypush(out, "setInterval(async () => {")
+        return out
+    }
+
+    // --- wait N seconds|minutes|hours ---
+    var wait_m = match(line, "/^wait\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i")
+    if wait_m {
+        var wt_val = wait_m[0]
+        var wt_unit = wait_m[1]
+        var wt_mult = "1000"
+        if match(wt_unit, "/^min/i") {
+            wt_mult = "60000"
+        }
+        if match(wt_unit, "/^hour/i") {
+            wt_mult = "3600000"
+        }
+        var wt_ms = wt_val + " * " + wt_mult
+        arraypush(out, "await new Promise(resolve => setTimeout(resolve, " + wt_ms + "));")
+        return out
+    }
+
+    // --- listen on port ---
+    var listen_m = match(line, "/^listen\\s+on\\s+port\\s+(.*)/i")
+    if listen_m {
+        state.server_port = strtrim(listen_m[0])
+        arraypush(out, "const express = require('express');")
+        arraypush(out, "const app = express();")
+        arraypush(out, "app.use(express.json());")
+        arraypush(out, "app.use(express.urlencoded({ extended: true }));")
+        arraypush(out, "app.use(async (req, res, next) => {")
+        arraypush(out, "    try {")
+        arraypush(out, "        const hooks = global.__on_request_hooks || [];")
+        arraypush(out, "        for (const hook of hooks) {")
+        arraypush(out, "            if (!res.headersSent) { await hook(req, res); }")
+        arraypush(out, "        }")
+        arraypush(out, "        if (!res.headersSent) { next(); }")
+        arraypush(out, "    } catch (e) { next(e); }")
+        arraypush(out, "});")
+        return out
+    }
+
+    // --- HTTP route handlers ---
+    var route_m = match(line, "/^(GET|POST|PUT|DELETE)\\s+[\"']([^\"']+)[\"']\\s*\\(([^)]*)\\)\\s*\\{/i")
+    if route_m {
+        var route_method = strlower(route_m[0])
+        var route_path = route_m[1]
+        var route_params = route_m[2]
+        arraypush(state.block_stack, "route")
+        arraypush(out, "app." + route_method + "(\"" + route_path + "\", async (" + route_params + ") => { try {")
+        return out
+    }
+
+    // --- redirect to ---
+    var redir_m = match(line, "/^redirect\\s+to\\s+[\"']?([^\"'\\s]+)[\"']?(?:\\s+with\\s+status\\s+(\\d+))?/i")
+    if redir_m {
+        var redir_url = redir_m[0]
+        var redir_status = redir_m[1]
+        if redir_status {
+            arraypush(out, "res.status(" + redir_status + ").redirect('" + redir_url + "');")
+        } else {
+            arraypush(out, "res.redirect('" + redir_url + "');")
+        }
+        return out
+    }
+
+    // --- respond with status N and TYPE content ---
+    var resp_status_m = match(line, "/^respond\\s+(?:with\\s+)?status\\s+(\\S+)\\s+and\\s+(json|html|text|file|template)\\s+(.*)/i")
+    if resp_status_m {
+        var rs_status = resp_status_m[0]
+        var rs_type = strlower(resp_status_m[1])
+        var rs_content = strtrim(resp_status_m[2])
+        if rs_type == "json" {
+            arraypush(out, "res.status(" + rs_status + ").json(" + rs_content + ");")
+        } else if (rs_type == "file") {
+            arraypush(out, "res.status(" + rs_status + ").sendFile(path.resolve(global.__app_root, " + rs_content + "));")
+        } else if (rs_type == "template") {
+            arraypush(out, "res.status(" + rs_status + ").send(await template(" + rs_content + "));")
+        } else {
+            arraypush(out, "res.status(" + rs_status + ").send(" + rs_content + ");")
+        }
+        return out
+    }
+
+    // --- respond with TYPE content ---
+    var resp_m = match(line, "/^respond\\s+(?:with\\s+)?(json|html|text|file|template)\\s*(.*)/i")
+    if resp_m {
+        var r_type = strlower(resp_m[0])
+        var r_content = strtrim(resp_m[1])
+        if r_type == "json" {
+            arraypush(out, "res.json(" + r_content + ");")
+        } else if (r_type == "file") {
+            arraypush(out, "res.sendFile(path.resolve(global.__app_root, " + r_content + "));")
+        } else if (r_type == "template") {
+            arraypush(out, "res.send(await template(" + r_content + "));")
+        } else {
+            arraypush(out, "res.send(" + r_content + ");")
+        }
+        return out
+    }
+
+    // --- for VAR of ITERABLE ---
+    var for_m = match(line, "/^for\\s+(\\w+)\\s+of\\s+(.*?)\\s*\\{/i")
+    if for_m {
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "for (let " + for_m[0] + " of " + strtrim(for_m[1]) + ") {")
+        return out
+    }
+
+    // --- while COND ---
+    var while_m = match(line, "/^while\\s+(.*?)\\s*\\{/i")
+    if while_m {
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "while " + ensure_parens(while_m[0]) + " {")
+        return out
+    }
+
+    // --- } on error (e) { ---
+    var catch_m = match(line, "/^\\}\\s*on\\s+error\\s*\\(([^)]*)\\)\\s*\\{/i")
+    if catch_m {
+        arraypop(state.block_stack)
+        arraypush(state.block_stack, "task_error")
+        arraypush(out, "} catch (" + catch_m[0] + ") {")
+        return out
+    }
+
+    // --- else if COND (with or without leading }) ---
+    var elif_m = match(line, "/^(\\}\\s*)?else\\s+if\\s+(.*?)\\s*\\{/i")
+    if elif_m {
+        if elif_m[0] {
+            arraypop(state.block_stack)
+        }
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "} else if " + ensure_parens(elif_m[1]) + " {")
+        return out
+    }
+
+    // --- else (with or without leading }) ---
+    var else_m = match(line, "/^(\\}\\s*)?else\\s*\\{/i")
+    if else_m {
+        if else_m[0] {
+            arraypop(state.block_stack)
+        }
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "} else {")
+        return out
+    }
+
+    // --- if COND ---
+    var if_m = match(line, "/^if\\s+(.*?)\\s*\\{/i")
+    if if_m {
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "if " + ensure_parens(if_m[0]) + " {")
+        return out
+    }
+
+    // --- switch ---
+    var switch_m = match(line, "/^switch\\s+(.*?)\\s*\\{/i")
+    if switch_m {
+        arraypush(state.block_stack, "normal")
+        arraypush(out, "switch (" + strtrim(switch_m[0]) + ") {")
+        return out
+    }
+
+    // --- Closing brace } ---
+    if match(line, "/^\\}\\s*$/") {
+        var top = ""
+        if len(state.block_stack) > 0 {
+            top = arraypop(state.block_stack)
+        }
+        if match(top, "/^every:/") {
+            var ev_ms_val = strsub(top, 6, len(top) - 6)
+            arraypush(out, "}, " + ev_ms_val + ");")
+        } else if (top == "route") {
+            arraypush(out, "} catch (err) {")
+            arraypush(out, "    if (typeof next === 'function') { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } }")
+            arraypush(out, "} });")
+        } else if (top == "route_error") {
+            arraypush(out, "} });")
+        } else if (top == "task") {
+            arraypush(out, "} catch (err) { throw err; }")
+            arraypush(out, "}")
+        } else if (top == "task_error") {
+            arraypush(out, "}")
+            arraypush(out, "}")
+        } else {
+            arraypush(out, "}")
+        }
+        return out
+    }
+
+    // --- $VAR → global.vars.VAR ---
+    line = replace_globals(line)
+
+    // --- background TASK(...) → TASK(...) without await ---
+    // Mark with NONBLOCKING_ prefix so insert_awaits skips it, then strip prefix
+    line = strreplace(line, "/\\bbackground\\s+(\\w+)/g", "NONBLOCKING_$1")
+
+    // --- var → let ---
+    line = strreplace(line, "/\\bvar\\b/g", "let")
+
+    // --- ref TASK → TASK (strip ref keyword — pass function reference) ---
+    line = strreplace(line, "/\\bref\\s+(\\w+)/g", "$1")
+
+    // --- TASK with ARGS → await TASK(ARGS) (only at start of statement) ---
+    var user_task_list = @{ Object.keys(user_tasks) @}
+    for tname3 of user_task_list {
+        var with_pat = "/^(\\s*)" + tname3 + "\\s+with\\s+(.*?)(?=\\s*(?:\/\/|;|$))/m"
+        line = strreplace(line, with_pat, "$1await " + tname3 + "($2)")
+    }
+
+    // --- Insert awaits for all async calls ---
+    line = insert_awaits(line, user_tasks)
+
+    // --- Strip NONBLOCKING_ prefix (background calls must NOT be awaited) ---
+    line = strreplace(line, "/NONBLOCKING_/g", "")
+
+    // --- as int / as string ---
+    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+int\\b/g", "parseInt($1, 10)")
+    line = strreplace(line, "/\\b(\\S+)\\s+as\\s+string\\b/g", "String($1)")
+
+    arraypush(out, line)
+    return out
+}
+
+// ---------------------------------------------------------------------------
+// transpile(content, filename, user_tasks, runtime_js)
+// Main entry point. Produces a complete JavaScript module string.
+// ---------------------------------------------------------------------------
+define task transpile(content, filename, user_tasks, runtime_js) {
+    var state = {
+        block_stack: [],
+        tasks: [],
+        on_start_funcs: [],
+        on_shutdown_funcs: [],
+        on_error_funcs: [],
+        on_request_funcs: [],
+        on_start_count: 0,
+        on_shutdown_count: 0,
+        on_error_count: 0,
+        on_request_count: 0,
+        server_port: ""
+    }
+
+    var output_lines = []
+
+    // Prepend the runtime library
+    var runtime_lines = strsplit(runtime_js, "\n")
+    for rtl of runtime_lines {
+        arraypush(output_lines, rtl)
+    }
+    arraypush(output_lines, "")
+
+    var source_lines = strsplit(content, "\n")
+
+    for src_line of source_lines {
+        var result_lines = transpile_line(src_line, filename, user_tasks, 0, state)
+        if result_lines {
+            for ol of result_lines {
+                arraypush(output_lines, ol)
+            }
+        }
+    }
+
+    // Export all user tasks to global scope
+    for exported_task of state.tasks {
+        arraypush(output_lines, "global." + exported_task + " = " + exported_task + ";")
+    }
+
+    // Register lifecycle hooks
+    if len(state.on_start_funcs) > 0 {
+        arraypush(output_lines, "global.__on_start_hooks = global.__on_start_hooks || [];")
+        for f of state.on_start_funcs {
+            arraypush(output_lines, "global.__on_start_hooks.push(" + f + ");")
+        }
+    }
+    if len(state.on_shutdown_funcs) > 0 {
+        arraypush(output_lines, "global.__on_shutdown_hooks = global.__on_shutdown_hooks || [];")
+        for f2 of state.on_shutdown_funcs {
+            arraypush(output_lines, "global.__on_shutdown_hooks.push(" + f2 + ");")
+        }
+    }
+    if len(state.on_error_funcs) > 0 {
+        arraypush(output_lines, "global.__on_error_hooks = global.__on_error_hooks || [];")
+        for f3 of state.on_error_funcs {
+            arraypush(output_lines, "global.__on_error_hooks.push(" + f3 + ");")
+        }
+    }
+    if len(state.on_request_funcs) > 0 {
+        arraypush(output_lines, "global.__on_request_hooks = global.__on_request_hooks || [];")
+        for f4 of state.on_request_funcs {
+            arraypush(output_lines, "global.__on_request_hooks.push(" + f4 + ");")
+        }
+    }
+
+    // Shutdown signal handler
+    if len(state.on_shutdown_funcs) > 0 {
+        arraypush(output_lines, "if (!global.__on_shutdown_registered) {")
+        arraypush(output_lines, "    global.__on_shutdown_registered = true;")
+        arraypush(output_lines, "    const __shutdown_wrapper = async () => {")
+        arraypush(output_lines, "        try { const hooks = global.__on_shutdown_hooks || []; for (const hook of hooks) { await hook(); } } catch(e) {}")
+        arraypush(output_lines, "        process.exit(0);")
+        arraypush(output_lines, "    };")
+        arraypush(output_lines, "    process.on('SIGTERM', __shutdown_wrapper);")
+        arraypush(output_lines, "    process.on('SIGINT', __shutdown_wrapper);")
+        arraypush(output_lines, "}")
+    }
+
+    // Error signal handler
+    if len(state.on_error_funcs) > 0 {
+        arraypush(output_lines, "if (!global.__on_error_registered) {")
+        arraypush(output_lines, "    global.__on_error_registered = true;")
+        arraypush(output_lines, "    process.on('uncaughtException', (err) => { const hooks = global.__on_error_hooks || []; for (const hook of hooks) { hook(err).catch(() => {}); } });")
+        arraypush(output_lines, "    process.on('unhandledRejection', (reason) => { const hooks = global.__on_error_hooks || []; for (const hook of hooks) { hook(reason).catch(() => {}); } });")
+        arraypush(output_lines, "}")
+    }
+
+    // Start server if needed
+    if state.server_port != "" {
+        arraypush(output_lines, "global.__app_root = process.cwd();")
+        arraypush(output_lines, "app.listen(" + state.server_port + ", () => console.log('Server started on port ' + " + state.server_port + "));")
+    }
+
+    // Entry point runner
+    arraypush(output_lines, "if (require.main === module) {")
+    arraypush(output_lines, "    (async () => {")
+    arraypush(output_lines, "        const hooks = global.__on_start_hooks || [];")
+    arraypush(output_lines, "        for (const hook of hooks) { await hook(); }")
+    arraypush(output_lines, "    })().catch(err => {")
+    arraypush(output_lines, "        if (typeof formatRuntimeError === 'function') { formatRuntimeError(err); } else { console.error(err); }")
+    arraypush(output_lines, "        process.exit(1);")
+    arraypush(output_lines, "    });")
+    arraypush(output_lines, "}")
+
+    return { ok: true, js: arrayjoin(output_lines, "\n") }
+}

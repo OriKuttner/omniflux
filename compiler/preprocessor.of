@@ -1,0 +1,197 @@
+// preprocessor.of
+// Source file preparation for the OmniFlux bootstrap compiler.
+// Provides:
+//   - strip_comments(content): removes # line comments and /* */ block comments
+//     while preserving content inside string literals and @{ ... @} JS blocks.
+//   - resolve_include(inc_path, src_file): resolves an include path to an
+//     absolute file path, searching the standard lookup directories.
+//   - load_source(filepath): reads a file and strips its comments.
+//   - get_all_dependencies(filepath, visited?): recursively collects all
+//     included files in the order they must be compiled.
+
+include "compiler/symbols.of"
+
+// strip_comments(content)
+// Removes OmniFlux comments from a source string.
+// Rules:
+//   - # starts a line comment — everything after it until end-of-line is removed.
+//   - /* ... */ is a block comment — may span multiple lines.
+//   - Characters inside string literals ("..." or '...') are never treated as
+//     comment tokens, even if they contain # or /*.
+//   - Characters inside @{ ... @} JS escape blocks are passed through verbatim.
+// Newlines are always preserved so that line numbers stay correct.
+define task strip_comments(content) {
+    var result = ""
+    var i = 0
+    var length = len(content)
+    var in_string = ""
+    var in_node_block = false
+    var block_comment_depth = 0
+
+    while i < length {
+        var ch = strsub(content, i, 1)
+
+        // Inside a JS escape block — pass through until @}
+        if in_node_block {
+            var node_close = "@" + "}"
+            if ch == "@" && strsub(content, i + 1, 1) == "}" {
+                result = result + node_close
+                i = i + 2
+                in_node_block = false
+            } else {
+                result = result + ch
+                i = i + 1
+            }
+            continue
+        }
+
+        // Inside a block comment — skip until matching */
+        // Nested /* */ are counted to handle multi-level comments
+        if block_comment_depth > 0 {
+            if ch == "/" && strsub(content, i + 1, 1) == "*" {
+                block_comment_depth = block_comment_depth + 1
+                i = i + 2
+            } else if ch == "*" && strsub(content, i + 1, 1) == "/" {
+                block_comment_depth = block_comment_depth - 1
+                i = i + 2
+            } else {
+                // Preserve newlines so line numbers stay accurate
+                if ch == "\n" {
+                    result = result + "\n"
+                }
+                i = i + 1
+            }
+            continue
+        }
+
+        // Inside a string literal — pass through until closing quote
+        if in_string != "" {
+            if ch == "\\" {
+                // Escaped character — copy both the backslash and the next char
+                result = result + ch + strsub(content, i + 1, 1)
+                i = i + 2
+            } else if (ch == in_string) {
+                result = result + ch
+                i = i + 1
+                in_string = ""
+            } else {
+                result = result + ch
+                i = i + 1
+            }
+            continue
+        }
+
+        // Detect @{ JS escape block start
+        var node_open = "@" + "{"
+        if ch == "@" && strsub(content, i + 1, 1) == "{" {
+            result = result + node_open
+            i = i + 2
+            in_node_block = true
+            continue
+        }
+
+        // Detect block comment /*
+        if ch == "/" && strsub(content, i + 1, 1) == "*" {
+            i = i + 2
+            block_comment_depth = 1
+            continue
+        }
+
+        // Detect line comment #
+        if ch == "#" {
+            while i < length && strsub(content, i, 1) != "\n" {
+                i = i + 1
+            }
+            continue
+        }
+
+        // Detect start of string literal
+        if ch == "\"" || ch == "'" {
+            in_string = ch
+            result = result + ch
+            i = i + 1
+            continue
+        }
+
+        // Regular character — copy as-is
+        result = result + ch
+        i = i + 1
+    }
+
+    return result
+}
+
+// resolve_include(inc_path, src_file)
+// Resolves an include path to an absolute path.
+// Search order:
+//   1. Relative to the directory of the file that contains the include.
+//   2. Relative to the project root (current working directory).
+//   3. System-wide library: /usr/local/share/omniflux/
+//   4. System-wide fallback: /usr/share/omniflux/
+// Returns the resolved absolute path, or null if not found.
+define task resolve_include(inc_path, src_file) {
+    var src_dir = pathdirname(pathresolve(src_file))
+    var cwd = pathresolve(".")
+
+    var candidates = [
+        pathjoin(src_dir, inc_path),
+        pathjoin(cwd, inc_path),
+        pathjoin("/usr/local/share/omniflux", inc_path),
+        pathjoin("/usr/share/omniflux", inc_path)
+    ]
+
+    for candidate of candidates {
+        if fileexists(candidate) {
+            return pathresolve(candidate)
+        }
+    }
+
+    return null
+}
+
+// load_source(filepath)
+// Reads a source file and returns its content with comments stripped.
+define task load_source(filepath) {
+    var raw = fileread(filepath)
+    return strip_comments(raw)
+}
+
+// get_all_dependencies(filepath, visited)
+// Recursively walks all `include` statements starting from filepath and
+// returns an ordered array of absolute paths that must be compiled before
+// the given file. The file itself is appended last.
+define task get_all_dependencies(filepath, visited) {
+    var abs_path = pathresolve(filepath)
+
+    if !visited {
+        visited = {}
+    }
+
+    // Cycle / duplicate guard
+    if visited[abs_path] {
+        return []
+    }
+    visited[abs_path] = true
+
+    var content = load_source(abs_path)
+    var lines = strsplit(content, "\n")
+    var deps = []
+
+    for line of lines {
+        var trimmed = strtrim(line)
+        var m = match(trimmed, "/^include\\s+[\"']?([^\"'\\s;]+)[\"']?/i")
+        if m {
+            var inc_path = m[0]
+            var resolved = resolve_include(inc_path, abs_path)
+            if resolved {
+                var sub_deps = get_all_dependencies(resolved, visited)
+                for dep of sub_deps {
+                    arraypush(deps, dep)
+                }
+            }
+        }
+    }
+
+    arraypush(deps, abs_path)
+    return deps
+}

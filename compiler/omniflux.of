@@ -1,0 +1,282 @@
+// compiler/omniflux.of
+// Entry point for the OmniFlux bootstrap compiler.
+// Usage:
+//   omniflux <file.of> [--compile-only] [--strict] [--watch] [-- args...]
+//
+// Pipeline:
+//   1. Parse CLI arguments
+//   2. Resolve all dependencies via preprocessor
+//   3. Strip comments
+//   4. Validate syntax (bracket matching)
+//   5. Prescan user-defined tasks for async awareness
+//   6. Transpile each file to JavaScript
+//   7. Bundle with esbuild
+//   8. Run the output (unless --compile-only)
+
+include "compiler/bundler.of"
+include "compiler/validator.of"
+include "compiler/transpiler.of"
+include "stdlib/system.of"
+
+// ---------------------------------------------------------------------------
+// CLI argument parsing
+// ---------------------------------------------------------------------------
+define task parse_args(argv) {
+    var result = {
+        input_file: "",
+        compile_only: false,
+        strict: false,
+        watch: false,
+        run_args: []
+    }
+    var after_dashdash = false
+    for arg of argv {
+        if after_dashdash {
+            arraypush(result.run_args, arg)
+        } else if arg == "--" {
+            after_dashdash = true
+        } else if arg == "--compile-only" || arg == "--no-run" {
+            result.compile_only = true
+        } else if arg == "--strict" || arg == "--no-llm" {
+            result.strict = true
+        } else if arg == "--watch" || arg == "-w" {
+            result.watch = true
+        } else if result.input_file == "" {
+            result.input_file = arg
+        } else {
+            arraypush(result.run_args, arg)
+        }
+    }
+    return result
+}
+
+// ---------------------------------------------------------------------------
+// print_usage: show help text when no file is given
+// ---------------------------------------------------------------------------
+define task print_usage() {
+    print("Usage: omniflux <file.of> [options] [-- args...]")
+    print("")
+    print("Options:")
+    print("  --compile-only   Compile only, do not run the output")
+    print("  --strict         Fail if compilation requires AI assistance")
+    print("  --watch          Watch for changes and rebuild automatically")
+    print("  --               Pass remaining arguments to the compiled program")
+}
+
+// ---------------------------------------------------------------------------
+// read_runtime: loads runtime.js from the OmniFlux library directory
+// ---------------------------------------------------------------------------
+define task read_runtime() {
+    var parent_dir = pathdirname(scriptdir)
+    var candidates = [
+        pathjoin(scriptdir, "OmniFlux/runtime.js"),
+        pathjoin(parent_dir, "OmniFlux/runtime.js"),
+        "/usr/local/share/omniflux/OmniFlux/runtime.js",
+        "/usr/share/omniflux/OmniFlux/runtime.js"
+    ]
+    for path of candidates {
+        if fileexists(path) {
+            return fileread(path)
+        }
+    }
+    print("Error: Cannot find OmniFlux runtime.js")
+    exit(1)
+}
+
+// ---------------------------------------------------------------------------
+// compile_file: strip → validate → prescan → transpile for a single file
+// ---------------------------------------------------------------------------
+define task compile_file(abs_path, runtime_js, global_user_tasks) {
+    var raw = fileread(abs_path)
+    var filename = pathbasename(abs_path)
+
+    // Strip comments
+    var content = strip_comments(raw)
+
+    // Validate bracket structure
+    var vresult = validate(content, filename)
+    if !vresult.ok {
+        print("Compilation Error in %s:", filename)
+        print("%s", vresult.error)
+        return null
+    }
+
+    // Prescan tasks in this file and merge into global table
+    var file_tasks = prescan_tasks(content)
+    @{ Object.assign(global_user_tasks, file_tasks); @}
+
+    // Transpile
+    var user_task_keys = @{ Object.keys(global_user_tasks) @}
+    var tresult = transpile(content, filename, global_user_tasks, runtime_js)
+    if !tresult.ok {
+        print("Transpile Error in %s:", filename)
+        print("%s", tresult.error)
+        return null
+    }
+
+    return tresult.js
+}
+
+// ---------------------------------------------------------------------------
+// build_once: full build pipeline for a given entry file
+// Returns: { ok, output_file } or { ok: false, error }
+// ---------------------------------------------------------------------------
+define task build_once(input_file, compile_only) {
+    var abs_input = pathresolve(input_file)
+
+    if !fileexists(abs_input) {
+        print("Error: File '%s' does not exist.", input_file)
+        return { ok: false }
+    }
+
+    // Collect all dependencies in order
+    var deps = get_all_dependencies(abs_input, null)
+
+    // Load runtime once
+    var runtime_js = read_runtime()
+
+    // Compile all files
+    var compiled_map = {}
+    var global_user_tasks = {}
+    var ok = true
+
+    // First pass: prescan ALL files for task names (forward references)
+    for dep_path of deps {
+        var raw = fileread(dep_path)
+        var content = strip_comments(raw)
+        var tasks = prescan_tasks(content)
+        @{ Object.assign(global_user_tasks, tasks); @}
+    }
+
+    // Second pass: compile each file
+    for dep_path of deps {
+        var js = compile_file(dep_path, runtime_js, global_user_tasks)
+        if !js {
+            ok = false
+            break
+        }
+        compiled_map[dep_path] = js
+        print("Compiled: %s", dep_path)
+    }
+
+    if !ok {
+        return { ok: false }
+    }
+
+    // Bundle
+    var output_file = get_output_path(abs_input)
+    var bresult = build(abs_input, output_file, compiled_map)
+    return bresult
+}
+
+// ---------------------------------------------------------------------------
+// run_output: execute the built binary
+// ---------------------------------------------------------------------------
+define task run_output(output_file, run_args) {
+    var cmd = output_file
+    for arg of run_args {
+        cmd = cmd + " " + arg
+    }
+    print("Running: %s", output_file)
+    print("----------------------------------------")
+    system(cmd)
+    print("----------------------------------------")
+}
+
+// ---------------------------------------------------------------------------
+// watch_loop: rebuild and restart on file changes
+// ---------------------------------------------------------------------------
+define task watch_loop(input_file, compile_only) {
+    var last_build_ok = false
+    var output_file = ""
+
+    var result = build_once(input_file, compile_only)
+    if result.ok {
+        last_build_ok = true
+        output_file = result.output
+        if !compile_only {
+            // Start in background — we track it by watching for changes only
+            exec(output_file + " &")
+        }
+    }
+
+    print("Watching for changes... (Press Ctrl+C to stop)")
+
+    var abs_input = pathresolve(input_file)
+    var deps = get_all_dependencies(abs_input, null)
+
+    // Record current modification times
+    var mod_times = {}
+    for dep_path of deps {
+        var stat = filestat(dep_path)
+        if stat {
+            mod_times[dep_path] = stat.mtime
+        }
+    }
+
+    while true {
+        wait 1 second
+
+        // Re-check all dependency modification times
+        var changed = false
+        for dep_path of deps {
+            if !fileexists(dep_path) {
+                changed = true
+                break
+            }
+            var stat2 = filestat(dep_path)
+            if stat2 && mod_times[dep_path] && stat2.mtime > mod_times[dep_path] {
+                changed = true
+                break
+            }
+        }
+
+        if changed {
+            print("\nChange detected. Rebuilding...")
+            var new_result = build_once(input_file, compile_only)
+            if new_result.ok {
+                output_file = new_result.output
+                if !compile_only {
+                    exec(output_file + " &")
+                }
+            } else {
+                print("Rebuild failed. Waiting for fixes...")
+            }
+
+            // Refresh dependency list and mod times
+            deps = get_all_dependencies(abs_input, null)
+            mod_times = {}
+            for dep_path2 of deps {
+                var stat3 = filestat(dep_path2)
+                if stat3 {
+                    mod_times[dep_path2] = stat3.mtime
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Entry point
+// ---------------------------------------------------------------------------
+on start {
+    var cli = parse_args(args)
+
+    if cli.input_file == "" {
+        print_usage()
+        exit(0)
+    }
+
+    if cli.watch {
+        watch_loop with cli.input_file, cli.compile_only
+    } else {
+        var result = build_once(cli.input_file, cli.compile_only)
+        if !result.ok {
+            exit(1)
+        }
+        if !cli.compile_only {
+            run_output with result.output, cli.run_args
+        }
+        exit(0)
+    }
+}

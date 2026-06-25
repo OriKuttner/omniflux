@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// .omniflux_cache/examples/01_hello_world.js
+// .omniflux_cache/examples/02_async_loops.js
 var fs = require("fs");
 var util = require("util");
 var path = require("path");
@@ -968,26 +968,71 @@ process.on("unhandledRejection", (reason) => {
   formatRuntimeError(err, "OmniFlux Runtime Error (Unhandled Rejection)");
   process.exit(1);
 });
-var APP_NAME = "OmniFlux Demo";
-visitor_count = 0;
-async function greet(name) {
+async function get_timestamp() {
   try {
-    global.vars.visitor_count = global.vars.visitor_count + 1;
-    print("Hello, %s! You are visitor number %d.", name, global.vars.visitor_count);
+    let ts = time();
+    let year = dateyear(ts);
+    let month = datemonth(ts);
+    let day = dateday(ts);
+    let hours = datehour(ts);
+    let minutes = dateminute(ts);
+    let seconds = datesecond(ts);
+    return sprintf("%04d-%02d-%02d %02d:%02d:%02d", year, month, day, hours, minutes, seconds);
+  } catch (err) {
+    throw err;
+  }
+}
+async function log_event(message) {
+  try {
+    let timestamp = await get_timestamp();
+    let line = "[" + timestamp + "] " + message + "\n";
+    fileappend(global.vars.LOG_FILE, line);
+    print("Logged: %s", message);
   } catch (err) {
     throw err;
   }
 }
 async function __on_start_1() {
-  printf("Initializing %s...", APP_NAME);
-  printf(" Done!\n");
-  await greet("Alice");
-  await greet("Bob");
-  await greet("Charlie");
+  print("Initializing async monitoring task...");
+  if (fileexists($LOG_FILE)) {
+    filedelete(global.vars.LOG_FILE);
+  }
+  log_event("Service started");
+  await new Promise((resolve) => setTimeout(resolve, 2 * 1e3));
+  await log_event("Monitoring active");
+  setInterval(async () => {
+    await log_event("Heartbeat ping");
+  }, 3 * 1e3);
 }
-global.greet = greet;
+async function __on_shutdown_1() {
+  print("\nShutting down. Log contents:");
+  if (fileexists($LOG_FILE)) {
+    let content = fileread(global.vars.LOG_FILE);
+    print("%s", content);
+    filedelete(global.vars.LOG_FILE);
+  }
+}
+global.get_timestamp = get_timestamp;
+global.log_event = log_event;
 global.__on_start_hooks = global.__on_start_hooks || [];
 global.__on_start_hooks.push(__on_start_1);
+global.__on_shutdown_hooks = global.__on_shutdown_hooks || [];
+global.__on_shutdown_hooks.push(__on_shutdown_1);
+if (!global.__on_shutdown_registered) {
+  global.__on_shutdown_registered = true;
+  const __shutdown_wrapper = async () => {
+    try {
+      const hooks = global.__on_shutdown_hooks || [];
+      for (const hook of hooks) {
+        await hook();
+      }
+    } catch (e) {
+    }
+    process.exit(0);
+  };
+  process.on("SIGTERM", __shutdown_wrapper);
+  process.on("SIGINT", __shutdown_wrapper);
+}
 if (require.main === module) {
   (async () => {
     const hooks = global.__on_start_hooks || [];
