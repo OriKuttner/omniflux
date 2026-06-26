@@ -195,6 +195,22 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     var line = strtrim(raw_line)
     var out = []
 
+    // --- wait syntax validation ---
+    if match(line, "/^wait\\s+/i") {
+        if !match(line, "/^wait\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i") {
+            state.error = "SyntaxError in " + filename + " on line " + line_num + ": 'wait' statement requires a time unit (second/seconds, minute/minutes, hour/hours)"
+            return out
+        }
+    }
+
+    // --- every syntax validation ---
+    if match(line, "/^every\\s+/i") {
+        if !match(line, "/^every\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i") {
+            state.error = "SyntaxError in " + filename + " on line " + line_num + ": 'every' statement requires a time unit (second/seconds, minute/minutes, hour/hours)"
+            return out
+        }
+    }
+
     // --- include → require ---
     var inc_match = match(line, "/^include\\s+[\"']?([^\"'\\s;]+)[\"']?/i")
     if inc_match {
@@ -627,6 +643,9 @@ define task transpile(content, filename, user_tasks, runtime_js) {
         var src_line = source_lines[i]
         var was_toplevel = len(state.block_stack) == 0
         var result_lines = transpile_line(src_line, filename, user_tasks, i + 1, state)
+        if state.error {
+            return { ok: false, error: state.error }
+        }
         if result_lines {
             for ol of result_lines {
                 // Top-level awaited statements can't exist in CJS output.
