@@ -622,9 +622,40 @@ var require_symbols = __commonJS({
         return [];
       return [...arr].reverse();
     }
-    function arraysort2(arr) {
+    async function asyncMergeSort2(arr, compareFn) {
+      if (arr.length <= 1)
+        return arr;
+      const mid = Math.floor(arr.length / 2);
+      const left = arr.slice(0, mid);
+      const right = arr.slice(mid);
+      return await asyncMerge2(
+        await asyncMergeSort2(left, compareFn),
+        await asyncMergeSort2(right, compareFn),
+        compareFn
+      );
+    }
+    async function asyncMerge2(left, right, compareFn) {
+      const result = [];
+      let l = 0, r = 0;
+      while (l < left.length && r < right.length) {
+        const cmp = await compareFn(left[l], right[r]);
+        if (cmp <= 0) {
+          result.push(left[l]);
+          l++;
+        } else {
+          result.push(right[r]);
+          r++;
+        }
+      }
+      return result.concat(left.slice(l)).concat(right.slice(r));
+    }
+    async function arraysort2(arr, compareFn) {
       if (!Array.isArray(arr))
         return [];
+      if (typeof compareFn === "function") {
+        const temp = [...arr];
+        return await asyncMergeSort2(temp, compareFn);
+      }
       return [...arr].sort();
     }
     async function arraymap2(arr, task) {
@@ -1303,103 +1334,106 @@ document.addEventListener('click', async (e) => {
       "array_filter",
       //! OF_LINE: symbols.of:111
       "arrayfind",
-      "array_find"
+      "array_find",
       //! OF_LINE: symbols.of:112
+      "arraysort",
+      "array_sort"
+      //! OF_LINE: symbols.of:113
     ];
-    //! OF_LINE: symbols.of:113
     //! OF_LINE: symbols.of:114
     //! OF_LINE: symbols.of:115
     //! OF_LINE: symbols.of:116
     //! OF_LINE: symbols.of:117
     //! OF_LINE: symbols.of:118
+    //! OF_LINE: symbols.of:119
     async function prescan_tasks2(content) {
       try {
-        //! OF_LINE: symbols.of:119
-        let tasks = {};
         //! OF_LINE: symbols.of:120
+        let tasks = {};
         //! OF_LINE: symbols.of:121
-        let lines = strsplit2(content, "\n");
         //! OF_LINE: symbols.of:122
+        let lines = strsplit2(content, "\n");
+        //! OF_LINE: symbols.of:123
         for (let line of lines) {
-          //! OF_LINE: symbols.of:123
-          let clean = strreplace2(line, "/#[^\n]*/", "");
           //! OF_LINE: symbols.of:124
-          clean = strtrim2(clean);
+          let clean = strreplace2(line, "/#[^\n]*/", "");
           //! OF_LINE: symbols.of:125
+          clean = strtrim2(clean);
           //! OF_LINE: symbols.of:126
-          let m1 = match2(clean, "/^define\\s+task\\s+(\\w+)/i");
           //! OF_LINE: symbols.of:127
+          let m1 = match2(clean, "/^define\\s+task\\s+(\\w+)/i");
+          //! OF_LINE: symbols.of:128
           if (m1) {
-            //! OF_LINE: symbols.of:128
-            tasks[m1[0]] = true;
             //! OF_LINE: symbols.of:129
+            tasks[m1[0]] = true;
+            //! OF_LINE: symbols.of:130
           }
-          //! OF_LINE: symbols.of:130
           //! OF_LINE: symbols.of:131
-          let m2 = match2(clean, "/^fn\\s+(\\w+)/i");
           //! OF_LINE: symbols.of:132
+          let m2 = match2(clean, "/^fn\\s+(\\w+)/i");
+          //! OF_LINE: symbols.of:133
           if (m2) {
-            //! OF_LINE: symbols.of:133
-            tasks[m2[0]] = true;
             //! OF_LINE: symbols.of:134
+            tasks[m2[0]] = true;
+            //! OF_LINE: symbols.of:135
           }
-          //! OF_LINE: symbols.of:135
+          //! OF_LINE: symbols.of:136
         }
-        //! OF_LINE: symbols.of:136
         //! OF_LINE: symbols.of:137
-        return tasks;
         //! OF_LINE: symbols.of:138
+        return tasks;
+        //! OF_LINE: symbols.of:139
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:139
     //! OF_LINE: symbols.of:140
     //! OF_LINE: symbols.of:141
     //! OF_LINE: symbols.of:142
+    //! OF_LINE: symbols.of:143
     async function is_builtin(name) {
       try {
-        //! OF_LINE: symbols.of:143
-        return arraycontains2(BUILTINS, name);
         //! OF_LINE: symbols.of:144
+        return arraycontains2(BUILTINS, name);
+        //! OF_LINE: symbols.of:145
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:145
     //! OF_LINE: symbols.of:146
     //! OF_LINE: symbols.of:147
     //! OF_LINE: symbols.of:148
     //! OF_LINE: symbols.of:149
+    //! OF_LINE: symbols.of:150
     async function is_async(name, user_tasks) {
       try {
-        //! OF_LINE: symbols.of:150
+        //! OF_LINE: symbols.of:151
         if (arraycontains2(ASYNC_BUILTINS, name)) {
-          //! OF_LINE: symbols.of:151
-          return true;
           //! OF_LINE: symbols.of:152
-        }
-        //! OF_LINE: symbols.of:153
-        if (user_tasks[name]) {
-          //! OF_LINE: symbols.of:154
           return true;
-          //! OF_LINE: symbols.of:155
+          //! OF_LINE: symbols.of:153
         }
-        //! OF_LINE: symbols.of:156
-        return false;
+        //! OF_LINE: symbols.of:154
+        if (user_tasks[name]) {
+          //! OF_LINE: symbols.of:155
+          return true;
+          //! OF_LINE: symbols.of:156
+        }
         //! OF_LINE: symbols.of:157
+        return false;
+        //! OF_LINE: symbols.of:158
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:158
     //! OF_LINE: symbols.of:159
-    global.BUILTINS = BUILTINS;
     //! OF_LINE: symbols.of:160
-    global.ASYNC_BUILTINS = ASYNC_BUILTINS;
+    global.BUILTINS = BUILTINS;
     //! OF_LINE: symbols.of:161
+    global.ASYNC_BUILTINS = ASYNC_BUILTINS;
     //! OF_LINE: symbols.of:162
     //! OF_LINE: symbols.of:163
+    //! OF_LINE: symbols.of:164
     global.prescan_tasks = prescan_tasks2;
     global.is_builtin = is_builtin;
     global.is_async = is_async;
@@ -2039,9 +2073,40 @@ var require_preprocessor = __commonJS({
         return [];
       return [...arr].reverse();
     }
-    function arraysort2(arr) {
+    async function asyncMergeSort2(arr, compareFn) {
+      if (arr.length <= 1)
+        return arr;
+      const mid = Math.floor(arr.length / 2);
+      const left = arr.slice(0, mid);
+      const right = arr.slice(mid);
+      return await asyncMerge2(
+        await asyncMergeSort2(left, compareFn),
+        await asyncMergeSort2(right, compareFn),
+        compareFn
+      );
+    }
+    async function asyncMerge2(left, right, compareFn) {
+      const result = [];
+      let l = 0, r = 0;
+      while (l < left.length && r < right.length) {
+        const cmp = await compareFn(left[l], right[r]);
+        if (cmp <= 0) {
+          result.push(left[l]);
+          l++;
+        } else {
+          result.push(right[r]);
+          r++;
+        }
+      }
+      return result.concat(left.slice(l)).concat(right.slice(r));
+    }
+    async function arraysort2(arr, compareFn) {
       if (!Array.isArray(arr))
         return [];
+      if (typeof compareFn === "function") {
+        const temp = [...arr];
+        return await asyncMergeSort2(temp, compareFn);
+      }
       return [...arr].sort();
     }
     async function arraymap2(arr, task) {
@@ -3667,9 +3732,40 @@ var require_system = __commonJS({
         return [];
       return [...arr].reverse();
     }
-    function arraysort2(arr) {
+    async function asyncMergeSort2(arr, compareFn) {
+      if (arr.length <= 1)
+        return arr;
+      const mid = Math.floor(arr.length / 2);
+      const left = arr.slice(0, mid);
+      const right = arr.slice(mid);
+      return await asyncMerge2(
+        await asyncMergeSort2(left, compareFn),
+        await asyncMergeSort2(right, compareFn),
+        compareFn
+      );
+    }
+    async function asyncMerge2(left, right, compareFn) {
+      const result = [];
+      let l = 0, r = 0;
+      while (l < left.length && r < right.length) {
+        const cmp = await compareFn(left[l], right[r]);
+        if (cmp <= 0) {
+          result.push(left[l]);
+          l++;
+        } else {
+          result.push(right[r]);
+          r++;
+        }
+      }
+      return result.concat(left.slice(l)).concat(right.slice(r));
+    }
+    async function arraysort2(arr, compareFn) {
       if (!Array.isArray(arr))
         return [];
+      if (typeof compareFn === "function") {
+        const temp = [...arr];
+        return await asyncMergeSort2(temp, compareFn);
+      }
       return [...arr].sort();
     }
     async function arraymap2(arr, task) {
@@ -4806,9 +4902,40 @@ var require_bundler = __commonJS({
         return [];
       return [...arr].reverse();
     }
-    function arraysort2(arr) {
+    async function asyncMergeSort2(arr, compareFn) {
+      if (arr.length <= 1)
+        return arr;
+      const mid = Math.floor(arr.length / 2);
+      const left = arr.slice(0, mid);
+      const right = arr.slice(mid);
+      return await asyncMerge2(
+        await asyncMergeSort2(left, compareFn),
+        await asyncMergeSort2(right, compareFn),
+        compareFn
+      );
+    }
+    async function asyncMerge2(left, right, compareFn) {
+      const result = [];
+      let l = 0, r = 0;
+      while (l < left.length && r < right.length) {
+        const cmp = await compareFn(left[l], right[r]);
+        if (cmp <= 0) {
+          result.push(left[l]);
+          l++;
+        } else {
+          result.push(right[r]);
+          r++;
+        }
+      }
+      return result.concat(left.slice(l)).concat(right.slice(r));
+    }
+    async function arraysort2(arr, compareFn) {
       if (!Array.isArray(arr))
         return [];
+      if (typeof compareFn === "function") {
+        const temp = [...arr];
+        return await asyncMergeSort2(temp, compareFn);
+      }
       return [...arr].sort();
     }
     async function arraymap2(arr, task) {
@@ -6118,9 +6245,40 @@ var require_validator = __commonJS({
         return [];
       return [...arr].reverse();
     }
-    function arraysort2(arr) {
+    async function asyncMergeSort2(arr, compareFn) {
+      if (arr.length <= 1)
+        return arr;
+      const mid = Math.floor(arr.length / 2);
+      const left = arr.slice(0, mid);
+      const right = arr.slice(mid);
+      return await asyncMerge2(
+        await asyncMergeSort2(left, compareFn),
+        await asyncMergeSort2(right, compareFn),
+        compareFn
+      );
+    }
+    async function asyncMerge2(left, right, compareFn) {
+      const result = [];
+      let l = 0, r = 0;
+      while (l < left.length && r < right.length) {
+        const cmp = await compareFn(left[l], right[r]);
+        if (cmp <= 0) {
+          result.push(left[l]);
+          l++;
+        } else {
+          result.push(right[r]);
+          r++;
+        }
+      }
+      return result.concat(left.slice(l)).concat(right.slice(r));
+    }
+    async function arraysort2(arr, compareFn) {
       if (!Array.isArray(arr))
         return [];
+      if (typeof compareFn === "function") {
+        const temp = [...arr];
+        return await asyncMergeSort2(temp, compareFn);
+      }
       return [...arr].sort();
     }
     async function arraymap2(arr, task) {
@@ -7600,9 +7758,40 @@ var require_transpiler = __commonJS({
         return [];
       return [...arr].reverse();
     }
-    function arraysort2(arr) {
+    async function asyncMergeSort2(arr, compareFn) {
+      if (arr.length <= 1)
+        return arr;
+      const mid = Math.floor(arr.length / 2);
+      const left = arr.slice(0, mid);
+      const right = arr.slice(mid);
+      return await asyncMerge2(
+        await asyncMergeSort2(left, compareFn),
+        await asyncMergeSort2(right, compareFn),
+        compareFn
+      );
+    }
+    async function asyncMerge2(left, right, compareFn) {
+      const result = [];
+      let l = 0, r = 0;
+      while (l < left.length && r < right.length) {
+        const cmp = await compareFn(left[l], right[r]);
+        if (cmp <= 0) {
+          result.push(left[l]);
+          l++;
+        } else {
+          result.push(right[r]);
+          r++;
+        }
+      }
+      return result.concat(left.slice(l)).concat(right.slice(r));
+    }
+    async function arraysort2(arr, compareFn) {
       if (!Array.isArray(arr))
         return [];
+      if (typeof compareFn === "function") {
+        const temp = [...arr];
+        return await asyncMergeSort2(temp, compareFn);
+      }
       return [...arr].sort();
     }
     async function arraymap2(arr, task) {
@@ -9999,9 +10188,40 @@ var require_network = __commonJS({
         return [];
       return [...arr].reverse();
     }
-    function arraysort2(arr) {
+    async function asyncMergeSort2(arr, compareFn) {
+      if (arr.length <= 1)
+        return arr;
+      const mid = Math.floor(arr.length / 2);
+      const left = arr.slice(0, mid);
+      const right = arr.slice(mid);
+      return await asyncMerge2(
+        await asyncMergeSort2(left, compareFn),
+        await asyncMergeSort2(right, compareFn),
+        compareFn
+      );
+    }
+    async function asyncMerge2(left, right, compareFn) {
+      const result = [];
+      let l = 0, r = 0;
+      while (l < left.length && r < right.length) {
+        const cmp = await compareFn(left[l], right[r]);
+        if (cmp <= 0) {
+          result.push(left[l]);
+          l++;
+        } else {
+          result.push(right[r]);
+          r++;
+        }
+      }
+      return result.concat(left.slice(l)).concat(right.slice(r));
+    }
+    async function arraysort2(arr, compareFn) {
       if (!Array.isArray(arr))
         return [];
+      if (typeof compareFn === "function") {
+        const temp = [...arr];
+        return await asyncMergeSort2(temp, compareFn);
+      }
       return [...arr].sort();
     }
     async function arraymap2(arr, task) {
@@ -11206,9 +11426,40 @@ function arrayreverse(arr) {
     return [];
   return [...arr].reverse();
 }
-function arraysort(arr) {
+async function asyncMergeSort(arr, compareFn) {
+  if (arr.length <= 1)
+    return arr;
+  const mid = Math.floor(arr.length / 2);
+  const left = arr.slice(0, mid);
+  const right = arr.slice(mid);
+  return await asyncMerge(
+    await asyncMergeSort(left, compareFn),
+    await asyncMergeSort(right, compareFn),
+    compareFn
+  );
+}
+async function asyncMerge(left, right, compareFn) {
+  const result = [];
+  let l = 0, r = 0;
+  while (l < left.length && r < right.length) {
+    const cmp = await compareFn(left[l], right[r]);
+    if (cmp <= 0) {
+      result.push(left[l]);
+      l++;
+    } else {
+      result.push(right[r]);
+      r++;
+    }
+  }
+  return result.concat(left.slice(l)).concat(right.slice(r));
+}
+async function arraysort(arr, compareFn) {
   if (!Array.isArray(arr))
     return [];
+  if (typeof compareFn === "function") {
+    const temp = [...arr];
+    return await asyncMergeSort(temp, compareFn);
+  }
   return [...arr].sort();
 }
 async function arraymap(arr, task) {

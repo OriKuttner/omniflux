@@ -94,3 +94,36 @@ Your goal is to safely transpile OmniFlux code (or code written in other languag
 - arraycontains(arr, item) (also array_contains) -> Returns true if array contains item, false otherwise.
 - arrayjoin(arr, sep) (also array_join) -> Joins array elements using separator.
 - arrayslice(arr, start, end) (also array_slice) -> Returns a slice of the array.
+- arrayshift(arr) (also array_shift) -> Removes and returns the first item from an array.
+- arrayreverse(arr) (also array_reverse) -> Returns a new array with elements in reversed order.
+- arraysort(arr, compareFn?) (also array_sort) -> Returns a new array with elements sorted (supports optional custom compareFn passed with ref).
+- arraymap(arr, task) (also array_map) -> Maps elements using an async/sync callback task.
+- arrayfilter(arr, task) (also array_filter) -> Filters elements using an async/sync callback task.
+- arrayfind(arr, task) (also array_find) -> Finds the first matching element using an async/sync callback task.
+- strtrim(str, side?) (also str_trim) -> Trims whitespace from both (default), left, or right sides of a string.
+- strsub(str, start, length?) (also str_sub) -> Returns a substring from start index with optional length.
+- strindexof(str, search) (also str_index_of) -> Returns first index of search substring, or -1 if not found.
+- strlastindexof(str, search) (also str_last_index_of) -> Returns last index of search substring, or -1 if not found.
+- strrepeat(str, n) (also str_repeat) -> Returns a string repeated n times.
+- strreplace(str, search, replacement) (also str_replace) -> Replaces occurrences of search (string or regex) with replacement.
+- strupper(str) (also str_upper) -> Converts string to uppercase.
+- strlower(str) (also str_lower) -> Converts string to lowercase.
+- pathjoin(...paths) (also path_join) -> Joins multiple path segments together, normalizing directory separators.
+- pathresolve(base, relative?) (also path_resolve) -> Resolves a relative path into an absolute path.
+- pathdirname(filepath) (also path_dir_name) -> Returns directory portion of a file path.
+- pathbasename(filepath) (also path_base_name) -> Returns base name portion of a file path.
+- pathextension(filepath) (also path_extension) -> Returns extension portion of a file path.
+- pathisabsolute(filepath) (also path_is_absolute) -> Returns true if a path is absolute, false otherwise.
+- time() -> Returns current Unix timestamp in seconds.
+- dateyear(ts?), datemonth(ts?), dateday(ts?), datehour(ts?), dateminute(ts?), datesecond(ts?) (also date_year, date_month, etc.) -> Get date/time components from Unix timestamp (defaults to current time).
+- dateweekday(ts?, format?) (also date_weekday) -> Returns weekday number (0-6) or text format (short/text).
+- sha256(text) -> Returns SHA-256 hash string of text.
+- encrypt(text, key) / decrypt(encrypted, key) -> AES-256-CBC encryption and decryption helpers.
+- getcookie(req, name) (also get_cookie) / setcookie(res, name, value, options?) (also set_cookie) -> Cookie get and set helpers.
+- jsonparse(str) (also json_parse/jsondecode/json_decode) -> Parses JSON string to object/array.
+- jsonencode(val, pretty?) (also json_encode) -> Encodes value to JSON string, optionally pretty-printed.
+- describe(val) -> Returns the type description of a value.
+- template(source, context?) -> Renders Angular-style template string or file path with the given context.
+- dbsetfile(path) (also db_set_file) -> Sets the file path for the local JSON database (defaults to 'db.json').
+- exit(code) -> Terminates current process with the specified integer exit code (defaults to 0).
+

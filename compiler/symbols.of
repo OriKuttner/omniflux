@@ -109,7 +109,8 @@ var ASYNC_BUILTINS = [
     "cacheget", "cache_get",
     "arraymap", "array_map",
     "arrayfilter", "array_filter",
-    "arrayfind", "array_find"
+    "arrayfind", "array_find",
+    "arraysort", "array_sort"
 ]
 
 // prescan_tasks(content)
