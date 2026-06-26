@@ -2,3 +2,6 @@ test/
 .omniflux_cache/
 sandbox.of
 sandbox.js
+server/deploy
+server/deploy_config.json
+db.json

@@ -20,6 +20,18 @@ define task ensure_parens(cond) {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: clean parentheses from respond template arguments if present
+// ---------------------------------------------------------------------------
+define task clean_template_args(content) {
+    var cleaned = content
+    if match(cleaned, "/^\\((.*)\\)$/") {
+        var m = match(cleaned, "/^\\((.*)\\)$/")
+        cleaned = m[0]
+    }
+    return cleaned
+}
+
+// ---------------------------------------------------------------------------
 // Helper: replace all $VAR references with global.vars.VAR
 // ---------------------------------------------------------------------------
 define task replace_globals(line) {
@@ -371,14 +383,14 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     }
 
     // --- redirect to ---
-    var redir_m = match(route_line, "/^redirect\\s+to\\s+[\"']?([^\"'\\s]+)[\"']?(?:\\s+with\\s+status\\s+(\\d+))?/i")
+    var redir_m = match(route_line, "/^redirect\\s+to\\s+(.*?)(?:\\s+with\\s+status\\s+(\\d+))?$/i")
     if redir_m {
         var redir_url = redir_m[0]
         var redir_status = redir_m[1]
         if redir_status {
-            arraypush(out, "res.status(" + redir_status + ").redirect('" + redir_url + "');")
+            arraypush(out, "res.status(" + redir_status + ").redirect(" + redir_url + ");")
         } else {
-            arraypush(out, "res.redirect('" + redir_url + "');")
+            arraypush(out, "res.redirect(" + redir_url + ");")
         }
         return out
     }
@@ -405,7 +417,8 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         } else if (rs_type == "file") {
             arraypush(out, "res.status(" + rs_status + ").sendFile(path.resolve(global.__app_root, " + rs_content + "));")
         } else if (rs_type == "template") {
-            arraypush(out, "res.status(" + rs_status + ").send(await template(" + rs_content + "));")
+            var cleaned_expr = clean_template_args(rs_content)
+            arraypush(out, "res.status(" + rs_status + ").send(await template(" + cleaned_expr + "));")
         } else {
             arraypush(out, "res.status(" + rs_status + ").send(" + rs_content + ");")
         }
@@ -433,7 +446,8 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         } else if (r_type == "file") {
             arraypush(out, "res.sendFile(path.resolve(global.__app_root, " + r_content + "));")
         } else if (r_type == "template") {
-            arraypush(out, "res.send(await template(" + r_content + "));")
+            var cleaned_expr = clean_template_args(r_content)
+            arraypush(out, "res.send(await template(" + cleaned_expr + "));")
         } else {
             arraypush(out, "res.send(" + r_content + ");")
         }
