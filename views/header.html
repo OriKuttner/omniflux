@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }} | OmniFlux Developer Portal</title>
     <meta name="description" content="Secure, frictionless proxy credentials and real-time AI token management powered by OmniFlux.">
-    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="icon" type="image/png" href="/public/favicon.png">
+    <link rel="stylesheet" href="/public/css/style.css?v=8">
 </head>
 <body>
     <header>
@@ -16,6 +17,7 @@
             </a>
             <nav class="nav-links">
                 <a href="/" class="nav-link">Home</a>
+                <a href="/docs" class="nav-link">Docs</a>
                 @if (email != null) {
                     <a href="/dashboard" class="nav-link">Dashboard</a>
                     @if (role == "admin") {
@@ -28,6 +30,11 @@
                     <a href="/login?register=true" class="btn btn-primary">Get Started</a>
                 @}
             </nav>
+            <button class="hamburger" id="hamburger-toggle" aria-label="Toggle Navigation">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
         </div>
     </header>
     
@@ -55,4 +62,25 @@
                 setTimeout(() => toast.remove(), 500);
             }, 3000);
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('hamburger-toggle');
+            const nav = document.querySelector('.nav-links');
+            if (toggle && nav) {
+                toggle.addEventListener('click', () => {
+                    nav.classList.toggle('active');
+                    toggle.classList.toggle('active');
+                });
+            }
+
+            // Highlight active nav links in header based on current pathname
+            const currentPath = window.location.pathname;
+            const navLinks = document.querySelectorAll('.nav-links .nav-link');
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href === currentPath || (href !== '/' && currentPath.startsWith(href))) {
+                    link.classList.add('active');
+                }
+            });
+        });
     </script>
