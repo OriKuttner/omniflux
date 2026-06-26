@@ -13,14 +13,14 @@ define task system(cmd) {
 
 define task exec(cmd) {
     @{
-        const { exec } = require('child_process');
+        const { spawn } = require('child_process');
         return new Promise((resolve) => {
-            exec(cmd, (error) => {
-                if (error) {
-                    resolve(error.code !== undefined ? error.code : 1);
-                } else {
-                    resolve(0);
-                }
+            const child = spawn(cmd, [], { stdio: 'inherit', shell: true });
+            child.on('close', (code) => {
+                resolve(code !== null ? code : 1);
+            });
+            child.on('error', () => {
+                resolve(1);
             });
         });
     @}
