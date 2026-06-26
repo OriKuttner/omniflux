@@ -72,10 +72,47 @@ define task bundle(main_cache_js, output_file) {
     var output = system(cmd)
 
     if !fileexists(output_file) {
-        print("esbuild error output:\n%s", output)
+        var formatted = output
+        @{
+            try {
+                const fs = require('fs');
+                let currentOriginalLine = null;
+                const pathRegex = /(\.omniflux_cache\/([^\s:]+)\.js):(\d+):(\d+)/g;
+                formatted = output.replace(pathRegex, (match, cachePath, relPath, lineStr, colStr) => {
+                    if (fs.existsSync(cachePath)) {
+                        const lines = fs.readFileSync(cachePath, 'utf8').split('\n');
+                        const lineIdx = parseInt(lineStr, 10) - 1;
+                        if (lineIdx >= 0 && lineIdx < lines.length) {
+                            const lineContent = lines[lineIdx];
+                            const ofMatch = /\/\/!\s*OF_LINE:\s*([^\s:]+):(\d+)/.exec(lineContent);
+                            if (ofMatch) {
+                                currentOriginalLine = ofMatch[2];
+                                return `${ofMatch[1]}:${ofMatch[2]}:${colStr}`;
+                            }
+                        }
+                    }
+                    return match;
+                });
+
+                const outLines = formatted.split('\n');
+                for (let i = 0; i < outLines.length; i++) {
+                    const line = outLines[i];
+                    const listMatch = /^(\s*)(\d+)(\s+│.*)/.exec(line);
+                    if (listMatch) {
+                        const ofMatch = /\/\/!\s*OF_LINE:\s*[^\s:]+:(\d+)/.exec(line);
+                        const originalLine = ofMatch ? ofMatch[1] : currentOriginalLine;
+                        if (originalLine) {
+                            outLines[i] = `${listMatch[1]}${originalLine}${listMatch[3]}`;
+                        }
+                    }
+                }
+                formatted = outLines.join('\n');
+            } catch (e) {}
+        @}
+        print("esbuild error output:\n%s", formatted)
         return {
             ok: false,
-            error: "Bundling failed. esbuild did not produce output file."
+            error: formatted
         }
     }
 
