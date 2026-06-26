@@ -739,3 +739,74 @@ on start {
     print("Process termination result: %s", success)
 }
 ```
+
+## 8. Using NPM Packages 📦
+
+OmniFlux runs on top of the Node.js runtime and utilizes `esbuild` for its compilation and bundling steps. This makes it incredibly easy to use any package from the npm registry directly in your OmniFlux code!
+
+### How to Install and Require Packages
+
+1. **Initialize a Node.js project** if your directory does not have a `package.json` file yet. This ensures npm packages are installed locally in your project folder (under `node_modules/`) rather than inherited from a parent directory:
+   ```bash
+   npm init -y
+   ```
+2. **Install the package** in your project directory:
+   ```bash
+   npm install package-name
+   ```
+3. **Require the package** in your OmniFlux code using the built-in `require()` function:
+   ```omniflux
+   var pkg = require("package-name")
+   ```
+4. **Compilation & Bundling:** When you compile your application, the compiler automatically bundles the required npm package code into your final standalone binary. You do not need `node_modules` at runtime!
+
+---
+
+### Example 1: Rendering Markdown with `marked`
+
+This example shows how to install and use the `marked` library to parse Markdown text into HTML.
+
+**Installation:**
+```bash
+npm install marked
+```
+
+**Code (`render_md.of`):**
+```omniflux
+on start {
+    # Import the marked library
+    var marked = require("marked")
+    
+    var markdown = "# OmniFlux Guide\n\nOmniFlux is a *minimalist* language."
+    
+    # Parse Markdown text to HTML
+    var html = marked.parse(markdown)
+    
+    print("Parsed HTML output:\n%s", html)
+}
+```
+
+---
+
+### Example 2: Generating Unique IDs with `uuid`
+
+This example shows how to install and use the `uuid` library to generate cryptographically strong unique identifiers.
+
+**Installation:**
+```bash
+npm install uuid
+```
+
+**Code (`generate_id.of`):**
+```omniflux
+on start {
+    # Import the uuid library
+    var uuid = require("uuid")
+    
+    # Generate a random UUID
+    var new_id = uuid.v4()
+    
+    print("Generated Unique ID: %s", new_id)
+}
+```
+

@@ -455,6 +455,7 @@ define task run_output(output_file, run_args) {
     var out = system(cmd)
     printf("%s", out)
     print("----------------------------------------")
+    return out
 }
 
 // ---------------------------------------------------------------------------
@@ -625,7 +626,36 @@ on start {
             exit(1)
         }
         if !cli.compile_only {
-            run_output with result.output, cli.run_args
+            var run_out = run_output(result.output, cli.run_args)
+            // If the program crashed with a ReferenceError (e.g. typo in variable name),
+            // rebuild using AI and run again
+            if run_out && match(run_out, "/ReferenceError|is not defined/") && !cli.strict {
+                print("\x1b[1;33mRuntime error detected. Falling back to AI Compiler...\x1b[0m")
+                var system_prompt = read_system_prompt()
+                var abs_input2 = pathresolve(cli.input_file)
+                var deps2 = get_all_dependencies(abs_input2, null)
+                // Delete cache so build_once recompiles fresh via AI
+                for dep_path2 of deps2 {
+                    var cache_path2 = get_cache_path(dep_path2)
+                    if fileexists(cache_path2) {
+                        filedelete(cache_path2)
+                    }
+                    ai_compile_file(cfg, dep_path2, cache_path2, system_prompt)
+                }
+                // Bundle the AI-compiled files and run
+                var abs_inp2 = pathresolve(cli.input_file)
+                var out_path2 = get_output_path(abs_inp2)
+                var ai_deps = get_all_dependencies(abs_inp2, null)
+                var ai_map = {}
+                for ai_dep of ai_deps {
+                    var ai_cache = get_cache_path(ai_dep)
+                    ai_map[ai_dep] = fileread(ai_cache)
+                }
+                var result2 = build(abs_inp2, out_path2, ai_map)
+                if result2.ok {
+                    run_output with result2.output, cli.run_args
+                }
+            }
         }
         exit(0)
     }
