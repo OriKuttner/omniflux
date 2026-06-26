@@ -184,6 +184,37 @@ OmniFlux provides simple tools to read input and arguments when building command
   exit(1)
   ```
 
+### 1.6 AI Directives (Interactive Code Completion) 🤖
+
+OmniFlux features a unique AI-assisted self-healing compilation pipeline. You can guide the AI to write entire blocks of code for you on demand using two mechanisms:
+
+#### 1. The `>>>` Prefix (Line-level Directives)
+To ask the AI to generate a block of code directly, start a new line with `>>>` followed by your request in English:
+
+```omniflux
+on start {
+    >>> print a list of numbers from 1 to 5
+}
+```
+
+During compilation:
+1. The preprocessor translates the `>>>` line into an `ai("...")` statement.
+2. The compiler compiles it locally without syntax errors.
+3. At runtime, the missing `ai()` binding throws a ReferenceError, which triggers the self-healing AI compilation fallback.
+4. The AI resolves the directive, replaces it with the actual generated code, and rebuilds the project.
+
+> [!IMPORTANT]
+> **Syntax Design:** The `>>>` marker must be the **first non-whitespace character on the line** (meaning only indentation spaces/tabs can precede it). This prevents any collisions with standard operators in the middle of expressions (like the unsigned right-shift operator `>>>` in JavaScript/OmniFlux).
+
+#### 2. Programmatic Directives (`ai(...)` and `todo(...)`)
+You can also write AI directives programmatically using the `ai("...")` or `todo("...")` functions inside expressions or statements. These are fully validated locally, and resolved by the AI fallback:
+
+```omniflux
+on start {
+    ai("read config.json and print its contents")
+}
+```
+
 ---
 
 ## 2. Control Flow & Conditionals

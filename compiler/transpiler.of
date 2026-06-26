@@ -163,6 +163,17 @@ define task pre_process_line(raw_line, user_tasks) {
         line = strreplace(line, with_pat, "$1await " + tname3 + "($2)")
     }
 
+    // --- Builtin with ARGS ---
+    var builtins_list = @{ Array.isArray(global.BUILTINS) ? global.BUILTINS : [] @}
+    for bname of builtins_list {
+        var with_pat2 = "/^(\\s*)" + bname + "\\s+with\\s+(.*?)(?=\\s*(?:\\/\\/|;|$))/m"
+        if arraycontains(global.ASYNC_BUILTINS, bname) {
+            line = strreplace(line, with_pat2, "$1await " + bname + "($2)")
+        } else {
+            line = strreplace(line, with_pat2, "$1" + bname + "($2)")
+        }
+    }
+
     // --- Insert awaits for all async calls ---
     line = insert_awaits(line, user_tasks)
 

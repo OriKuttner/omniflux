@@ -433,6 +433,46 @@ define task build_once(input_file, compile_only, strict, cfg) {
     var output_file = get_output_path(abs_input)
     var bresult = build(abs_input, output_file, compiled_map)
 
+    if !bresult.ok {
+        if strict || !cfg {
+            return bresult
+        }
+        // Try to find which file caused the esbuild error
+        var failed_file = null
+        var err_msg = bresult.error
+        @{
+            const m = /\.omniflux_cache\/([^\s:]+)\.js/.exec(err_msg);
+            if (m) {
+                const rel = m[1] + '.of';
+                // Find matching absolute path in compiled_map keys
+                for (const abs_path of Object.keys(compiled_map)) {
+                    if (abs_path.endsWith(rel)) {
+                        failed_file = abs_path;
+                        break;
+                    }
+                }
+            }
+        @}
+        if !failed_file {
+            // Fallback to main input file if we couldn't parse the error
+            failed_file = abs_input
+        }
+
+        print("\x1b[1;33mBundling failed due to JS syntax error. Falling back to AI Compiler for %s...\x1b[0m", failed_file)
+        var cache_path = get_cache_path(failed_file)
+        if fileexists(cache_path) {
+            filedelete(cache_path)
+        }
+        var ai_ok = ai_compile_file(cfg, failed_file, cache_path, system_prompt)
+        if !ai_ok {
+            return bresult
+        }
+        // Update compiled_map with the AI generated JS
+        compiled_map[failed_file] = fileread(cache_path)
+        // Re-bundle
+        bresult = build(abs_input, output_file, compiled_map)
+    }
+
     if bresult.ok {
         var end_time = 0
         @{ end_time = Date.now(); @}

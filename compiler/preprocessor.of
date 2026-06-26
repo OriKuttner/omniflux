@@ -20,7 +20,140 @@ include "compiler/symbols.of"
 //     comment tokens, even if they contain # or /*.
 //   - Characters inside @{ ... @} JS escape blocks are passed through verbatim.
 // Newlines are always preserved so that line numbers stay correct.
+// preprocess_ai_directives(content)
+// Scans for lines starting with optional whitespace and "!"
+// and transforms them into ai("...") calls.
+define task preprocess_ai_directives(content) {
+    var processed = content
+    @{
+        try {
+            let result = '';
+            let i = 0;
+            const len = content.length;
+            let in_string = '';
+            let in_node_block = false;
+            let in_block_comment = false;
+
+            const is_line_start = (idx) => {
+                let p = idx - 1;
+                while (p >= 0 && content[p] !== '\n') {
+                    if (content[p] !== ' ' && content[p] !== '\t' && content[p] !== '\r') {
+                        return false;
+                    }
+                    p--;
+                }
+                return true;
+            };
+
+            while (i < len) {
+                const ch = content[i];
+
+                if (in_node_block) {
+                    if (ch === '@' && content[i + 1] === '}') {
+                        result += '@' + '}';
+                        i += 2;
+                        in_node_block = false;
+                    } else {
+                        result += ch;
+                        i++;
+                    }
+                    continue;
+                }
+
+                if (in_block_comment) {
+                    if (ch === '/' && content[i + 1] === '*') {
+                        result += '/*';
+                        i += 2;
+                    } else if (ch === '*' && content[i + 1] === '/') {
+                        result += '*/';
+                        i += 2;
+                        in_block_comment = false;
+                    } else {
+                        result += ch;
+                        i++;
+                    }
+                    continue;
+                }
+
+                if (in_string !== '') {
+                    if (ch === '\\') {
+                        result += ch + (content[i + 1] || '');
+                        i += 2;
+                    } else if (ch === in_string) {
+                        result += ch;
+                        i++;
+                        in_string = '';
+                    } else {
+                        result += ch;
+                        i++;
+                    }
+                    continue;
+                }
+
+                if (ch === '@' && content[i + 1] === '{') {
+                    result += '@' + '{';
+                    i += 2;
+                    in_node_block = true;
+                    continue;
+                }
+
+                if (ch === '/' && content[i + 1] === '*') {
+                    result += '/*';
+                    i += 2;
+                    in_block_comment = true;
+                    continue;
+                }
+
+                if (ch === '#' || (ch === '/' && content[i + 1] === '/')) {
+                    while (i < len && content[i] !== '\n') {
+                        result += content[i];
+                        i++;
+                    }
+                    continue;
+                }
+
+                if (ch === '"' || ch === "'") {
+                    in_string = ch;
+                    result += ch;
+                    i++;
+                    continue;
+                }
+
+                if (ch === '>' && content[i + 1] === '>' && content[i + 2] === '>' && is_line_start(i)) {
+                    let start = i + 3;
+                    let end = i + 3;
+                    while (end < len && content[end] !== '\n') {
+                        end++;
+                    }
+                    const directive = content.slice(start, end).trim();
+                    const escaped = directive
+                        .replace(new RegExp('\\\\', 'g'), '\\\\')
+                        .replace(new RegExp('"', 'g'), '\\"');
+                    result += `ai("${escaped}")`;
+                    i = end;
+                    continue;
+                }
+
+                result += ch;
+                i++;
+            }
+            processed = result;
+        } catch(e) {}
+    @}
+    return processed
+}
+
+// strip_comments(content)
+// Removes OmniFlux comments from a source string.
+// Rules:
+//   - # starts a line comment — everything after it until end-of-line is removed.
+//   - /* ... */ is a block comment — may span multiple lines.
+//   - Characters inside string literals ("..." or '...') are never treated as
+//     comment tokens, even if they contain # or /*.
+//   - Characters inside @{ ... @} JS escape blocks are passed through verbatim.
+// Newlines are always preserved so that line numbers stay correct.
 define task strip_comments(content) {
+    content = preprocess_ai_directives(content)
     var result = ""
     var i = 0
     var length = len(content)
