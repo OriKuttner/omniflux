@@ -493,7 +493,7 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `arrayjoin(arr, sep)`: Joins array elements into a string separated by `sep`.
   * `arrayslice(arr, start, end)`: Returns a slice of the array from `start` (inclusive) to `end` (exclusive).
   * `arrayreverse(arr)`: Returns a new array with elements in reversed order.
-  * `arraysort(arr)`: Returns a new array with elements sorted.
+  * `arraysort(arr, compareFn?)`: Returns a new array with elements sorted. If a custom `compareFn` is provided (using the `ref` keyword to pass it by reference, e.g. `arraysort(arr, ref my_compare)`), it will use it to sort the elements (the callback should return `-1`, `0`, or `1`).
   * `arraymap(arr, task)`: Maps elements using an async callback task.
   * `arrayfilter(arr, task)`: Filters elements using an async callback task.
   * `arrayfind(arr, task)`: Finds the first matching element using an async callback task.

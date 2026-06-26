@@ -681,8 +681,40 @@ function arrayreverse(arr) {
     return [...arr].reverse();
 }
 
-function arraysort(arr) {
+async function asyncMergeSort(arr, compareFn) {
+    if (arr.length <= 1) return arr;
+    const mid = Math.floor(arr.length / 2);
+    const left = arr.slice(0, mid);
+    const right = arr.slice(mid);
+    return await asyncMerge(
+        await asyncMergeSort(left, compareFn),
+        await asyncMergeSort(right, compareFn),
+        compareFn
+    );
+}
+
+async function asyncMerge(left, right, compareFn) {
+    const result = [];
+    let l = 0, r = 0;
+    while (l < left.length && r < right.length) {
+        const cmp = await compareFn(left[l], right[r]);
+        if (cmp <= 0) {
+            result.push(left[l]);
+            l++;
+        } else {
+            result.push(right[r]);
+            r++;
+        }
+    }
+    return result.concat(left.slice(l)).concat(right.slice(r));
+}
+
+async function arraysort(arr, compareFn) {
     if (!Array.isArray(arr)) return [];
+    if (typeof compareFn === 'function') {
+        const temp = [...arr];
+        return await asyncMergeSort(temp, compareFn);
+    }
     return [...arr].sort();
 }
 
