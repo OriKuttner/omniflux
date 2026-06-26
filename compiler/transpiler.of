@@ -73,6 +73,41 @@ define task insert_awaits(line, user_tasks) {
 define task transpile_line(raw_line, filename, user_tasks, line_num, state) {
     var line = strtrim(raw_line)
 
+    // Check for single-line control blocks: if cond { statement }
+    var single_line_match = null
+    @{
+        single_line_match = raw_line.match(/^(\s*)(if\b[^{]+|while\b[^{]+|for\b[^{]+|else\s+if\b[^{]+|else\s*)\{\s*([^}]+?)\s*\}\s*$/i);
+    @}
+    if single_line_match != null {
+        var indent = ""
+        var header = ""
+        var body = ""
+        @{
+            indent = single_line_match[1];
+            header = single_line_match[2].trim();
+            body = single_line_match[3].trim();
+        @}
+        var line1 = indent + header + " {"
+        var line2 = indent + "    " + body
+        var line3 = indent + "}"
+        
+        var out1 = transpile_line(line1, filename, user_tasks, line_num, state)
+        var out2 = transpile_line(line2, filename, user_tasks, line_num, state)
+        var out3 = transpile_line(line3, filename, user_tasks, line_num, state)
+        
+        var combined_out = []
+        for l1 of out1 {
+            arraypush(combined_out, l1)
+        }
+        for l2 of out2 {
+            arraypush(combined_out, l2)
+        }
+        for l3 of out3 {
+            arraypush(combined_out, l3)
+        }
+        return combined_out
+    }
+
     var node_open = "@" + "{"
     var node_close = "@" + "}"
     var node_pattern = "/@\\" + "{|@\\" + "}/g"
