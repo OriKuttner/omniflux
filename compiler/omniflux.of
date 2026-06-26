@@ -49,6 +49,11 @@ define task parse_args(argv) {
             arraypush(result.run_args, arg)
         }
     }
+    if result.input_file != "" {
+        if !match(result.input_file, "/\\.of$/i") {
+            result.input_file = result.input_file + ".of"
+        }
+    }
     return result
 }
 
@@ -486,16 +491,51 @@ define task build_once(input_file, compile_only, strict, cfg) {
 // run_output: execute the built binary
 // ---------------------------------------------------------------------------
 define task run_output(output_file, run_args) {
-    var cmd = output_file
-    for arg of run_args {
-        cmd = cmd + " " + arg
-    }
     print("Running: %s", output_file)
     print("----------------------------------------")
-    var out = system(cmd)
-    printf("%s", out)
-    print("----------------------------------------")
-    return out
+    @{
+        const { spawn } = require('child_process');
+        const child = spawn(output_file, run_args || [], { stdio: ['inherit', 'pipe', 'pipe'] });
+        let output = '';
+
+        child.stdout.on('data', (data) => {
+            process.stdout.write(data);
+            output += data.toString();
+        });
+
+        child.stderr.on('data', (data) => {
+            process.stderr.write(data);
+            output += data.toString();
+        });
+
+        return new Promise((resolve) => {
+            child.on('close', (code) => {
+                console.log("----------------------------------------");
+                resolve(output);
+            });
+            child.on('error', (err) => {
+                console.error("Failed to start process:", err.message);
+                console.log("----------------------------------------");
+                resolve(output);
+            });
+        });
+    @}
+}
+
+// ---------------------------------------------------------------------------
+// restart_watch_process: kill previous background watch process and spawn a new one with inherited stdio
+// ---------------------------------------------------------------------------
+define task restart_watch_process(output_file) {
+    @{
+        if (global.__running_watch_child) {
+            try {
+                global.__running_watch_child.kill('SIGTERM');
+            } catch (e) {}
+            global.__running_watch_child = null;
+        }
+        const { spawn } = require('child_process');
+        global.__running_watch_child = spawn(output_file, [], { stdio: 'inherit' });
+    @}
 }
 
 // ---------------------------------------------------------------------------
@@ -510,8 +550,7 @@ define task watch_loop(input_file, compile_only) {
         last_build_ok = true
         output_file = result.output
         if !compile_only {
-            // Start in background — we track it by watching for changes only
-            exec(output_file + " &")
+            restart_watch_process(output_file)
         }
     }
 
@@ -525,7 +564,7 @@ define task watch_loop(input_file, compile_only) {
     for dep_path of deps {
         var stat = filestat(dep_path)
         if stat {
-            mod_times[dep_path] = stat.mtime
+            mod_times[dep_path] = stat.modifiedat
         }
     }
 
@@ -540,7 +579,7 @@ define task watch_loop(input_file, compile_only) {
                 break
             }
             var stat2 = filestat(dep_path)
-            if stat2 && mod_times[dep_path] && stat2.mtime > mod_times[dep_path] {
+            if stat2 && mod_times[dep_path] && stat2.modifiedat > mod_times[dep_path] {
                 changed = true
                 break
             }
@@ -552,7 +591,7 @@ define task watch_loop(input_file, compile_only) {
             if new_result.ok {
                 output_file = new_result.output
                 if !compile_only {
-                    exec(output_file + " &")
+                    restart_watch_process(output_file)
                 }
             } else {
                 print("Rebuild failed. Waiting for fixes...")
@@ -564,7 +603,7 @@ define task watch_loop(input_file, compile_only) {
             for dep_path2 of deps {
                 var stat3 = filestat(dep_path2)
                 if stat3 {
-                    mod_times[dep_path2] = stat3.mtime
+                    mod_times[dep_path2] = stat3.modifiedat
                 }
             }
         }
@@ -581,7 +620,7 @@ define task watch_loop_ai(input_file, compile_only, strict, cfg) {
     if result.ok {
         output_file = result.output
         if !compile_only {
-            exec(output_file + " &")
+            restart_watch_process(output_file)
         }
     }
 
@@ -594,7 +633,7 @@ define task watch_loop_ai(input_file, compile_only, strict, cfg) {
     for dep_path of deps {
         var stat = filestat(dep_path)
         if stat {
-            mod_times[dep_path] = stat.mtime
+            mod_times[dep_path] = stat.modifiedat
         }
     }
 
@@ -608,7 +647,7 @@ define task watch_loop_ai(input_file, compile_only, strict, cfg) {
                 break
             }
             var stat2 = filestat(dep_path)
-            if stat2 && mod_times[dep_path] && stat2.mtime > mod_times[dep_path] {
+            if stat2 && mod_times[dep_path] && stat2.modifiedat > mod_times[dep_path] {
                 changed = true
                 break
             }
@@ -620,7 +659,7 @@ define task watch_loop_ai(input_file, compile_only, strict, cfg) {
             if new_result.ok {
                 output_file = new_result.output
                 if !compile_only {
-                    exec(output_file + " &")
+                    restart_watch_process(output_file)
                 }
             } else {
                 print("Rebuild failed. Waiting for fixes...")
@@ -631,7 +670,7 @@ define task watch_loop_ai(input_file, compile_only, strict, cfg) {
             for dep_path2 of deps {
                 var stat3 = filestat(dep_path2)
                 if stat3 {
-                    mod_times[dep_path2] = stat3.mtime
+                    mod_times[dep_path2] = stat3.modifiedat
                 }
             }
         }
