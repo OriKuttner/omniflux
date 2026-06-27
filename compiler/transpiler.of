@@ -49,7 +49,7 @@ define task insert_awaits(line, user_tasks) {
         var pat_with = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)" + name + "(?=\\s*\\()/g"
         result = strreplace(result, pat_with, "await " + name)
         // Bare call — add await and ()
-        var pat_bare = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)" + name + "\\b(?!\\s*\\()/g"
+        var pat_bare = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!global\\.\\w+\\s*=\\s*)(?<!global\\.vars\\.\\w+\\s*=\\s*)" + name + "\\b(?!\\s*\\()/g"
         result = strreplace(result, pat_bare, "await " + name + "()")
     }
     var task_names = @{ Object.keys(user_tasks) @}
@@ -58,7 +58,7 @@ define task insert_awaits(line, user_tasks) {
         var pat2_with = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!REFERENCE_)" + name2 + "(?=\\s*\\()/g"
         result = strreplace(result, pat2_with, "await " + name2)
         // Bare call — add await and ()
-        var pat2_bare = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!REFERENCE_)" + name2 + "\\b(?!\\s*\\()/g"
+        var pat2_bare = "/\\b(?<!await\\s)(?<!task\\s)(?<!fn\\s)(?<!global\\.)(?<!global\\.\\w+\\s*=\\s*)(?<!global\\.vars\\.\\w+\\s*=\\s*)(?<!REFERENCE_)" + name2 + "\\b(?!\\s*\\()/g"
         result = strreplace(result, pat2_bare, "await " + name2 + "()")
     }
     return result

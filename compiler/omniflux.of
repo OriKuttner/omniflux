@@ -285,7 +285,7 @@ define task detect_missing_includes(source_code) {
 // ---------------------------------------------------------------------------
 // ai_compile_file: send source to AI and write compiled JS to target path
 // ---------------------------------------------------------------------------
-define task ai_compile_file(cfg, src_path, target_js) {
+define task ai_compile_file(cfg, src_path, target_js, runtime_error = null) {
     var source_code = fileread(src_path)
     var missing_libs = detect_missing_includes(source_code)
     
@@ -300,6 +300,9 @@ define task ai_compile_file(cfg, src_path, target_js) {
     if len(missing_libs) > 0 {
         var lib_list = arrayjoin(missing_libs, ", ")
         prompt_addition = "\n\nNOTE: The code uses functions from the following standard libraries but is missing their include statements: " + lib_list + ".\nYou MUST prepend the appropriate include directive(s) (e.g. include \"" + missing_libs[0] + "\") to the top of the OmniFlux source code, and you MUST return BOTH the [OmniFlux Source] block (containing the healed OmniFlux code) and the [OmniFlux Ready] block (containing the compiled JavaScript code)."
+    }
+    if runtime_error != null && runtime_error != "" {
+        prompt_addition = prompt_addition + "\n\nCRITICAL: A compiler/runtime error occurred when executing this code:\n" + runtime_error + "\nPlease fix this error in the OmniFlux code (such as adding missing include statements, fixing variables, typos, missing 'ref' keywords, or syntax errors). You MUST return BOTH the [OmniFlux Source] block (containing the healed OmniFlux code) and the [OmniFlux Ready] block (containing the compiled JavaScript code)."
     }
 
     var messages = [
@@ -619,50 +622,63 @@ define task build_once(input_file, compile_only, strict, cfg, force) {
             rebuild_needed = true
             // Reload dependencies since a file was healed and may have new include directives
             deps = get_all_dependencies(abs_input, null)
+            continue
         }
-    }
 
-    // Bundle
-    var bresult = build(abs_input, output_file, compiled_map)
+        // Bundle
+        bresult = build(abs_input, output_file, compiled_map)
 
-    if !bresult.ok {
-        if strict || !cfg {
-            return bresult
-        }
-        // Try to find which file caused the esbuild error
-        var failed_file = null
-        var err_msg = bresult.error
-        @{
-            const m = /\.omniflux_cache\/([^\s:]+)\.js/.exec(err_msg);
-            if (m) {
-                const rel = m[1] + '.of';
-                // Find matching absolute path in compiled_map keys
-                for (const abs_path of Object.keys(compiled_map)) {
-                    if (abs_path.endsWith(rel)) {
-                        failed_file = abs_path;
-                        break;
+        if !bresult.ok {
+            if strict || !cfg {
+                return bresult
+            }
+            // Try to find which file caused the esbuild error
+            var failed_file = null
+            var err_msg = bresult.error
+            @{
+                const m = /\.omniflux_cache\/([^\s:]+)\.js/.exec(err_msg);
+                if (m) {
+                    const rel = m[1] + '.of';
+                    // Find matching absolute path in compiled_map keys
+                    for (const abs_path of Object.keys(compiled_map)) {
+                        if (abs_path.endsWith(rel)) {
+                            failed_file = abs_path;
+                            break;
+                        }
                     }
                 }
+            @}
+            if !failed_file {
+                // Fallback to main input file if we couldn't parse the error
+                failed_file = abs_input
             }
-        @}
-        if !failed_file {
-            // Fallback to main input file if we couldn't parse the error
-            failed_file = abs_input
-        }
 
-        print("\x1b[1;33mBundling failed due to JS syntax error. Falling back to AI Compiler for %s...\x1b[0m", failed_file)
-        var cache_path = get_cache_path(failed_file)
-        if fileexists(cache_path) {
-            filedelete(cache_path)
+            print("\x1b[1;33mBundling failed due to JS syntax error. Falling back to AI Compiler for %s...\x1b[0m", failed_file)
+            var cache_path = get_cache_path(failed_file)
+            if fileexists(cache_path) {
+                filedelete(cache_path)
+            }
+            var ai_ok = ai_compile_file(cfg, failed_file, cache_path, bresult.error)
+            if !ai_ok {
+                return bresult
+            }
+
+            if cfg != null && cfg.was_healed {
+                heal_attempts = heal_attempts + 1
+                if heal_attempts > max_heal_attempts {
+                    print("\x1b[1;31mError: Exceeded maximum AI healing attempts (%d). Aborting compilation to prevent infinite loops.\x1b[0m", max_heal_attempts)
+                    return { ok: false }
+                }
+                rebuild_needed = true
+                deps = get_all_dependencies(abs_input, null)
+                continue
+            }
+
+            // Update compiled_map with the AI generated JS
+            compiled_map[failed_file] = fileread(cache_path)
+            // Re-bundle
+            bresult = build(abs_input, output_file, compiled_map)
         }
-        var ai_ok = ai_compile_file(cfg, failed_file, cache_path)
-        if !ai_ok {
-            return bresult
-        }
-        // Update compiled_map with the AI generated JS
-        compiled_map[failed_file] = fileread(cache_path)
-        // Re-bundle
-        bresult = build(abs_input, output_file, compiled_map)
     }
 
     if bresult.ok {
@@ -907,7 +923,7 @@ on start {
             var run_out = run_output(result.output, cli.run_args)
             // If the program crashed with a ReferenceError (e.g. typo in variable name),
             // rebuild using AI and run again
-            if run_out && match(run_out, "/ReferenceError|is not defined/") && !cli.strict {
+            if run_out && match(run_out, "/ReferenceError|TypeError|is not defined|Cannot read properties|is not a function/") && !cli.strict {
                 print("\x1b[1;33mRuntime error detected. Falling back to AI Compiler...\x1b[0m")
                 var abs_input2 = pathresolve(cli.input_file)
                 var deps2 = get_all_dependencies(abs_input2, null)
@@ -917,7 +933,7 @@ on start {
                     if fileexists(cache_path2) {
                         filedelete(cache_path2)
                     }
-                    ai_compile_file(cfg, dep_path2, cache_path2)
+                    ai_compile_file(cfg, dep_path2, cache_path2, run_out)
                 }
                 
                 if cfg != null && cfg.was_healed {

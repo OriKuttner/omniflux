@@ -48,6 +48,6 @@ on start {
     ]
     print("--- 3. Object Sorting (By Age) ---")
     print("Original users: %s", jsonencode(users))
-    var sorted_users = arraysort(users, ref compare_user_age)
+    var sorted_users = arraysort(users, compare_user_age)
     print("Sorted by age : %s", jsonencode(sorted_users))
 }
