@@ -559,10 +559,8 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `dateminute(ts)`: Returns the minute (0-59) of the given Unix timestamp `ts`.
   * `datesecond(ts)`: Returns the second (0-59) of the given Unix timestamp `ts`.
   * `dateweekday(ts, format?)`: Returns the day of the week for the given Unix timestamp `ts` (or the current day if `ts` is not provided). The `format` parameter is optional and defaults to `"number"` (returning `0-6` where Sunday is `0`). Alternatively, passing `"short"` or `"text"` returns a 3-letter day abbreviation (e.g., `"Sun"`, `"Mon"`).
-* **Cryptography & Encryption:** Secure hashing and symmetric encryption helpers:
+* **Cryptography & Encryption:** Secure hashing helpers:
   * `sha256(text)`: Returns the SHA-256 hexadecimal hash string of the input text. Useful for secure password hashing.
-  * `encrypt(text, key)`: Encrypts `text` using the `key` via the secure AES-256-CBC algorithm. Generates a unique, random initialization vector (IV) for each call to ensure identical inputs result in different ciphertexts, and returns the result packed as `iv:ciphertext`.
-  * `decrypt(encryptedText, key)`: Decrypts `encryptedText` (in the `iv:ciphertext` format) using the provided `key`. Returns the original decrypted string, or `null` if decryption fails (e.g., due to an incorrect key or corrupted input).
 * **Web & HTTP Utilities:** Native HTTP helpers:
   * `getcookie(req, name)`: Extracts and returns the value of the cookie `name` from the incoming request `req`. Returns `null` if not found.
   * `setcookie(res, name, value, options?)`: Sets a cookie on the outgoing response `res` with the specified `name` and `value`. The optional `options` object supports standard cookie attributes (such as `httpOnly`, `secure`, `maxAge`, `path`, etc.). *Note: Because cookies are sent in HTTP headers, this must be called before sending any response body (like HTML or JSON) to the client.*
@@ -800,6 +798,35 @@ on start {
     
     var exit_code = pwait(pid)
     print("Process exited with code: %s", exit_code)
+}
+```
+
+### 7.4 Cryptography & Encoding Library (`stdlib/encrypt.of`)
+Provides tasks for secure hashing, symmetric encryption, and Base64 conversion:
+* `encrypt(text, key)`: Encrypts `text` using the `key` via the secure AES-256-CBC algorithm. Generates a unique, random initialization vector (IV) for each call to ensure identical inputs result in different ciphertexts, and returns the result packed as `iv:ciphertext`.
+* `decrypt(encryptedText, key)`: Decrypts `encryptedText` (in the `iv:ciphertext` format) using the provided `key`. Returns the original decrypted string, or `null` if decryption fails (e.g., due to an incorrect key or corrupted input).
+* `base64_encode(text)` (alias `base64encode`): Takes a string and returns its Base64 encoded representation.
+* `base64_decode(text)` (alias `base64decode`): Takes a Base64 string and decodes it back to its original UTF-8 string format.
+
+```omniflux
+include "stdlib/encrypt.of"
+
+on start {
+    # 1. Base64 encoding and decoding
+    var original = "Hello World!"
+    var encoded = base64_encode(original)
+    print("Encoded: %s (expected: SGVsbG8gV29ybGQh)", encoded)
+    
+    var decoded = base64_decode(encoded)
+    print("Decoded: %s (expected: Hello World!)", decoded)
+
+    # 2. Symmetric AES-256-CBC encryption
+    var key = "secret_passphrase"
+    var encrypted = encrypt(original, key)
+    print("Encrypted payload: %s", encrypted)
+    
+    var decrypted = decrypt(encrypted, key)
+    print("Decrypted payload: %s", decrypted)
 }
 ```
 

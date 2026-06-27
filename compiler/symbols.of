@@ -40,8 +40,6 @@ var BUILTINS = [
     "exit",
     // Cryptography & Encryption
     "sha256",
-    "encrypt",
-    "decrypt",
     // Web & HTTP
     "getcookie", "get_cookie",
     "setcookie", "set_cookie",
