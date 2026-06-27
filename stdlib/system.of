@@ -45,17 +45,87 @@ define task spawn(cmd, args) {
     @{
         const { spawn } = require('child_process');
         const child = spawn(cmd, args || [], { stdio: 'inherit', shell: true });
+        
+        if (!global.__spawned_processes) {
+            global.__spawned_processes = new Map();
+        }
+        
+        const procInfo = {
+            child: child,
+            running: true,
+            exitCode: null,
+            signal: null,
+            promise: null,
+            resolve: null
+        };
+        
+        procInfo.promise = new Promise((resolve) => {
+            procInfo.resolve = resolve;
+        });
+        
+        child.on('exit', (code, signal) => {
+            procInfo.running = false;
+            procInfo.exitCode = code;
+            procInfo.signal = signal;
+            if (procInfo.resolve) {
+                procInfo.resolve({ code, signal });
+            }
+        });
+        
+        global.__spawned_processes.set(child.pid, procInfo);
         return child.pid;
     @}
 }
 
-define task kill(pid, signal) {
+define task pterminate(pid, signal) {
     @{
         try {
             process.kill(pid, signal || 'SIGTERM');
             return true;
         } catch (e) {
             return false;
+        }
+    @}
+}
+
+define task pwait(pid) {
+    @{
+        const info = global.__spawned_processes && global.__spawned_processes.get(pid);
+        if (info) {
+            if (!info.running) {
+                return info.exitCode;
+            }
+            return info.promise.then(res => res.code);
+        }
+        
+        // Fallback for external PIDs (polling every 100ms)
+        return new Promise((resolve) => {
+            const interval = setInterval(() => {
+                try {
+                    process.kill(pid, 0);
+                } catch (e) {
+                    clearInterval(interval);
+                    resolve(null);
+                }
+            }, 100);
+        });
+    @}
+}
+
+define task pstatus(pid) {
+    @{
+        const info = global.__spawned_processes && global.__spawned_processes.get(pid);
+        if (info) {
+            return info.running ? 1 : 0;
+        }
+        try {
+            process.kill(pid, 0);
+            return 1;
+        } catch (e) {
+            if (e.code === 'EPERM') {
+                return 1;
+            }
+            return 0;
         }
     @}
 }
