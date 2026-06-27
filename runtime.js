@@ -761,6 +761,16 @@ function time() {
     return Math.floor(Date.now() / 1000);
 }
 
+function microtime(getAsFloat = true) {
+    if (getAsFloat === false) {
+        const now = Date.now();
+        const sec = Math.floor(now / 1000);
+        const msec = now % 1000;
+        return `${(msec / 1000).toFixed(8)} ${sec}`;
+    }
+    return Date.now() / 1000;
+}
+
 function dateyear(ts) {
     const d = ts ? new Date(ts * 1000) : new Date();
     return d.getFullYear();
@@ -1100,6 +1110,8 @@ global.arrayfind = arrayfind;
 global.array_find = arrayfind;
 
 global.time = time;
+global.microtime = microtime;
+global.micro_time = microtime;
 
 global.dateyear = dateyear;
 global.date_year = dateyear;

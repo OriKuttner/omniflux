@@ -244,7 +244,7 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
 
     // --- wait syntax validation ---
     if match(line, "/^wait\\s+/i") {
-        if !match(line, "/^wait\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i") {
+        if !match(line, "/^wait\\s+(\\d+(?:\\.\\d+)?|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i") {
             state.error = "SyntaxError in " + filename + " on line " + line_num + ": 'wait' statement requires a time unit (second/seconds, minute/minutes, hour/hours)"
             return out
         }
@@ -252,7 +252,7 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
 
     // --- every syntax validation ---
     if match(line, "/^every\\s+/i") {
-        if !match(line, "/^every\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i") {
+        if !match(line, "/^every\\s+(\\d+(?:\\.\\d+)?|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i") {
             state.error = "SyntaxError in " + filename + " on line " + line_num + ": 'every' statement requires a time unit (second/seconds, minute/minutes, hour/hours)"
             return out
         }
@@ -345,7 +345,7 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     }
 
     // --- every N seconds|minutes|hours block ---
-    var every_m = match(line, "/^every\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)\\s*\\{/i")
+    var every_m = match(line, "/^every\\s+(\\d+(?:\\.\\d+)?|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)\\s*\\{/i")
     if every_m {
         var ev_val = every_m[0]
         var ev_unit = every_m[1]
@@ -362,8 +362,30 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         return out
     }
 
+    // --- timer block ---
+    var timer_m = match(line, "/^\\s*(?:(let|var|const)\\s+(\\w+)\\s*=\\s*|(?:(\\w+)\\s*=\\s*))?timer\\s*\\{/i")
+    if timer_m {
+        state.timer_count = state.timer_count + 1
+        var t_id = state.timer_count
+        
+        var is_decl = (timer_m[0] == "let" || timer_m[0] == "var" || timer_m[0] == "const") ? true : false
+        var var_name = timer_m[1] ? timer_m[1] : (timer_m[2] ? timer_m[2] : "")
+        
+        // Push to block stack: "timer:<varname>:<is_decl>:<t_id>"
+        arraypush(state.block_stack, "timer:" + var_name + ":" + (is_decl ? "1" : "0") + ":" + t_id)
+        
+        var init_line = ""
+        if var_name != "" {
+            if is_decl {
+                init_line = "let " + var_name + "; "
+            }
+        }
+        arraypush(out, init_line + "{ const __timer_start_" + t_id + " = global.microtime();")
+        return out
+    }
+
     // --- wait N seconds|minutes|hours ---
-    var wait_m = match(line, "/^wait\\s+(\\d+|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i")
+    var wait_m = match(line, "/^wait\\s+(\\d+(?:\\.\\d+)?|\\w+)\\s+(second|seconds|minute|minutes|hour|hours)/i")
     if wait_m {
         var wt_val = wait_m[0]
         var wt_unit = wait_m[1]
@@ -596,6 +618,15 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
             if match(top, "/^every:/") {
                 var ev_ms_val = strsub(top, 6, len(top) - 6)
                 close_js = "}, " + ev_ms_val + ");"
+            } else if match(top, "/^timer:/") {
+                var parts = strsplit(top, ":")
+                var v_name = parts[1]
+                var t_id = parts[3]
+                if v_name != "" {
+                    close_js = v_name + " = global.microtime() - __timer_start_" + t_id + "; }"
+                } else {
+                    close_js = "console.log(\"Timer took: \" + (global.microtime() - __timer_start_" + t_id + ").toFixed(6) + \" seconds\"); }"
+                }
             } else if top == "route" {
                 close_js = "} catch (err) {\n    if (typeof next === 'function') { next(err); } else { console.error(err); if (!res.headersSent) { res.status(500).json({ error: err.message }); } }\n} });"
             } else if top == "route_error" {
@@ -667,6 +698,7 @@ define task transpile(content, filename, user_tasks, runtime_js) {
         on_shutdown_count: 0,
         on_error_count: 0,
         on_request_count: 0,
+        timer_count: 0,
         server_port: "",
         in_node_block: false,
         strings_list: strings_list

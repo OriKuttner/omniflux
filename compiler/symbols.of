@@ -80,7 +80,7 @@ var BUILTINS = [
     "pathextension", "path_extension",
     "pathisabsolute", "path_is_absolute",
     // Date & Time
-    "time",
+    "time", "microtime", "micro_time",
     "dateyear", "date_year",
     "datemonth", "date_month",
     "dateday", "date_day",

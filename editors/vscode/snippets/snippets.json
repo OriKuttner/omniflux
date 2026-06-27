@@ -39,17 +39,24 @@
     ],
     "description": "Wait/Delay execution"
   },
-  "Database Query": {
-    "prefix": "db",
+  "Database Select": {
+    "prefix": "dbselect",
     "body": [
-      "const ${1:results} = db_query(\"${2:SELECT * FROM table}\", [${3}])"
+      "const ${1:results} = dbselect(\"${2:collection}\", { ${3:field}: \"${4:value}\" })"
     ],
-    "description": "Secure SQL database query"
+    "description": "Select documents from local JSON database"
+  },
+  "Database Insert": {
+    "prefix": "dbinsert",
+    "body": [
+      "dbinsert(\"${1:collection}\", { ${2:key}: \"${3:value}\" })"
+    ],
+    "description": "Insert document into local JSON database"
   },
   "Cache Set": {
-    "prefix": "cache_set",
+    "prefix": "cacheset",
     "body": [
-      "cache_set(\"${1:key}\", ${2:value}, ${3:3600})"
+      "cacheset(\"${1:key}\", ${2:value}, ${3:3600})"
     ],
     "description": "Cache a value in Redis with TTL"
   },
