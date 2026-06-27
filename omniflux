@@ -4172,44 +4172,43 @@ document.addEventListener('click', async (e) => {
       try {
         //! OF_LINE: system.of:3
         //! OF_LINE: system.of:4
-        const { exec: exec3 } = require("child_process");
+        const { spawn: spawn2 } = require("child_process");
         //! OF_LINE: system.of:5
         return new Promise((resolve) => {
           //! OF_LINE: system.of:6
-          exec3(cmd, (error, stdout, stderr) => {
-            //! OF_LINE: system.of:7
-            resolve(stderr + stdout);
-            //! OF_LINE: system.of:8
-          });
-          //! OF_LINE: system.of:9
-        });
-        //! OF_LINE: system.of:10
-        //! OF_LINE: system.of:11
-      } catch (err) {
-        throw err;
-      }
-    }
-    //! OF_LINE: system.of:12
-    //! OF_LINE: system.of:13
-    async function exec2(cmd) {
-      try {
-        //! OF_LINE: system.of:14
-        //! OF_LINE: system.of:15
-        const { spawn: spawn2 } = require("child_process");
-        //! OF_LINE: system.of:16
-        return new Promise((resolve) => {
-          //! OF_LINE: system.of:17
-          const child = spawn2(cmd, [], { stdio: "inherit", shell: true });
+          const child = spawn2(cmd, [], { stdio: ["inherit", "pipe", "pipe"], shell: true });
+          //! OF_LINE: system.of:7
+          let output = "";
+          //! OF_LINE: system.of:8
+          if (child.stdout) {
+            //! OF_LINE: system.of:9
+            child.stdout.on("data", (data) => {
+              //! OF_LINE: system.of:10
+              output += data.toString();
+              //! OF_LINE: system.of:11
+            });
+            //! OF_LINE: system.of:12
+          }
+          //! OF_LINE: system.of:13
+          if (child.stderr) {
+            //! OF_LINE: system.of:14
+            child.stderr.on("data", (data) => {
+              //! OF_LINE: system.of:15
+              output += data.toString();
+              //! OF_LINE: system.of:16
+            });
+            //! OF_LINE: system.of:17
+          }
           //! OF_LINE: system.of:18
-          child.on("close", (code) => {
+          child.on("close", () => {
             //! OF_LINE: system.of:19
-            resolve(code !== null ? code : 1);
+            resolve(output);
             //! OF_LINE: system.of:20
           });
           //! OF_LINE: system.of:21
-          child.on("error", () => {
+          child.on("error", (err) => {
             //! OF_LINE: system.of:22
-            resolve(1);
+            resolve(output + (err ? err.message : ""));
             //! OF_LINE: system.of:23
           });
           //! OF_LINE: system.of:24
@@ -4222,46 +4221,77 @@ document.addEventListener('click', async (e) => {
     }
     //! OF_LINE: system.of:27
     //! OF_LINE: system.of:28
-    async function spawn(cmd, args2) {
+    async function exec2(cmd) {
       try {
         //! OF_LINE: system.of:29
         //! OF_LINE: system.of:30
         const { spawn: spawn2 } = require("child_process");
         //! OF_LINE: system.of:31
-        const child = spawn2(cmd, args2 || [], { stdio: "inherit", shell: true });
-        //! OF_LINE: system.of:32
-        return child.pid;
-        //! OF_LINE: system.of:33
-        //! OF_LINE: system.of:34
+        return new Promise((resolve) => {
+          //! OF_LINE: system.of:32
+          const child = spawn2(cmd, [], { stdio: "inherit", shell: true });
+          //! OF_LINE: system.of:33
+          child.on("close", (code) => {
+            //! OF_LINE: system.of:34
+            resolve(code !== null ? code : 1);
+            //! OF_LINE: system.of:35
+          });
+          //! OF_LINE: system.of:36
+          child.on("error", () => {
+            //! OF_LINE: system.of:37
+            resolve(1);
+            //! OF_LINE: system.of:38
+          });
+          //! OF_LINE: system.of:39
+        });
+        //! OF_LINE: system.of:40
+        //! OF_LINE: system.of:41
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: system.of:35
-    //! OF_LINE: system.of:36
-    async function kill(pid, signal) {
+    //! OF_LINE: system.of:42
+    //! OF_LINE: system.of:43
+    async function spawn(cmd, args2) {
       try {
-        //! OF_LINE: system.of:37
-        //! OF_LINE: system.of:38
-        try {
-          //! OF_LINE: system.of:39
-          process.kill(pid, signal || "SIGTERM");
-          //! OF_LINE: system.of:40
-          return true;
-          //! OF_LINE: system.of:41
-        } catch (e) {
-          //! OF_LINE: system.of:42
-          return false;
-          //! OF_LINE: system.of:43
-        }
         //! OF_LINE: system.of:44
         //! OF_LINE: system.of:45
+        const { spawn: spawn2 } = require("child_process");
+        //! OF_LINE: system.of:46
+        const child = spawn2(cmd, args2 || [], { stdio: "inherit", shell: true });
+        //! OF_LINE: system.of:47
+        return child.pid;
+        //! OF_LINE: system.of:48
+        //! OF_LINE: system.of:49
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: system.of:46
-    //! OF_LINE: system.of:47
+    //! OF_LINE: system.of:50
+    //! OF_LINE: system.of:51
+    async function kill(pid, signal) {
+      try {
+        //! OF_LINE: system.of:52
+        //! OF_LINE: system.of:53
+        try {
+          //! OF_LINE: system.of:54
+          process.kill(pid, signal || "SIGTERM");
+          //! OF_LINE: system.of:55
+          return true;
+          //! OF_LINE: system.of:56
+        } catch (e) {
+          //! OF_LINE: system.of:57
+          return false;
+          //! OF_LINE: system.of:58
+        }
+        //! OF_LINE: system.of:59
+        //! OF_LINE: system.of:60
+      } catch (err) {
+        throw err;
+      }
+    }
+    //! OF_LINE: system.of:61
+    //! OF_LINE: system.of:62
     global.system = system2;
     global.exec = exec2;
     global.spawn = spawn;

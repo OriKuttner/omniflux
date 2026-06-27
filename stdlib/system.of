@@ -2,10 +2,25 @@
 
 define task system(cmd) {
     @{
-        const { exec } = require('child_process');
+        const { spawn } = require('child_process');
         return new Promise((resolve) => {
-            exec(cmd, (error, stdout, stderr) => {
-                resolve(stderr + stdout);
+            const child = spawn(cmd, [], { stdio: ['inherit', 'pipe', 'pipe'], shell: true });
+            let output = '';
+            if (child.stdout) {
+                child.stdout.on('data', (data) => {
+                    output += data.toString();
+                });
+            }
+            if (child.stderr) {
+                child.stderr.on('data', (data) => {
+                    output += data.toString();
+                });
+            }
+            child.on('close', () => {
+                resolve(output);
+            });
+            child.on('error', (err) => {
+                resolve(output + (err ? err.message : ''));
             });
         });
     @}
