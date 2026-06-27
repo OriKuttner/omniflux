@@ -27,11 +27,11 @@
       "patterns": [
         {
           "name": "keyword.control.omniflux",
-          "match": "\\b(every|wait|seconds|minutes|hours|on start|on shutdown|return|if|else|as|int|float|string)\\b"
+          "match": "\\\b(every|wait|seconds|minutes|hours|on start|on shutdown|on end|on error|return|if|else|while|for|of|ref|call|background|timer|describe|include|with|as|int|float|string)\\\b"
         },
         {
           "name": "storage.type.function.omniflux",
-          "match": "\\b(fn|define task|with params)\\b"
+          "match": "\\\b(fn|define task|with params)\\\b"
         }
       ]
     },
@@ -39,7 +39,7 @@
       "patterns": [
         {
           "name": "support.function.omniflux",
-          "match": "\\b(db_query|cache_set|cache_get|file_read|file_write|print)\\b"
+          "match": "\\\b(dbinsert|dbselect|dbupdate|dbdelete|dbsetfile|db_query|cacheset|cacheget|cache_set|cache_get|fileread|filewrite|fileexists|fileappend|file_read|file_write|file_exists|file_append|system|exec|spawn|pterminate|pwait|pstatus|len|arraypush|arraypop|strsplit|strjoin|strreplace|strtrim|template|exit|sha256|encrypt|decrypt|getcookie|setcookie|jsonparse|jsonencode|print|describe|networkget|networkpost|time|microtime|micro_time)\\\b"
         }
       ]
     },

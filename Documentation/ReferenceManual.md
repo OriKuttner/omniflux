@@ -302,6 +302,21 @@ every 5 minutes {
 }
 ```
 
+### 2.5 Execution Profiling Block (`timer`)
+Measures the execution time of a block of code in seconds with high precision. Can be assigned to a variable, or used on its own (in which case it automatically logs the duration to the console).
+```omniflux
+# 1. Assign elapsed time to a variable
+var elapsed = timer {
+    wait 0.15 second
+}
+print("Process took: %f seconds", elapsed)
+
+# 2. Benchmark code block directly (auto-logs duration)
+timer {
+    var hash = sha256("benchmark_text")
+}
+```
+
 ### 2.5 Lifecycle Hooks & Execution Order
 
 > [!WARNING]
@@ -536,6 +551,7 @@ OmniFlux provides native bindings to common backend services, making setups extr
     ```
 * **Date & Time:** Procedural time and date components:
   * `time()`: Returns the current Unix timestamp in seconds.
+  * `microtime(getAsFloat?)` (also `micro_time`): Returns the current Unix timestamp as a high-precision float in seconds (default) or a PHP-style string if `getAsFloat` is `false`. Useful for performance profiling.
   * `dateyear(ts)`: Returns the year of the given Unix timestamp `ts` (or the current year if `ts` is not provided).
   * `datemonth(ts)`: Returns the month (1-12) of the given Unix timestamp `ts`.
   * `dateday(ts)`: Returns the day of the month (1-31) of the given Unix timestamp `ts`.
