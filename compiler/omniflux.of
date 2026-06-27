@@ -253,10 +253,42 @@ define task read_system_prompt() {
 }
 
 // ---------------------------------------------------------------------------
+// detect_missing_includes: scans source code to find missing stdlib includes
+// ---------------------------------------------------------------------------
+define task detect_missing_includes(source_code) {
+    var missing = []
+    
+    // Check encrypt/base64
+    if match(source_code, "/\\b(encrypt|decrypt|base64_encode|base64encode|base64_decode|base64decode)\\b/") {
+        if !match(source_code, "/stdlib\\/encrypt\\.of/") {
+            arraypush(missing, "stdlib/encrypt.of")
+        }
+    }
+    
+    // Check network
+    if match(source_code, "/\\b(networkget|networkpost)\\b/") {
+        if !match(source_code, "/stdlib\\/network\\.of/") {
+            arraypush(missing, "stdlib/network.of")
+        }
+    }
+
+    // Check datetime
+    if match(source_code, "/\\b(datetime_now|datetime_format)\\b/") {
+        if !match(source_code, "/stdlib\\/datetime\\.of/") {
+            arraypush(missing, "stdlib/datetime.of")
+        }
+    }
+
+    return missing
+}
+
+// ---------------------------------------------------------------------------
 // ai_compile_file: send source to AI and write compiled JS to target path
 // ---------------------------------------------------------------------------
 define task ai_compile_file(cfg, src_path, target_js) {
     var source_code = fileread(src_path)
+    var missing_libs = detect_missing_includes(source_code)
+    
     source_code = strip_comments(source_code)
 
     // Replace include statements with require
@@ -264,8 +296,14 @@ define task ai_compile_file(cfg, src_path, target_js) {
 
     print("Falling back to AI Compiler...")
 
+    var prompt_addition = ""
+    if len(missing_libs) > 0 {
+        var lib_list = arrayjoin(missing_libs, ", ")
+        prompt_addition = "\n\nNOTE: The code uses functions from the following standard libraries but is missing their include statements: " + lib_list + ".\nYou MUST prepend the appropriate include directive(s) (e.g. include \"" + missing_libs[0] + "\") to the top of the OmniFlux source code, and you MUST return BOTH the [OmniFlux Source] block (containing the healed OmniFlux code) and the [OmniFlux Ready] block (containing the compiled JavaScript code)."
+    }
+
     var messages = [
-        { role: "user",   content: "Please compile this code:\n\n" + source_code }
+        { role: "user",   content: "Please compile this code:" + prompt_addition + "\n\n" + source_code }
     ]
 
     var done = false
@@ -305,6 +343,9 @@ define task ai_compile_file(cfg, src_path, target_js) {
             if updated_source != null && updated_source != "" {
                 filewrite(src_path, updated_source)
                 print("\x1b[1;32m[Source file '%s' automatically updated/healed by AI!]\x1b[0m", pathbasename(src_path))
+                if cfg != null {
+                    cfg.was_healed = true
+                }
             }
 
             // Strip wrapper markers from the JS code
@@ -518,44 +559,67 @@ define task build_once(input_file, compile_only, strict, cfg, force) {
     // Load runtime once
     var runtime_js = read_runtime()
 
-    // Compile all files
+    var rebuild_needed = true
     var compiled_map = {}
-    var global_user_tasks = {}
     var ok = true
+    var heal_attempts = 0
+    var max_heal_attempts = 2
 
-    // First pass: prescan ALL files for task names (forward references)
-    for dep_path of deps {
-        var raw = fileread(dep_path)
-        var content = strip_comments(raw)
-        var tasks = prescan_tasks(content)
-        @{ Object.assign(global_user_tasks, tasks); @}
-    }
-
-    // Second pass: compile each file
-    for dep_path of deps {
-        var js = compile_file(dep_path, runtime_js, global_user_tasks)
-        if !js {
-            // Local compilation failed — try AI fallback
-            if strict || !cfg {
-                print("\x1b[1;31mStrict Mode Error: Local compilation failed on %s. AI compilation is disabled.\x1b[0m", dep_path)
-                ok = false
-                break
-            }
-            var cache_path = get_cache_path(dep_path)
-            var ai_ok = ai_compile_file(cfg, dep_path, cache_path)
-            if !ai_ok {
-                ok = false
-                break
-            }
-            // Read back what AI wrote
-            js = fileread(cache_path)
+    while rebuild_needed {
+        rebuild_needed = false
+        if cfg != null {
+            cfg.was_healed = false
         }
-        compiled_map[dep_path] = js
-        print("Compiled: %s", dep_path)
-    }
 
-    if !ok {
-        return { ok: false }
+        compiled_map = {}
+        var global_user_tasks = {}
+        ok = true
+
+        // First pass: prescan ALL files for task names (forward references)
+        for dep_path of deps {
+            var raw = fileread(dep_path)
+            var content = strip_comments(raw)
+            var tasks = prescan_tasks(content)
+            @{ Object.assign(global_user_tasks, tasks); @}
+        }
+
+        // Second pass: compile each file
+        for dep_path of deps {
+            var js = compile_file(dep_path, runtime_js, global_user_tasks)
+            if !js {
+                // Local compilation failed — try AI fallback
+                if strict || !cfg {
+                    print("\x1b[1;31mStrict Mode Error: Local compilation failed on %s. AI compilation is disabled.\x1b[0m", dep_path)
+                    ok = false
+                    break
+                }
+                var cache_path = get_cache_path(dep_path)
+                var ai_ok = ai_compile_file(cfg, dep_path, cache_path)
+                if !ai_ok {
+                    ok = false
+                    break
+                }
+                // Read back what AI wrote
+                js = fileread(cache_path)
+            }
+            compiled_map[dep_path] = js
+            print("Compiled: %s", dep_path)
+        }
+
+        if !ok {
+            return { ok: false }
+        }
+
+        if cfg != null && cfg.was_healed {
+            heal_attempts = heal_attempts + 1
+            if heal_attempts > max_heal_attempts {
+                print("\x1b[1;31mError: Exceeded maximum AI healing attempts (%d). Aborting compilation to prevent infinite loops.\x1b[0m", max_heal_attempts)
+                return { ok: false }
+            }
+            rebuild_needed = true
+            // Reload dependencies since a file was healed and may have new include directives
+            deps = get_all_dependencies(abs_input, null)
+        }
     }
 
     // Bundle
@@ -855,18 +919,26 @@ on start {
                     }
                     ai_compile_file(cfg, dep_path2, cache_path2)
                 }
-                // Bundle the AI-compiled files and run
-                var abs_inp2 = pathresolve(cli.input_file)
-                var out_path2 = get_output_path(abs_inp2)
-                var ai_deps = get_all_dependencies(abs_inp2, null)
-                var ai_map = {}
-                for ai_dep of ai_deps {
-                    var ai_cache = get_cache_path(ai_dep)
-                    ai_map[ai_dep] = fileread(ai_cache)
-                }
-                var result2 = build(abs_inp2, out_path2, ai_map)
-                if result2.ok {
-                    run_output with result2.output, cli.run_args
+                
+                if cfg != null && cfg.was_healed {
+                    var rebuild_res = build_once(cli.input_file, cli.compile_only, cli.strict, cfg, true)
+                    if rebuild_res.ok {
+                        run_output with rebuild_res.output, cli.run_args
+                    }
+                } else {
+                    // Bundle the AI-compiled files and run
+                    var abs_inp2 = pathresolve(cli.input_file)
+                    var out_path2 = get_output_path(abs_inp2)
+                    var ai_deps = get_all_dependencies(abs_inp2, null)
+                    var ai_map = {}
+                    for ai_dep of ai_deps {
+                        var ai_cache = get_cache_path(ai_dep)
+                        ai_map[ai_dep] = fileread(ai_cache)
+                    }
+                    var result2 = build(abs_inp2, out_path2, ai_map)
+                    if result2.ok {
+                        run_output with result2.output, cli.run_args
+                    }
                 }
             }
         }
