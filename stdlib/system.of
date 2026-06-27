@@ -1,10 +1,10 @@
 # system.of - OmniFlux System Command Standard Library
 
-define task system(cmd) {
+define task system(cmd, args) {
     @{
         const { spawn } = require('child_process');
         return new Promise((resolve) => {
-            const child = spawn(cmd, [], { stdio: ['inherit', 'pipe', 'pipe'], shell: true });
+            const child = spawn(cmd, args || [], { stdio: ['inherit', 'pipe', 'pipe'], shell: true });
             let output = '';
             if (child.stdout) {
                 child.stdout.on('data', (data) => {
@@ -26,11 +26,11 @@ define task system(cmd) {
     @}
 }
 
-define task exec(cmd) {
+define task exec(cmd, args) {
     @{
         const { spawn } = require('child_process');
         return new Promise((resolve) => {
-            const child = spawn(cmd, [], { stdio: 'inherit', shell: true });
+            const child = spawn(cmd, args || [], { stdio: 'inherit', shell: true });
             child.on('close', (code) => {
                 resolve(code !== null ? code : 1);
             });
