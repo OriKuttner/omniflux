@@ -647,6 +647,8 @@ The `omniflux` command line tool provides options to control how your code is co
 * `--compile-only` (or `--no-run`): Compiles the code to JavaScript without running the output file.
 * `--strict` (or `--no-llm`): Disables the AI self-healing fallback. If the local compiler encounters syntax it doesn't recognize or if there is a syntax error, the compilation fails immediately and displays the errors. This is ideal for offline development and CI/CD pipelines.
 * `--verbose` (or `-v`): Prints detailed usage statistics when communicating with the AI backend, such as the exact model used, request duration, input tokens, output tokens, and reasoning tokens.
+* `--watch` (or `-w`): Watches for file changes in the input file or any of its dependencies and automatically recompiles and restarts.
+* `--force` (or `-f`): Forces compilation and rebuild of the target and its dependencies even if they are already up-to-date.
 
 ---
 
@@ -732,10 +734,15 @@ on start {
 
 ### 7.3 System Commands Library (`stdlib/system.of`)
 Provides tasks for executing and managing processes in the host OS shell:
-* `system(command)`: Runs a command in the shell and returns its full output (stdout and stderr merged) as a string.
-* `exec(command)`: Runs a command in the shell and returns its exit status code (0 for success, non-zero for failure).
-* `spawn(command, args)`: Spawns an asynchronous child process with the given arguments array, returning its process ID (PID).
-* `kill(pid, signal)`: Sends a signal (e.g. `"SIGTERM"` or `"SIGKILL"`) to the specified PID. Returns `true` on success, `false` on failure.
+* `system(command)`: Runs a command in the shell, inheriting stdin for keyboard input, and returns its full captured output (stdout and stderr merged) as a string.
+* `exec(command)`: Runs a command in the shell, inheriting stdin/stdout/stderr for full interactivity, and returns its exit status code (0 for success, non-zero for failure).
+* `spawn(command, args)`: Spawns an asynchronous child process with the given arguments array, registering it in the internal process registry, and returning its process ID (PID).
+* `pterminate(pid, signal)`: Sends a termination signal to the specified PID. Returns `true` on success, `false` on failure. Common signals include:
+  * `"SIGTERM"` (Default): Request graceful termination. The program is asked to stop and has a chance to clean up.
+  * `"SIGKILL"`: Force immediate shutdown. The program is killed instantly by the operating system (cannot be blocked or clean up).
+  * `"SIGINT"`: Interrupt from keyboard (equivalent to pressing `Ctrl+C`).
+* `pwait(pid)`: Waits for the process with the given PID to finish and returns its exit code (returns null if external process).
+* `pstatus(pid)`: Returns `1` if the process with the given PID is running, and `0` if finished or non-existent.
 
 ```omniflux
 include "stdlib/system.of"
@@ -753,14 +760,20 @@ on start {
         print("Git command failed with status code: %d", status)
     }
     
-    # 3. Spawn a background process and kill it later
+    # 3. Spawn a background process, check status, wait, and terminate it
     var pid = spawn("node", ["server.js"])
     print("Spawned process with PID: %d", pid)
     
+    var is_running = pstatus(pid)
+    print("Is running: %d", is_running)
+    
     wait 2000
     
-    var success = kill(pid, "SIGTERM")
+    var success = pterminate(pid, "SIGTERM")
     print("Process termination result: %s", success)
+    
+    var exit_code = pwait(pid)
+    print("Process exited with code: %s", exit_code)
 }
 ```
 

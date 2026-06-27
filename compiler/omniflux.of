@@ -32,6 +32,7 @@ define task parse_args(argv) {
         setup: false,
         help: false,
         verbose: false,
+        force: false,
         run_args: []
     };
     var after_dashdash = false
@@ -52,6 +53,8 @@ define task parse_args(argv) {
             result.help = true
         } else if arg == "--verbose" || arg == "-v" {
             result.verbose = true
+        } else if arg == "--force" || arg == "-f" {
+            result.force = true
         } else if result.input_file == "" {
             result.input_file = arg
         } else {
@@ -75,6 +78,7 @@ define task print_usage() {
     print("Options:")
     print("  -h, --help       Show this help information")
     print("  -v, --verbose    Print detailed AI usage statistics")
+    print("  -f, --force      Force rebuild even if output is up-to-date")
     print("  --compile-only   Compile only, do not run the output")
     print("  --strict         Fail if compilation requires AI assistance")
     print("  --watch          Watch for changes and rebuild automatically")
@@ -451,7 +455,7 @@ define task compile_file(abs_path, runtime_js, global_user_tasks) {
 // build_once: full build pipeline for a given entry file
 // Returns: { ok, output_file } or { ok: false, error }
 // ---------------------------------------------------------------------------
-define task build_once(input_file, compile_only, strict, cfg) {
+define task build_once(input_file, compile_only, strict, cfg, force) {
     var start_time = 0
     @{ start_time = Date.now(); @}
     var abs_input = pathresolve(input_file)
@@ -463,6 +467,38 @@ define task build_once(input_file, compile_only, strict, cfg) {
 
     // Collect all dependencies in order
     var deps = get_all_dependencies(abs_input, null)
+
+    var output_file = get_output_path(abs_input)
+
+    # Check if we can skip compilation (incremental build)
+    var force_build = false
+    if force != null {
+        force_build = force
+    }
+
+    var can_skip = false
+    if !force_build {
+        if fileexists(output_file) {
+            var out_stat = filestat(output_file)
+            if out_stat {
+                can_skip = true
+                for dep_path of deps {
+                    var dep_stat = filestat(dep_path)
+                    if dep_stat {
+                        if dep_stat.modifiedat > out_stat.modifiedat {
+                            can_skip = false
+                            break
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if can_skip {
+        print("Build up-to-date: %s", output_file)
+        return { ok: true, output: output_file }
+    }
 
     // Load runtime once
     var runtime_js = read_runtime()
@@ -509,7 +545,6 @@ define task build_once(input_file, compile_only, strict, cfg) {
     }
 
     // Bundle
-    var output_file = get_output_path(abs_input)
     var bresult = build(abs_input, output_file, compiled_map)
 
     if !bresult.ok {
@@ -786,7 +821,7 @@ on start {
     if cli.watch {
         watch_loop_ai(cli.input_file, cli.compile_only, cli.strict, cfg)
     } else {
-        var result = build_once(cli.input_file, cli.compile_only, cli.strict, cfg)
+        var result = build_once(cli.input_file, cli.compile_only, cli.strict, cfg, cli.force)
         if !result.ok {
             exit(1)
         }
