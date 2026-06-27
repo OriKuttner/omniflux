@@ -24,7 +24,7 @@ Description: OmniFlux minimalist backend language compiler and VS Code support.
 EOF
 
 # 2. Copy the native compiler binary and standard runtime
-cp ./compiler/omniflux "$BUILD_DIR/usr/local/bin/omniflux"
+cp ./omniflux "$BUILD_DIR/usr/local/bin/omniflux"
 chmod +x "$BUILD_DIR/usr/local/bin/omniflux"
 
 # Copy runtime.js to /usr/local/share/omniflux/runtime.js

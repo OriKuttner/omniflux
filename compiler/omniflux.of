@@ -248,25 +248,14 @@ define task format_chat_response(txt) {
 // read_system_prompt: loads the OmniFlux system prompt file
 // ---------------------------------------------------------------------------
 define task read_system_prompt() {
-    var candidates = [
-        pathjoin(scriptdir(), "../omniflux.prompt"),
-        pathjoin(scriptdir(), "omniflux.prompt"),
-        "omniflux.prompt",
-        "/usr/local/share/omniflux/omniflux.prompt",
-        "/usr/share/omniflux/omniflux.prompt"
-    ]
-    for cpath of candidates {
-        if fileexists(cpath) {
-            return fileread(cpath)
-        }
-    }
+    # The system prompt is managed on the server side to avoid double sending and ensure a single source of truth.
     return ""
 }
 
 // ---------------------------------------------------------------------------
 // ai_compile_file: send source to AI and write compiled JS to target path
 // ---------------------------------------------------------------------------
-define task ai_compile_file(cfg, src_path, target_js, system_prompt) {
+define task ai_compile_file(cfg, src_path, target_js) {
     var source_code = fileread(src_path)
     source_code = strip_comments(source_code)
 
@@ -276,7 +265,6 @@ define task ai_compile_file(cfg, src_path, target_js, system_prompt) {
     print("Falling back to AI Compiler...")
 
     var messages = [
-        { role: "system", content: system_prompt },
         { role: "user",   content: "Please compile this code:\n\n" + source_code }
     ]
 
@@ -350,12 +338,7 @@ define task ai_compile_file(cfg, src_path, target_js, system_prompt) {
 // interactive_chat: runs the interactive chat REPL
 // ---------------------------------------------------------------------------
 define task interactive_chat(cfg) {
-    var system_prompt = read_system_prompt()
-    if system_prompt != "" {
-        system_prompt = system_prompt + "\n\n[INTERACTIVE CHAT MODE]: You are in interactive chat mode with the developer. Do NOT transpile or compile the code to Javascript yourself, and do not output [OmniFlux Ready]. Instead, write clean, raw OmniFlux code within ```omniflux code blocks. Help the developer design and write OmniFlux programs. IMPORTANT: When explaining code or concepts, do NOT assume the developer knows JavaScript. Do NOT mention JavaScript-specific concepts such as 'importing modules', 'asynchronous execution', or 'auto-await'. Explain the logic purely using OmniFlux syntax and native functions. Never compare OmniFlux to object-oriented programming (OOP) or other languages, and never mention, use, or reference the terms 'object-oriented', 'OOP', 'methods', 'object methods', 'methods on objects', 'member functions', 'classes', or 'properties', and never suggest that the language is limited/restricted or lacks features. Simply explain that OmniFlux is designed for simplicity, meaning objects function like C structs, and all operations are performed via global functions or natural language."
-    }
-
-    var messages = [{ role: "system", content: system_prompt }]
+    var messages = []
 
     print("=== OmniFlux Interactive Compiler ===")
     print("Type a file name (e.g., script.of) to compile it,")
@@ -534,7 +517,6 @@ define task build_once(input_file, compile_only, strict, cfg, force) {
 
     // Load runtime once
     var runtime_js = read_runtime()
-    var system_prompt = read_system_prompt()
 
     // Compile all files
     var compiled_map = {}
@@ -560,7 +542,7 @@ define task build_once(input_file, compile_only, strict, cfg, force) {
                 break
             }
             var cache_path = get_cache_path(dep_path)
-            var ai_ok = ai_compile_file(cfg, dep_path, cache_path, system_prompt)
+            var ai_ok = ai_compile_file(cfg, dep_path, cache_path)
             if !ai_ok {
                 ok = false
                 break
@@ -609,7 +591,7 @@ define task build_once(input_file, compile_only, strict, cfg, force) {
         if fileexists(cache_path) {
             filedelete(cache_path)
         }
-        var ai_ok = ai_compile_file(cfg, failed_file, cache_path, system_prompt)
+        var ai_ok = ai_compile_file(cfg, failed_file, cache_path)
         if !ai_ok {
             return bresult
         }
@@ -863,7 +845,6 @@ on start {
             // rebuild using AI and run again
             if run_out && match(run_out, "/ReferenceError|is not defined/") && !cli.strict {
                 print("\x1b[1;33mRuntime error detected. Falling back to AI Compiler...\x1b[0m")
-                var system_prompt = read_system_prompt()
                 var abs_input2 = pathresolve(cli.input_file)
                 var deps2 = get_all_dependencies(abs_input2, null)
                 // Delete cache so build_once recompiles fresh via AI
@@ -872,7 +853,7 @@ on start {
                     if fileexists(cache_path2) {
                         filedelete(cache_path2)
                     }
-                    ai_compile_file(cfg, dep_path2, cache_path2, system_prompt)
+                    ai_compile_file(cfg, dep_path2, cache_path2)
                 }
                 // Bundle the AI-compiled files and run
                 var abs_inp2 = pathresolve(cli.input_file)
