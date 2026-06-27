@@ -298,13 +298,45 @@ define task ai_compile_file(cfg, src_path, target_js, system_prompt) {
             arraypush(messages, { role: "assistant", content: ai_response })
             arraypush(messages, { role: "user", content: user_answer })
         } else {
-            // Strip wrapper markers
-            ai_response = strreplace(ai_response, "/\\[OmniFlux Ready\\]\\s*/g", "")
-            ai_response = strreplace(ai_response, "/^```(?:javascript|js)?\\s*\\n/i", "")
-            ai_response = strreplace(ai_response, "/\\n```\\s*$/", "")
+            # Extract updated OmniFlux source if [OmniFlux Source] is present
+            var updated_source = null
+            @{
+                const source_marker = "[OmniFlux Source]";
+                const ready_marker = "[OmniFlux Ready]";
+                const s_idx = ai_response.indexOf(source_marker);
+                const r_idx = ai_response.indexOf(ready_marker);
+                if (s_idx !== -1 && r_idx !== -1 && s_idx < r_idx) {
+                    let content = ai_response.substring(s_idx + source_marker.length, r_idx).trim();
+                    // Remove markdown code blocks if present
+                    content = content.replace(/^```(?:omniflux|of|[a-zA-Z0-9]*)\s*\n/i, "");
+                    content = content.replace(/\n```\s*$/, "");
+                    updated_source = content;
+                }
+            @}
+
+            if updated_source != null && updated_source != "" {
+                filewrite(src_path, updated_source)
+                print("\x1b[1;32m[Source file '%s' automatically updated/healed by AI!]\x1b[0m", pathbasename(src_path))
+            }
+
+            // Strip wrapper markers from the JS code
+            var js_code = ai_response
+            @{
+                {
+                    const ready_marker = "[OmniFlux Ready]";
+                    const r_idx = ai_response.indexOf(ready_marker);
+                    if (r_idx !== -1) {
+                        js_code = ai_response.substring(r_idx + ready_marker.length).trim();
+                    }
+                }
+            @}
+
+            js_code = strreplace(js_code, "/^```(?:javascript|js)?\\s*\\n/i", "")
+            js_code = strreplace(js_code, "/\\n```\\s*$/", "")
+
             var dir = pathdirname(target_js)
             dircreate(dir)
-            filewrite(target_js, ai_response)
+            filewrite(target_js, js_code)
             done = true
             if cfg.verbose {
                 print_verbose_usage(cfg.last_verbose_data, cfg.last_elapsed)

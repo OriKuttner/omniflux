@@ -195,7 +195,17 @@ OmniFlux features a unique AI-assisted compilation pipeline. You can guide the A
       >>> print a list of numbers from 1 to 5
   }
   ```
-  This will automatically trigger the AI compiler to replace the line with the generated code.
+  This will trigger the AI compiler to generate the requested OmniFlux code. **Crucially, the AI compiler will write the generated code directly back into your original `.of` source file**, replacing the `>>>` directive. The generated block will be cleanly commented so you can review exactly what was written:
+  ```omniflux
+  on start {
+      # === AI Generated Code Start ===
+      # Request: print a list of numbers from 1 to 5
+      for i of range(1, 6) {
+          print(i)
+      }
+      # === AI Generated Code End ===
+  }
+  ```
 
   > [!IMPORTANT]
   > The `>>>` marker must be the **first non-whitespace character on the line** (meaning only indentation spaces/tabs can precede it). This prevents any collisions with standard operators in the middle of expressions.
@@ -734,8 +744,8 @@ on start {
 
 ### 7.3 System Commands Library (`stdlib/system.of`)
 Provides tasks for executing and managing processes in the host OS shell:
-* `system(command)`: Runs a command in the shell, inheriting stdin for keyboard input, and returns its full captured output (stdout and stderr merged) as a string.
-* `exec(command)`: Runs a command in the shell, inheriting stdin/stdout/stderr for full interactivity, and returns its exit status code (0 for success, non-zero for failure).
+* `system(command, args?)`: Runs a command in the shell. If `args` (an array of strings) is specified, it runs the command with those arguments for command-injection safety. Inherits stdin, and returns its full captured output (stdout and stderr merged) as a string.
+* `exec(command, args?)`: Runs a command in the shell. If `args` (an array of strings) is specified, it runs the command with those arguments for command-injection safety. Inherits stdin/stdout/stderr for full interactivity, and returns its exit status code (0 for success, non-zero for failure).
 * `spawn(command, args)`: Spawns an asynchronous child process with the given arguments array, registering it in the internal process registry, and returning its process ID (PID).
 * `pterminate(pid, signal)`: Sends a termination signal to the specified PID. Returns `true` on success, `false` on failure. Common signals include:
   * `"SIGTERM"` (Default): Request graceful termination. The program is asked to stop and has a chance to clean up.
