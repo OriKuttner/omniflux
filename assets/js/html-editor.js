@@ -1,6 +1,6 @@
 class HtmlEditor extends HTMLElement {
   static get observedAttributes() {
-    return ['content'];
+    return ['content', 'dir'];
   }
 
   constructor() {
@@ -8,19 +8,24 @@ class HtmlEditor extends HTMLElement {
     this.isCodeMode = false;
     this.content = '';
     this.lastSavedContent = '';
+    this.direction = 'ltr';
   }
 
   connectedCallback() {
     this.content = this.getAttribute('content') || '';
     this.lastSavedContent = this.content;
+    this.direction = this.getAttribute('dir') || 'ltr';
     this.render();
     this.initElements();
     this.addEventListeners();
+    this.updateDirectionUI();
     this.updateToolbarState();
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (name === 'content' && oldValue !== newValue) {
+    if (oldValue === newValue) return;
+
+    if (name === 'content') {
       this.content = newValue || '';
       if (!this.isCodeMode && this.visualEditor) {
         if (document.activeElement !== this.visualEditor && this.visualEditor.innerHTML !== this.content) {
@@ -29,6 +34,9 @@ class HtmlEditor extends HTMLElement {
       } else if (this.codeEditor) {
         this.codeEditor.value = this.content;
       }
+    } else if (name === 'dir') {
+      this.direction = newValue || 'ltr';
+      this.updateDirectionUI();
     }
   }
 
@@ -50,6 +58,9 @@ class HtmlEditor extends HTMLElement {
             <div style="border-left: 1px solid #dee2e6; height: 20px; margin: 0 4px;"></div>
             <button type="button" class="btn btn-sm btn-outline-secondary btn-ul"><i class="fa fa-list-ul"></i></button>
             <button type="button" class="btn btn-sm btn-outline-secondary btn-ol"><i class="fa fa-list-ol"></i></button>
+            <div style="border-left: 1px solid #dee2e6; height: 20px; margin: 0 4px;"></div>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-ltr" title="שמאל לימין (LTR)">LTR</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary btn-rtl" title="ימין לשמאל (RTL)">RTL</button>
           </div>
           <div class="code-mode-title d-none" style="font-weight: bold; padding: 0 8px; color: #6c757d;">עריכת קוד מקור (HTML)</div>
           
@@ -67,7 +78,7 @@ class HtmlEditor extends HTMLElement {
 
         <!-- Visual Editor -->
         <div class="form-group visual-editor-wrapper">
-          <div class="editor-content form-control visual-editor" contenteditable="true" style="direction: rtl; text-align: right; border: 1px solid #ced4da; border-radius: 0.25rem; padding: 12px; background-color: #fff; height: 400px; overflow-y: auto;"></div>
+          <div class="editor-content form-control visual-editor" contenteditable="true" style="border: 1px solid #ced4da; border-radius: 0.25rem; padding: 12px; background-color: #fff; height: 400px; overflow-y: auto;"></div>
         </div>
 
         <!-- HTML Code Editor -->
@@ -93,6 +104,8 @@ class HtmlEditor extends HTMLElement {
     this.btnP = this.querySelector('.btn-p');
     this.btnUl = this.querySelector('.btn-ul');
     this.btnOl = this.querySelector('.btn-ol');
+    this.btnLtr = this.querySelector('.btn-ltr');
+    this.btnRtl = this.querySelector('.btn-rtl');
     
     this.btnSave = this.querySelector('.btn-save');
     this.btnToggle = this.querySelector('.btn-toggle');
@@ -121,6 +134,12 @@ class HtmlEditor extends HTMLElement {
     this.btnP.addEventListener('click', () => exec('formatBlock', 'P'));
     this.btnUl.addEventListener('click', () => exec('insertUnorderedList'));
     this.btnOl.addEventListener('click', () => exec('insertOrderedList'));
+    this.btnLtr.addEventListener('click', () => {
+      this.setAttribute('dir', 'ltr');
+    });
+    this.btnRtl.addEventListener('click', () => {
+      this.setAttribute('dir', 'rtl');
+    });
 
     this.btnToggle.addEventListener('click', () => this.toggleCodeMode());
     this.btnSave.addEventListener('click', () => this.triggerSave());
@@ -167,6 +186,19 @@ class HtmlEditor extends HTMLElement {
     this.dispatchEvent(new CustomEvent('contentchange', { detail: this.content }));
   }
 
+  updateDirectionUI() {
+    if (!this.visualEditor) return;
+    
+    const dir = (this.direction === 'rtl') ? 'rtl' : 'ltr';
+    this.visualEditor.style.direction = dir;
+    this.visualEditor.style.textAlign = (dir === 'rtl') ? 'right' : 'left';
+    
+    if (this.btnLtr && this.btnRtl) {
+      this.toggleButtonActive(this.btnLtr, dir === 'ltr');
+      this.toggleButtonActive(this.btnRtl, dir === 'rtl');
+    }
+  }
+
   updateToolbarState() {
     if (this.isCodeMode) return;
     
@@ -192,6 +224,10 @@ class HtmlEditor extends HTMLElement {
     this.toggleButtonActive(this.btnH2, formatBlock === 'h2');
     this.toggleButtonActive(this.btnH3, formatBlock === 'h3');
     this.toggleButtonActive(this.btnP, ['p', 'normal', 'div'].includes(formatBlock));
+
+    const dir = this.direction || 'ltr';
+    this.toggleButtonActive(this.btnLtr, dir === 'ltr');
+    this.toggleButtonActive(this.btnRtl, dir === 'rtl');
   }
 
   toggleButtonActive(btn, isActive) {

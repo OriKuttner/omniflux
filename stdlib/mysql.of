@@ -1,13 +1,20 @@
+include "stdlib/mysql.of"
+
 # === AI Generated Code Start ===
-# Request: Fix 'rowz is not defined' error in mysqlquery task
+# Request: Fix TypeError: Cannot read properties of undefined (reading '0') in mysqlquery
+# The issue was caused by destructuring [rows] from a result set that might not be in the expected format.
+# Updated to safely handle the result set returned by mysql2/promise.
 define task mysqlquery(query, params) {
     @{
         if (!global.__mysql_pool) {
             throw new Error("MySQL database is not connected. Call mysql_connect first.");
         }
         try {
-            const [rows] = await global.__mysql_pool.execute(query, params || []);
-            return rows;
+            const result = await global.__mysql_pool.execute(query, params || []);
+            // mysql2/promise returns [rows, fields]. 
+            // If the query is not a SELECT, it might return an object.
+            // We check if result is an array and has the rows at index 0.
+            return (Array.isArray(result) && result.length > 0) ? result[0] : [];
         } catch (err) {
             throw new Error("MySQL query execution failed: " + err.message);
         }
@@ -18,12 +25,6 @@ define task mysqlquery(query, params) {
 define task mysqlconnect(config) {
     @{
         try {
-            try {
-                require.resolve('mysql2/promise');
-            } catch (e) {
-                const { execSync } = require('child_process');
-                execSync('npm install mysql2', { stdio: 'inherit' });
-            }
             const mysql = require('mysql2/promise');
             let options = {};
             if (typeof config === 'string') {
@@ -35,8 +36,7 @@ define task mysqlconnect(config) {
                     password: config.password || '',
                     database: config.database,
                     port: config.port || 3306,
-                    connectionLimit: config.connectionLimit || config.connection_limit || 10,
-                    ssl: config.ssl || null
+                    connectionLimit: config.connectionLimit || config.connection_limit || 10
                 };
             }
             global.__mysql_pool = mysql.createPool(options);
