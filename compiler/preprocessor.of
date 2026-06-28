@@ -269,6 +269,7 @@ define task resolve_include(inc_path, src_file) {
     var candidates = [
         pathjoin(src_dir, inc_path),
         pathjoin(cwd, inc_path),
+        pathjoin(scriptdir(), inc_path),
         pathjoin("/usr/local/share/omniflux", inc_path),
         pathjoin("/usr/share/omniflux", inc_path)
     ]

@@ -1,6 +1,6 @@
-.PHONY: all vsix deb clean
+.PHONY: all vsix deb releases clean
 
-all: vsix deb
+all: vsix deb releases
 
 vsix:
 	mkdir -p editors/vscode/assets
@@ -13,6 +13,9 @@ vsix:
 
 deb: vsix
 	./build_deb.sh
+
+releases: deb
+	./build_releases.sh
 
 clean:
 	rm -rf editors/vscode/assets
