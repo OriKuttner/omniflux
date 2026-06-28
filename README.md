@@ -88,6 +88,41 @@ This installs the compiler to your local `AppData\Local\OmniFlux` directory and 
    ./compiler/omniflux main.of --no-run
    ```
 
+### ⚠️ Troubleshooting: APT Dependency Deadlock (Node.js < 16)
+
+If you attempt to install `omniflux.deb` on a system with an older Node.js version (e.g., Node 12), `dpkg` will fail with a dependency error:
+```
+dpkg: dependency problems prevent configuration of omniflux:
+ omniflux depends on nodejs (>= 16.0.0); however:
+  Version of nodejs on system is 12.22.9~dfsg-1ubuntu3.6.
+```
+
+If you try to upgrade Node.js afterwards using `sudo apt-get install nodejs`, `apt` might block the installation or offer to uninstall `omniflux` to resolve the conflict. This is a classic APT dependency deadlock.
+
+**To resolve the deadlock and install OmniFlux correctly:**
+
+1. **Purge the broken package registration** to clear the APT deadlock:
+   ```bash
+   sudo dpkg --purge omniflux
+   ```
+2. **Upgrade Node.js** to the latest LTS version (Node 20) using the official NodeSource script.
+   
+   *If you encounter a conflict error regarding `libnode-dev` trying to overwrite `/usr/include/node/common.gypi`, purge the old `libnode-dev` package first and then install:*
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt-get purge -y libnode-dev
+   sudo apt-get install -y nodejs
+   ```
+   *Otherwise, simply run:*
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   ```
+3. **Re-install the Debian package**:
+   ```bash
+   sudo dpkg -i omniflux.deb
+   ```
+
 ---
 
 ## 🔌 Editor Support (VS Code & Antigravity)
