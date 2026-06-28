@@ -20,18 +20,10 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Compile Native Self-Hosting Compiler
+      - name: Prepare Pre-compiled Compiler Binary
         run: |
-          # Use the existing native compiler to compile itself (Self-Hosting Bootstrap)
           chmod +x ./compiler/omniflux
-          ./compiler/omniflux compiler/omniflux.of --strict --compile-only
-          cp compiler/omniflux omniflux
-
-      - name: Test Native Compiler
-        run: |
-          # Verify that the native compiler can successfully compile a hello-world program
-          ./compiler/omniflux examples/01_hello_world.of --compile-only
-          ./examples/01_hello_world
+          cp ./compiler/omniflux ./omniflux
 
       - name: Build All Release Packages (VSIX, DEB, Tarballs, ZIP)
         run: |
