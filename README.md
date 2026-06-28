@@ -57,6 +57,9 @@ To keep development fast and cheap, OmniFlux implements a **Make-style build pip
 
 OmniFlux requires **Node.js** (version 16 or higher) to be installed on your system.
 
+> [!WARNING]
+> The release packages for Linux, macOS, and Windows are currently experimental and have not been fully tested. We would appreciate contributors who can test them on various environments and help create more robust, native packages!
+
 ### Option 1: Quick Install (Linux & macOS)
 You can download the appropriate release package (`.tar.gz`) for your platform, extract it, and run the included installer:
 ```bash
@@ -135,8 +138,8 @@ OmniFlux includes a VS Code extension for syntax highlighting and code snippets.
 3. Click the **`...`** (More Actions / Views) menu button at the top-right corner of the Extensions panel.
 4. Select **Install from VSIX...** from the dropdown.
 5. Locate and select the `.vsix` package:
-   * **If installed via the Debian package:** `/usr/share/omniflux/extensions/omniflux-support/omniflux-support-1.0.0.vsix`
-   * **If cloned from the Git repository:** `editors/vscode/omniflux-support-1.0.0.vsix` inside the cloned directory.
+   * **If installed via the Debian package:** `/usr/share/omniflux/extensions/omniflux-support/omniflux-support-1.0.1.vsix`
+   * **If cloned from the Git repository:** `editors/vscode/omniflux-support-1.0.1.vsix` inside the cloned directory.
 6. Click **Install**.
 
 ### Option 2: Command Line (CLI) Installation

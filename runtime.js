@@ -3,10 +3,10 @@ const util = require('util');
 const path = require('path');
 
 // Initialize global args
-global.args = process.argv.slice(2);
+global.args = global.args || process.argv.slice(2);
 
 // Initialize global vars proxy (similar to PHP, returns null/0 for undefined variables to prevent ReferenceErrors)
-global.vars = new Proxy({ args: global.args }, {
+global.vars = global.vars || new Proxy({ args: global.args }, {
     get(target, prop) {
         return prop in target ? target[prop] : null;
     },

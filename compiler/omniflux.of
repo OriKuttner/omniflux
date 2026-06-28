@@ -13,6 +13,8 @@
 //   7. Bundle with esbuild
 //   8. Run the output (unless --compile-only)
 
+$VERSION = "1.0.1"
+
 include "compiler/bundler.of"
 include "compiler/validator.of"
 include "compiler/transpiler.of"
@@ -33,6 +35,7 @@ define task parse_args(argv) {
         help: false,
         verbose: false,
         force: false,
+        version: false,
         run_args: []
     };
     var after_dashdash = false
@@ -51,6 +54,8 @@ define task parse_args(argv) {
             result.setup = true
         } else if arg == "--help" || arg == "-h" {
             result.help = true
+        } else if arg == "--version" {
+            result.version = true
         } else if arg == "--verbose" || arg == "-v" {
             result.verbose = true
         } else if arg == "--force" || arg == "-f" {
@@ -77,6 +82,7 @@ define task print_usage() {
     print("")
     print("Options:")
     print("  -h, --help       Show this help information")
+    print("  --version        Show compiler version")
     print("  -v, --verbose    Print detailed AI usage statistics")
     print("  -f, --force      Force rebuild even if output is up-to-date")
     print("  --compile-only   Compile only, do not run the output")
@@ -895,6 +901,11 @@ on start {
 
     if cli.help {
         print_usage()
+        exit(0)
+    }
+
+    if cli.version {
+        print("OmniFlux version " + $VERSION)
         exit(0)
     }
 

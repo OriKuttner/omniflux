@@ -3,6 +3,8 @@
 all: vsix deb releases
 
 vsix:
+	VERSION=$$(grep '\$$VERSION\s*=\s*' compiler/omniflux.of | cut -d'"' -f2 || echo "1.0.1"); \
+	sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$$VERSION\"/" editors/vscode/package.json
 	mkdir -p editors/vscode/assets
 	cp assets/icon-16.png editors/vscode/assets/icon-16.png
 	cp assets/icon-32.png editors/vscode/assets/icon-32.png
