@@ -6,7 +6,7 @@
 
 > **"Because compiling code shouldn't feel like negotiating a peace treaty with your terminal."**
 
-OmniFlux is a minimalist, conversational, and self-healing backend programming language transpiled to Node.js. 
+OmniFlux is a minimalist, conversational, and self-healing programming language transpiled to Node.js. 
 
 It was born out of pure frustration with the state of modern programming languages. It is designed for developers who are tired of fighting their tooling and just want to write logic that runs.
 
@@ -50,17 +50,37 @@ To keep development fast and cheap, OmniFlux implements a **Make-style build pip
 
 ## 📦 Installation & Setup
 
-OmniFlux requires **Perl** and **Node.js** to be installed on your system.
+OmniFlux requires **Node.js** (version 16 or higher) to be installed on your system.
 
-1. Clone the repository (or copy it to your local environment).
-2. Run the compiler for the first time:
+### Option 1: Quick Install (Linux & macOS)
+You can download the appropriate release package (`.tar.gz`) for your platform, extract it, and run the included installer:
+```bash
+tar -xzf omniflux-linux.tar.gz   # or omniflux-macos.tar.gz
+cd omniflux-release
+sudo ./install.sh
+```
+This installs the compiler to `/usr/local/bin/omniflux` and the assets to `/usr/local/share/omniflux`.
+
+### Option 2: Quick Install (Windows)
+Download `omniflux-windows.zip`, extract it to a directory, open PowerShell, and run the installation script:
+```powershell
+.\install.ps1
+```
+This installs the compiler to your local `AppData\Local\OmniFlux` directory and automatically configures your user environment PATH.
+
+### Option 3: Manual / Developer Clone
+1. Clone the repository to your local environment.
+2. Initialize and configure the compiler for the first time:
    ```bash
-   perl ./omniflux
+   ./compiler/omniflux --setup
    ```
-3. The interactive setup wizard will run and guide you to set up your AI provider (Gemini, Claude, or custom OpenAI-compatible endpoint) and API key.
+3. Compile and run your code:
+   ```bash
+   ./compiler/omniflux main.of
+   ```
 4. (Optional) Run with `--no-run` to compile without executing:
    ```bash
-   perl ./omniflux main.of --no-run
+   ./compiler/omniflux main.of --no-run
    ```
 
 ---
