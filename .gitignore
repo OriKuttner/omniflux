@@ -13,6 +13,8 @@ omniflux.prompt
 deb_build/
 *.deb
 *.vsix
+*.tar.gz
+*.zip
 editors/vscode/omniflux-support-*.vsix
 
 # Compiled Binaries
