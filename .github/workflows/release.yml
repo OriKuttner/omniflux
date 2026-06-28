@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-level: '20'
+          node-version: '22'
 
       - name: Compile Native Self-Hosting Compiler
         run: |

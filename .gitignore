@@ -18,8 +18,7 @@ deb_build/
 editors/vscode/omniflux-support-*.vsix
 
 # Compiled Binaries
-omniflux
-compiler/omniflux
+/omniflux
 compiler/bundler
 compiler/preprocessor
 compiler/symbols
