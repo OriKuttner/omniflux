@@ -4,6 +4,7 @@
   "description": "Syntax highlighting and snippets for the OmniFlux Programming Language.",
   "version": "1.0.0",
   "publisher": "omniflux",
+  "homepage": "https://omniflux.helicontech.co.il",
   "repository": {
     "type": "git",
     "url": "https://github.com/OriKuttner/omniflux.git"

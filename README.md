@@ -4,6 +4,11 @@
   <img src="assets/logo.png" alt="OmniFlux Logo" width="300" />
 </p>
 
+<p align="center">
+  <a href="https://omniflux.helicontech.co.il"><b>🌐 Official Website</b></a> | 
+  <a href="https://github.com/OriKuttner/omniflux"><b>🐱 GitHub Repository</b></a>
+</p>
+
 > **"Because compiling code shouldn't feel like negotiating a peace treaty with your terminal."**
 
 OmniFlux is a minimalist, conversational, and self-healing programming language transpiled to Node.js. 
