@@ -14043,122 +14043,130 @@ async function __on_start_1() {
   //! OF_LINE: omniflux.of:907
   if (!await config_exists()) {
     //! OF_LINE: omniflux.of:908
-    cfg = await run_wizard();
-    //! OF_LINE: omniflux.of:909
-  } else {
-    //! OF_LINE: omniflux.of:910
-    cfg = await config_load();
-    //! OF_LINE: omniflux.of:911
-  }
-  //! OF_LINE: omniflux.of:912
-  //! OF_LINE: omniflux.of:913
-  cfg.verbose = cli.verbose;
-  //! OF_LINE: omniflux.of:914
-  //! OF_LINE: omniflux.of:915
-  //! OF_LINE: omniflux.of:916
-  if (cli.input_file == "") {
-    //! OF_LINE: omniflux.of:917
-    await interactive_chat(cfg);
-    //! OF_LINE: omniflux.of:918
-    exit(0);
-    //! OF_LINE: omniflux.of:919
-  }
-  //! OF_LINE: omniflux.of:920
-  //! OF_LINE: omniflux.of:921
-  if (cli.watch) {
-    //! OF_LINE: omniflux.of:922
-    await watch_loop_ai(cli.input_file, cli.compile_only, cli.strict, cfg);
-    //! OF_LINE: omniflux.of:923
-  } else {
-    //! OF_LINE: omniflux.of:924
-    let result = await build_once(cli.input_file, cli.compile_only, cli.strict, cfg, cli.force);
-    //! OF_LINE: omniflux.of:925
-    if (!result.ok) {
-      //! OF_LINE: omniflux.of:926
-      exit(1);
-      //! OF_LINE: omniflux.of:927
+    if (cli.strict) {
+      //! OF_LINE: omniflux.of:909
+      cfg = { api_key: "" };
+      //! OF_LINE: omniflux.of:910
+    } else {
+      //! OF_LINE: omniflux.of:911
+      cfg = await run_wizard();
+      //! OF_LINE: omniflux.of:912
     }
+    //! OF_LINE: omniflux.of:913
+  } else {
+    //! OF_LINE: omniflux.of:914
+    cfg = await config_load();
+    //! OF_LINE: omniflux.of:915
+  }
+  //! OF_LINE: omniflux.of:916
+  //! OF_LINE: omniflux.of:917
+  cfg.verbose = cli.verbose;
+  //! OF_LINE: omniflux.of:918
+  //! OF_LINE: omniflux.of:919
+  //! OF_LINE: omniflux.of:920
+  if (cli.input_file == "") {
+    //! OF_LINE: omniflux.of:921
+    await interactive_chat(cfg);
+    //! OF_LINE: omniflux.of:922
+    exit(0);
+    //! OF_LINE: omniflux.of:923
+  }
+  //! OF_LINE: omniflux.of:924
+  //! OF_LINE: omniflux.of:925
+  if (cli.watch) {
+    //! OF_LINE: omniflux.of:926
+    await watch_loop_ai(cli.input_file, cli.compile_only, cli.strict, cfg);
+    //! OF_LINE: omniflux.of:927
+  } else {
     //! OF_LINE: omniflux.of:928
-    if (!cli.compile_only) {
-      //! OF_LINE: omniflux.of:929
-      let run_out = await run_output(result.output, cli.run_args);
+    let result = await build_once(cli.input_file, cli.compile_only, cli.strict, cfg, cli.force);
+    //! OF_LINE: omniflux.of:929
+    if (!result.ok) {
       //! OF_LINE: omniflux.of:930
+      exit(1);
       //! OF_LINE: omniflux.of:931
-      //! OF_LINE: omniflux.of:932
+    }
+    //! OF_LINE: omniflux.of:932
+    if (!cli.compile_only) {
+      //! OF_LINE: omniflux.of:933
+      let run_out = await run_output(result.output, cli.run_args);
+      //! OF_LINE: omniflux.of:934
+      //! OF_LINE: omniflux.of:935
+      //! OF_LINE: omniflux.of:936
       if (run_out && match(run_out, "/ReferenceError|TypeError|is not defined|Cannot read properties|is not a function/") && !cli.strict) {
-        //! OF_LINE: omniflux.of:933
-        print("\x1B[1;33mRuntime error detected. Falling back to AI Compiler...\x1B[0m");
-        //! OF_LINE: omniflux.of:934
-        let abs_input2 = pathresolve(cli.input_file);
-        //! OF_LINE: omniflux.of:935
-        let deps2 = await get_all_dependencies(abs_input2, null);
-        //! OF_LINE: omniflux.of:936
         //! OF_LINE: omniflux.of:937
+        print("\x1B[1;33mRuntime error detected. Falling back to AI Compiler...\x1B[0m");
+        //! OF_LINE: omniflux.of:938
+        let abs_input2 = pathresolve(cli.input_file);
+        //! OF_LINE: omniflux.of:939
+        let deps2 = await get_all_dependencies(abs_input2, null);
+        //! OF_LINE: omniflux.of:940
+        //! OF_LINE: omniflux.of:941
         for (let dep_path2 of deps2) {
-          //! OF_LINE: omniflux.of:938
-          let cache_path2 = await get_cache_path(dep_path2);
-          //! OF_LINE: omniflux.of:939
-          if (fileexists(cache_path2)) {
-            //! OF_LINE: omniflux.of:940
-            filedelete(cache_path2);
-            //! OF_LINE: omniflux.of:941
-          }
           //! OF_LINE: omniflux.of:942
-          await ai_compile_file(cfg, dep_path2, cache_path2, run_out);
+          let cache_path2 = await get_cache_path(dep_path2);
           //! OF_LINE: omniflux.of:943
-        }
-        //! OF_LINE: omniflux.of:944
-        //! OF_LINE: omniflux.of:945
-        if (cfg != null && cfg.was_healed) {
+          if (fileexists(cache_path2)) {
+            //! OF_LINE: omniflux.of:944
+            filedelete(cache_path2);
+            //! OF_LINE: omniflux.of:945
+          }
           //! OF_LINE: omniflux.of:946
-          let rebuild_res = await build_once(cli.input_file, cli.compile_only, cli.strict, cfg, true);
+          await ai_compile_file(cfg, dep_path2, cache_path2, run_out);
           //! OF_LINE: omniflux.of:947
-          if (rebuild_res.ok) {
-            //! OF_LINE: omniflux.of:948
-            await run_output(rebuild_res.output, cli.run_args);
-            //! OF_LINE: omniflux.of:949
-          }
+        }
+        //! OF_LINE: omniflux.of:948
+        //! OF_LINE: omniflux.of:949
+        if (cfg != null && cfg.was_healed) {
           //! OF_LINE: omniflux.of:950
-        } else {
+          let rebuild_res = await build_once(cli.input_file, cli.compile_only, cli.strict, cfg, true);
           //! OF_LINE: omniflux.of:951
-          //! OF_LINE: omniflux.of:952
-          let abs_inp2 = pathresolve(cli.input_file);
-          //! OF_LINE: omniflux.of:953
-          let out_path2 = await get_output_path(abs_inp2);
-          //! OF_LINE: omniflux.of:954
-          let ai_deps = await get_all_dependencies(abs_inp2, null);
-          //! OF_LINE: omniflux.of:955
-          let ai_map = {};
-          //! OF_LINE: omniflux.of:956
-          for (let ai_dep of ai_deps) {
-            //! OF_LINE: omniflux.of:957
-            let ai_cache = await get_cache_path(ai_dep);
-            //! OF_LINE: omniflux.of:958
-            ai_map[ai_dep] = fileread(ai_cache);
-            //! OF_LINE: omniflux.of:959
+          if (rebuild_res.ok) {
+            //! OF_LINE: omniflux.of:952
+            await run_output(rebuild_res.output, cli.run_args);
+            //! OF_LINE: omniflux.of:953
           }
+          //! OF_LINE: omniflux.of:954
+        } else {
+          //! OF_LINE: omniflux.of:955
+          //! OF_LINE: omniflux.of:956
+          let abs_inp2 = pathresolve(cli.input_file);
+          //! OF_LINE: omniflux.of:957
+          let out_path2 = await get_output_path(abs_inp2);
+          //! OF_LINE: omniflux.of:958
+          let ai_deps = await get_all_dependencies(abs_inp2, null);
+          //! OF_LINE: omniflux.of:959
+          let ai_map = {};
           //! OF_LINE: omniflux.of:960
-          let result2 = await build(abs_inp2, out_path2, ai_map);
-          //! OF_LINE: omniflux.of:961
-          if (result2.ok) {
+          for (let ai_dep of ai_deps) {
+            //! OF_LINE: omniflux.of:961
+            let ai_cache = await get_cache_path(ai_dep);
             //! OF_LINE: omniflux.of:962
-            await run_output(result2.output, cli.run_args);
+            ai_map[ai_dep] = fileread(ai_cache);
             //! OF_LINE: omniflux.of:963
           }
           //! OF_LINE: omniflux.of:964
+          let result2 = await build(abs_inp2, out_path2, ai_map);
+          //! OF_LINE: omniflux.of:965
+          if (result2.ok) {
+            //! OF_LINE: omniflux.of:966
+            await run_output(result2.output, cli.run_args);
+            //! OF_LINE: omniflux.of:967
+          }
+          //! OF_LINE: omniflux.of:968
         }
-        //! OF_LINE: omniflux.of:965
+        //! OF_LINE: omniflux.of:969
       }
-      //! OF_LINE: omniflux.of:966
+      //! OF_LINE: omniflux.of:970
     }
-    //! OF_LINE: omniflux.of:967
+    //! OF_LINE: omniflux.of:971
     exit(0);
-    //! OF_LINE: omniflux.of:968
+    //! OF_LINE: omniflux.of:972
   }
-  //! OF_LINE: omniflux.of:969
+  //! OF_LINE: omniflux.of:973
 }
-//! OF_LINE: omniflux.of:970
-//! OF_LINE: omniflux.of:971
+//! OF_LINE: omniflux.of:974
+//! OF_LINE: omniflux.of:975
 global.parse_args = parse_args;
 global.print_usage = print_usage;
 global.config_path = config_path;
