@@ -25,6 +25,7 @@ jobs:
           # Use the existing native compiler to compile itself (Self-Hosting Bootstrap)
           chmod +x ./compiler/omniflux
           ./compiler/omniflux compiler/omniflux.of --strict --compile-only
+          cp compiler/omniflux omniflux
 
       - name: Test Native Compiler
         run: |
