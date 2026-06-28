@@ -31,10 +31,11 @@ chmod +x "$BUILD_DIR/usr/local/bin/omniflux"
 mkdir -p "$BUILD_DIR/usr/local/share/omniflux"
 cp ./runtime.js "$BUILD_DIR/usr/local/share/omniflux/runtime.js"
 
-# 3. Copy the base prompt
-cp ./omniflux.prompt "$BUILD_DIR/usr/local/share/omniflux/omniflux.prompt"
+# Copy assets to /usr/local/share/omniflux/assets
+mkdir -p "$BUILD_DIR/usr/local/share/omniflux/assets"
+cp -r ./assets/* "$BUILD_DIR/usr/local/share/omniflux/assets/"
 
-# 4. Copy the VS Code extension
+# 3. Copy the VS Code extension
 cp -r ./editors/vscode "$BUILD_DIR/usr/share/omniflux/extensions/omniflux-support"
 
 # 5. Create postinst script to help with VS Code/Antigravity extension installation
