@@ -906,7 +906,11 @@ on start {
     // Load or create config
     var cfg = null
     if !config_exists() {
-        cfg = run_wizard()
+        if cli.strict {
+            cfg = { api_key: "" }
+        } else {
+            cfg = run_wizard()
+        }
     } else {
         cfg = config_load()
     }
