@@ -24,6 +24,9 @@ Description: OmniFlux minimalist backend language compiler and VS Code support.
 EOF
 
 # 2. Copy the native compiler binary and standard runtime
+if [ ! -f ./omniflux ] && [ -f ./compiler/omniflux ]; then
+  cp ./compiler/omniflux ./omniflux
+fi
 cp ./omniflux "$BUILD_DIR/usr/local/bin/omniflux"
 chmod +x "$BUILD_DIR/usr/local/bin/omniflux"
 
