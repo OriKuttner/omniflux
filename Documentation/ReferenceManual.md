@@ -414,6 +414,24 @@ You can also catch errors on a specific function call or statement using `on err
   }
   ```
 
+#### 5. Programmatic Error Information (`error_info`)
+When handling errors locally using an `on error (err)` block, you can get detailed information about where the error occurred in your OmniFlux code using the built-in function `error_info(err)` (alias `errorinfo`):
+* `error_info(err)`: Parses the stack trace of `err` and returns an object containing:
+  * `file`: The name of the original OmniFlux file where the error occurred.
+  * `line`: The line number in the original OmniFlux file.
+  * `message`: The error message.
+
+Example:
+```omniflux
+define task run_process() {
+    var list = null
+    var first = list[0] # This will throw a runtime error
+} on error (err) {
+    var info = error_info(err)
+    print("Error on line %d of %s: %s", info.line, info.file, info.message)
+}
+```
+
 ---
 
 ## 3. Web Server & Routing
@@ -499,6 +517,7 @@ OmniFlux provides native bindings to common backend services, making setups extr
   * `filestat(path)`: Returns an object containing file metadata: `{ size, isdirectory, isfile, createdat, modifiedat }`.
 * **Strings & Text Processing:**
   * `len(val)`: Returns the length of an array or string.
+  * `keys(obj)`: Returns an array of the keys (property names) of the given object/dictionary.
   * `strsplit(str, sep)`: Splits a string into an array of substrings using the specified separator (supports string or regex separators).
   * `match(str, regex)`: Matches `str` against a regular expression. Returns `true` on success, `false` on failure. If the regex contains capture groups (parentheses) and matches, it returns an array of the captured values.
   * `strtrim(str, side)`: Removes whitespace. `side` is optional and can be `"both"` (default), `"left"`, or `"right"`.
@@ -580,6 +599,8 @@ OmniFlux provides native bindings to common backend services, making setups extr
     * **Control Flow:** `@if (cond) { ... @else { ... @}` and `@for (item of list) { ... @}`
     * **Static Inclusions:** `@include("templates/header.html")`
     * **SPA Interceptors:** Automatically injects a lightweight client-side script before `</body>` to intercept links and forms with `of-target="selector"`, enabling flicker-free SPA updates and server-driven script execution.
+* **Error & Diagnostic Utilities:**
+  * `error_info(err)` (alias `errorinfo`): Returns an object containing original OmniFlux file and line details for a given error object: `{ file, line, message }`.
 
 
 ### 4.1 Local JSON Database 🗄️
@@ -827,6 +848,51 @@ on start {
     
     var decrypted = decrypt(encrypted, key)
     print("Decrypted payload: %s", decrypted)
+}
+```
+
+### 7.5 MySQL Database Library (`stdlib/mysql.of`)
+Provides tasks for connecting to and interacting with MySQL databases:
+* `mysqlconnect(config)` (alias `mysql_connect`): Initializes a MySQL connection pool using the provided configuration object or connection string.
+* `mysqlquery(query, params?)` (alias `mysql_query`): Executes a parameterized SQL query on the database using prepared statements and returns the results.
+* `mysqlclose()` (alias `mysql_close`): Closes the MySQL connection pool.
+
+> [!IMPORTANT]
+> **Dependency Requirement:**
+> Under the hood, this library uses the `mysql2` package. To ensure a zero-setup experience, the library will **automatically detect if `mysql2` is missing and install it via `npm`** on the first run.
+> 
+> If you prefer to install it manually in your project directory beforehand, you can run:
+> ```bash
+> npm install mysql2
+> ```
+
+```omniflux
+include "stdlib/mysql.of"
+
+define task run_db_query() {
+    var db_config = {
+        host: "127.0.0.1",
+        user: "root",
+        password: "secret_password",
+        database: "production_db"
+    }
+
+    print("Connecting to MySQL...")
+    mysqlconnect(db_config)
+    
+    print("Fetching active users...")
+    var users = mysqlquery("SELECT id, username FROM users WHERE status = ?", ["active"])
+    for user of users {
+        print("- User: %s (ID: %s)", user.username, user.id)
+    }
+    
+    mysqlclose()
+} on error (err) {
+    print("Database error: %s", err.message)
+}
+
+on start {
+    run_db_query()
 }
 ```
 
