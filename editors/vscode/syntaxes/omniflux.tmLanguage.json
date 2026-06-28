@@ -39,7 +39,7 @@
       "patterns": [
         {
           "name": "support.function.omniflux",
-          "match": "\\\b(dbinsert|dbselect|dbupdate|dbdelete|dbsetfile|db_query|cacheset|cacheget|cache_set|cache_get|fileread|filewrite|fileexists|fileappend|file_read|file_write|file_exists|file_append|system|exec|spawn|pterminate|pwait|pstatus|len|arraypush|arraypop|strsplit|strjoin|strreplace|strtrim|template|exit|sha256|encrypt|decrypt|base64_encode|base64_decode|base64encode|base64decode|getcookie|setcookie|jsonparse|jsonencode|print|describe|networkget|networkpost|time|microtime|micro_time)\\\b"
+          "match": "\\\b(dbinsert|dbselect|dbupdate|dbdelete|dbsetfile|db_query|cacheset|cacheget|cache_set|cache_get|fileread|filewrite|fileexists|fileappend|file_read|file_write|file_exists|file_append|system|exec|spawn|pterminate|pwait|pstatus|len|keys|error_info|errorinfo|mysqlconnect|mysql_connect|mysqlquery|mysql_query|mysqlclose|mysql_close|arraypush|arraypop|strsplit|strjoin|strreplace|strtrim|template|exit|sha256|encrypt|decrypt|base64_encode|base64_decode|base64encode|base64decode|getcookie|setcookie|jsonparse|jsonencode|print|describe|networkget|networkpost|time|microtime|micro_time)\\\b"
         }
       ]
     },

@@ -331,7 +331,13 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         var fn_err = "__on_error_" + state.on_error_count
         arraypush(state.on_error_funcs, fn_err)
         arraypush(state.block_stack, "normal")
-        arraypush(out, "async function " + fn_err + "(" + on_error_m[0] + ") {")
+        var err_var = on_error_m[0]
+        arraypush(out, "async function " + fn_err + "(" + err_var + ") {")
+        arraypush(out, "    if (" + err_var + " && typeof " + err_var + " === 'object') {")
+        arraypush(out, "        const _err_info = errorinfo(" + err_var + ");")
+        arraypush(out, "        " + err_var + ".file = _err_info.file;")
+        arraypush(out, "        " + err_var + ".line = _err_info.line;")
+        arraypush(out, "    }")
         return out
     }
     var on_req_m = match(line, "/^on\\s+request\\s*\\(([^)]*)\\)\\s*\\{/i")
@@ -536,7 +542,13 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         } else {
             arraypush(state.block_stack, "task_error")
         }
-        arraypush(out, "} catch (" + catch_m[0] + ") {")
+        var err_var = catch_m[0]
+        arraypush(out, "} catch (" + err_var + ") {")
+        arraypush(out, "    if (" + err_var + " && typeof " + err_var + " === 'object') {")
+        arraypush(out, "        const _err_info = errorinfo(" + err_var + ");")
+        arraypush(out, "        " + err_var + ".file = _err_info.file;")
+        arraypush(out, "        " + err_var + ".line = _err_info.line;")
+        arraypush(out, "    }")
         return out
     }
 

@@ -68,5 +68,32 @@
       "}"
     ],
     "description": "Code executes immediately on start"
+  },
+  "MySQL Connect": {
+    "prefix": "mysqlconnect",
+    "body": [
+      "mysqlconnect({",
+      "    host: \"${1:127.0.0.1}\",",
+      "    port: ${2:3306},",
+      "    user: \"${3:root}\",",
+      "    password: \"${4}\",",
+      "    database: \"${5:database_name}\"",
+      "})"
+    ],
+    "description": "Establish connection pool to MySQL database"
+  },
+  "MySQL Query": {
+    "prefix": "mysqlquery",
+    "body": [
+      "var ${1:rows} = mysqlquery(\"${2:SELECT * FROM table}\")"
+    ],
+    "description": "Execute a SQL query on MySQL database"
+  },
+  "Get Object Keys": {
+    "prefix": "keys",
+    "body": [
+      "keys(${1:obj})"
+    ],
+    "description": "Get an array of the keys of an object"
   }
 }

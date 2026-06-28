@@ -30,6 +30,9 @@ var BUILTINS = [
     "dbselect", "db_select",
     "dbupdate", "db_update",
     "dbdelete", "db_delete",
+    "mysqlconnect", "mysql_connect",
+    "mysqlquery", "mysql_query",
+    "mysqlclose", "mysql_close",
     // Cache
     "cacheset", "cache_set",
     "cacheget", "cache_get",
@@ -40,13 +43,20 @@ var BUILTINS = [
     "exit",
     // Cryptography & Encryption
     "sha256",
+    "encrypt", "decrypt",
+    "base64encode", "base64_encode",
+    "base64decode", "base64_decode",
     // Web & HTTP
     "getcookie", "get_cookie",
     "setcookie", "set_cookie",
+    "networkget", "network_get",
+    "networkpost", "network_post",
     // Template
     "template",
     // Strings
     "len",
+    "keys",
+    "errorinfo", "error_info",
     "match",
     "strsplit", "str_split",
     "strtrim", "str_trim",
@@ -105,6 +115,11 @@ var ASYNC_BUILTINS = [
     "input",
     "cacheset", "cache_set",
     "cacheget", "cache_get",
+    "mysqlconnect", "mysql_connect",
+    "mysqlquery", "mysql_query",
+    "mysqlclose", "mysql_close",
+    "networkget", "network_get",
+    "networkpost", "network_post",
     "arraymap", "array_map",
     "arrayfilter", "array_filter",
     "arrayfind", "array_find",

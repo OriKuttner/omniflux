@@ -68,6 +68,7 @@ function sprintf(format, ...args) {
         } else {
             result = String(val);
         }
+        if (result === undefined) result = 'undefined';
         if (result.length < width) {
             const padLen = width - result.length;
             const padding = padChar.repeat(padLen);
@@ -476,6 +477,13 @@ global.jsonencode = jsonencode;
 function len(val) {
     if (val === null || val === undefined) return 0;
     return val.length || 0;
+}
+
+function keys(obj) {
+    if (obj && typeof obj === 'object') {
+        return Object.keys(obj);
+    }
+    return [];
 }
 
 function toRegExp(regex) {
@@ -1009,6 +1017,7 @@ global.cacheget = cacheget;
 global.cache_get = cacheget;
 
 global.len = len;
+global.keys = keys;
 
 global.strsplit = strsplit;
 global.str_split = strsplit;
@@ -1110,42 +1119,66 @@ global.date_weekday = dateweekday;
 global.template = template;
 
 // --- Default Process Error Interception for Friendly Messages ---
+function errorinfo(err) {
+    if (!err || !err.stack) {
+        return {
+            file: null,
+            line: null,
+            message: err ? err.message : ''
+        };
+    }
+    const stackLines = err.stack.split('\n');
+    const lineMatch = stackLines.find(line => 
+        line.includes('/') && 
+        !line.includes('node:internal') && 
+        !line.includes('node_modules')
+    );
+    if (lineMatch) {
+        const match = lineMatch.match(/\(([^)]+):(\d+):(\d+)\)/) || lineMatch.match(/at\s+(.+?):(\d+):(\d+)/);
+        if (match) {
+            const filePath = match[1];
+            const lineNum = parseInt(match[2], 10);
+            try {
+                const content = fs.readFileSync(filePath, 'utf8');
+                const fileLines = content.split('\n');
+                const indicesToCheck = [lineNum, lineNum - 1, lineNum - 2];
+                for (const i of indicesToCheck) {
+                    if (i >= 0 && i < fileLines.length) {
+                        const targetLine = fileLines[i];
+                        const ofLineMatch = targetLine.match(/\/\/\! OF_LINE: (.+?)(?:\r?\n|$)/) || targetLine.match(/\/\/ OF_LINE: (.+?)(?:\r?\n|$)/);
+                        if (ofLineMatch) {
+                            const parts = ofLineMatch[1].split(':');
+                            return {
+                                file: parts[0],
+                                line: parseInt(parts[1], 10),
+                                message: err.message
+                            };
+                        }
+                    }
+                }
+            } catch (e) {}
+            return {
+                file: path.basename(filePath),
+                line: lineNum,
+                message: err.message
+            };
+        }
+    }
+    return {
+        file: null,
+        line: null,
+        message: err.message
+    };
+}
+global.errorinfo = errorinfo;
+global.error_info = errorinfo;
+
 function formatRuntimeError(err, label = 'OmniFlux Runtime Error') {
     console.error('\n\x1b[1m\x1b[31m' + label + ':\x1b[0m');
     console.error('\x1b[33m' + err.message + '\x1b[0m');
-    if (err.stack) {
-        const stackLines = err.stack.split('\n');
-        const lineMatch = stackLines.find(line => 
-            line.includes('/') && 
-            !line.includes('node:internal') && 
-            !line.includes('node_modules')
-        );
-        if (lineMatch) {
-            const match = lineMatch.match(/\(([^)]+):(\d+):(\d+)\)/) || lineMatch.match(/at\s+(.+?):(\d+):(\d+)/);
-            if (match) {
-                const filePath = match[1];
-                const lineNum = parseInt(match[2], 10);
-                try {
-                    const content = fs.readFileSync(filePath, 'utf8');
-                    const fileLines = content.split('\n');
-                    
-                    // Search next line first (where esbuild splits inline comments), then current, then previous
-                    const indicesToCheck = [lineNum, lineNum - 1, lineNum - 2];
-                    for (const i of indicesToCheck) {
-                        if (i >= 0 && i < fileLines.length) {
-                            const targetLine = fileLines[i];
-                            const ofLineMatch = targetLine.match(/\/\/\! OF_LINE: (.+?)(?:\r?\n|$)/) || targetLine.match(/\/\/ OF_LINE: (.+?)(?:\r?\n|$)/);
-                            if (ofLineMatch) {
-                                console.error('\x1b[1m\x1b[32mAt: ' + ofLineMatch[1] + '\x1b[0m');
-                                console.error();
-                                return;
-                            }
-                        }
-                    }
-                } catch (e) {}
-                console.error('\x1b[2mAt: ' + path.basename(filePath) + ':' + lineNum + '\x1b[0m');
-            }
-        }
+    const info = errorinfo(err);
+    if (info && info.file && info.line) {
+        console.error('\x1b[1m\x1b[32mAt: ' + info.file + ':' + info.line + '\x1b[0m');
     }
     console.error();
 }

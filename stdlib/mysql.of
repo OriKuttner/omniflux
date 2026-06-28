@@ -1,0 +1,81 @@
+include "stdlib/mysql.of"
+
+# === AI Generated Code Start ===
+# Request: Fix 'rowz is not defined' error in mysqlquery task
+define task mysqlquery(query, params) {
+    @{
+        if (!global.__mysql_pool) {
+            throw new Error("MySQL database is not connected. Call mysql_connect first.");
+        }
+        try {
+            const [rows] = await global.__mysql_pool.execute(query, params || []);
+            return rows;
+        } catch (err) {
+            throw new Error("MySQL query execution failed: " + err.message);
+        }
+    @}
+}
+# === AI Generated Code End ===
+
+define task mysqlconnect(config) {
+    @{
+        try {
+            try {
+                require.resolve('mysql2/promise');
+            } catch (e) {
+                const { execSync } = require('child_process');
+                execSync('npm install mysql2', { stdio: 'inherit' });
+            }
+            const mysql = require('mysql2/promise');
+            let options = {};
+            if (typeof config === 'string') {
+                options = { uri: config };
+            } else if (config && typeof config === 'object') {
+                options = {
+                    host: config.host || 'localhost',
+                    user: config.user || 'root',
+                    password: config.password || '',
+                    database: config.database,
+                    port: config.port || 3306,
+                    connectionLimit: config.connectionLimit || config.connection_limit || 10,
+                    ssl: config.ssl || null
+                };
+            }
+            global.__mysql_pool = mysql.createPool(options);
+            return true;
+        } catch (err) {
+            throw new Error("Failed to initialize MySQL pool: " + err.message);
+        }
+    @}
+}
+
+define task mysql_connect(config) {
+    return await mysqlconnect(config)
+}
+
+define task mysql_query(query, params) {
+    return await mysqlquery(query, params)
+}
+
+define task mysqlclose() {
+    @{
+        if (global.__mysql_pool) {
+            try {
+                await global.__mysql_pool.end();
+            } catch (err) {}
+            global.__mysql_pool = null;
+        }
+        return true;
+    @}
+}
+
+define task mysql_close() {
+    return await mysqlclose()
+}
+
+global.mysqlconnect = mysqlconnect;
+global.mysql_connect = mysql_connect;
+global.mysqlquery = mysqlquery;
+global.mysql_query = mysql_query;
+global.mysqlclose = mysqlclose;
+global.mysql_close = mysql_close;
