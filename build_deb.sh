@@ -11,10 +11,22 @@ mkdir -p "$BUILD_DIR/usr/local/bin"
 mkdir -p "$BUILD_DIR/usr/local/share/omniflux/compiler"
 mkdir -p "$BUILD_DIR/usr/share/omniflux/extensions"
 
-# 1. Create control file (no Depends field to prevent dpkg database conflicts)
-cat << 'EOF' > "$BUILD_DIR/DEBIAN/control"
+# 1. Extract version from compiler/omniflux.of
+VERSION=$(grep '\$VERSION\s*=\s*' compiler/omniflux.of | cut -d'"' -f2 || echo "1.0.1")
+if [ -z "$VERSION" ]; then
+  VERSION="1.0.1"
+fi
+
+# Detect vsix filename dynamically
+VSIX_FILE=$(cd editors/vscode && ls *.vsix 2>/dev/null | head -n 1)
+if [ -z "$VSIX_FILE" ]; then
+  VSIX_FILE="omniflux-support-$VERSION.vsix"
+fi
+
+# Create control file (no Depends field to prevent dpkg database conflicts)
+cat << EOF > "$BUILD_DIR/DEBIAN/control"
 Package: omniflux
-Version: 1.0.0
+Version: $VERSION
 Section: devel
 Priority: optional
 Architecture: all
@@ -23,7 +35,7 @@ Description: OmniFlux minimalist backend language compiler and VS Code support.
 EOF
 
 # 2. Copy the compiler script to the shared folder
-if [ ! -f ./omniflux ] && [ -f ./compiler/omniflux ]; then
+if [ -f ./compiler/omniflux ]; then
   cp ./compiler/omniflux ./omniflux
 fi
 cp ./omniflux "$BUILD_DIR/usr/local/share/omniflux/compiler/omniflux"
@@ -126,7 +138,7 @@ echo "Option 1: Graphical Interface (GUI) via VSIX"
 echo "  1. Open your editor (VS Code or Antigravity)."
 echo "  2. Open the Extensions sidebar (Ctrl+Shift+X)."
 echo "  3. Click the '...' menu at the top-right and select 'Install from VSIX...'."
-echo "  4. Choose: /usr/share/omniflux/extensions/omniflux-support/omniflux-support-1.0.0.vsix"
+echo "  4. Choose: /usr/share/omniflux/extensions/omniflux-support/@VSIX_FILE@"
 echo ""
 echo "Option 2: Command Line (CLI)"
 echo "  * For VS Code:"
@@ -143,6 +155,7 @@ echo "      mkdir -p ~/.antigravity/extensions"
 echo "      ln -sf /usr/share/omniflux/extensions/omniflux-support ~/.antigravity/extensions/omniflux-support"
 echo "-------------------------------------------------------------"
 EOF
+sed -i "s/@VSIX_FILE@/$VSIX_FILE/g" "$BUILD_DIR/DEBIAN/postinst"
 chmod +x "$BUILD_DIR/DEBIAN/postinst"
 
 # 8. Create postrm script to clean up untracked dynamic files on removal

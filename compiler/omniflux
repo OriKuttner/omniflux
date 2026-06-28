@@ -10,8 +10,8 @@ var require_symbols = __commonJS({
     var fs2 = require("fs");
     var util2 = require("util");
     var path2 = require("path");
-    global.args = process.argv.slice(2);
-    global.vars = new Proxy({ args: global.args }, {
+    global.args = global.args || process.argv.slice(2);
+    global.vars = global.vars || new Proxy({ args: global.args }, {
       get(target, prop) {
         return prop in target ? target[prop] : null;
       },
@@ -1520,8 +1520,8 @@ var require_preprocessor = __commonJS({
     var fs2 = require("fs");
     var util2 = require("util");
     var path2 = require("path");
-    global.args = process.argv.slice(2);
-    global.vars = new Proxy({ args: global.args }, {
+    global.args = global.args || process.argv.slice(2);
+    global.vars = global.vars || new Proxy({ args: global.args }, {
       get(target, prop) {
         return prop in target ? target[prop] : null;
       },
@@ -3198,8 +3198,8 @@ var require_system = __commonJS({
     var fs2 = require("fs");
     var util2 = require("util");
     var path2 = require("path");
-    global.args = process.argv.slice(2);
-    global.vars = new Proxy({ args: global.args }, {
+    global.args = global.args || process.argv.slice(2);
+    global.vars = global.vars || new Proxy({ args: global.args }, {
       get(target, prop) {
         return prop in target ? target[prop] : null;
       },
@@ -4551,8 +4551,8 @@ var require_bundler = __commonJS({
     var fs2 = require("fs");
     var util2 = require("util");
     var path2 = require("path");
-    global.args = process.argv.slice(2);
-    global.vars = new Proxy({ args: global.args }, {
+    global.args = global.args || process.argv.slice(2);
+    global.vars = global.vars || new Proxy({ args: global.args }, {
       get(target, prop) {
         return prop in target ? target[prop] : null;
       },
@@ -5911,8 +5911,8 @@ var require_validator = __commonJS({
     var fs2 = require("fs");
     var util2 = require("util");
     var path2 = require("path");
-    global.args = process.argv.slice(2);
-    global.vars = new Proxy({ args: global.args }, {
+    global.args = global.args || process.argv.slice(2);
+    global.vars = global.vars || new Proxy({ args: global.args }, {
       get(target, prop) {
         return prop in target ? target[prop] : null;
       },
@@ -7441,8 +7441,8 @@ var require_transpiler = __commonJS({
     var fs2 = require("fs");
     var util2 = require("util");
     var path2 = require("path");
-    global.args = process.argv.slice(2);
-    global.vars = new Proxy({ args: global.args }, {
+    global.args = global.args || process.argv.slice(2);
+    global.vars = global.vars || new Proxy({ args: global.args }, {
       get(target, prop) {
         return prop in target ? target[prop] : null;
       },
@@ -10061,8 +10061,8 @@ var require_network = __commonJS({
     var fs2 = require("fs");
     var util2 = require("util");
     var path2 = require("path");
-    global.args = process.argv.slice(2);
-    global.vars = new Proxy({ args: global.args }, {
+    global.args = global.args || process.argv.slice(2);
+    global.vars = global.vars || new Proxy({ args: global.args }, {
       get(target, prop) {
         return prop in target ? target[prop] : null;
       },
@@ -11316,8 +11316,8 @@ document.addEventListener('click', async (e) => {
 var fs = require("fs");
 var util = require("util");
 var path = require("path");
-global.args = process.argv.slice(2);
-global.vars = new Proxy({ args: global.args }, {
+global.args = global.args || process.argv.slice(2);
+global.vars = global.vars || new Proxy({ args: global.args }, {
   get(target, prop) {
     return prop in target ? target[prop] : null;
   },
@@ -12394,1103 +12394,1102 @@ process.on("unhandledRejection", (reason) => {
 //! OF_LINE: omniflux.of:13
 //! OF_LINE: omniflux.of:14
 //! OF_LINE: omniflux.of:15
-require_bundler();
+global.vars.VERSION = "1.0.1";
 //! OF_LINE: omniflux.of:16
-require_validator();
 //! OF_LINE: omniflux.of:17
-require_transpiler();
+require_bundler();
 //! OF_LINE: omniflux.of:18
-require_symbols();
+require_validator();
 //! OF_LINE: omniflux.of:19
-require_system();
+require_transpiler();
 //! OF_LINE: omniflux.of:20
-require_network();
+require_symbols();
 //! OF_LINE: omniflux.of:21
+require_system();
 //! OF_LINE: omniflux.of:22
+require_network();
 //! OF_LINE: omniflux.of:23
 //! OF_LINE: omniflux.of:24
 //! OF_LINE: omniflux.of:25
+//! OF_LINE: omniflux.of:26
+//! OF_LINE: omniflux.of:27
 async function parse_args(argv) {
   try {
-    //! OF_LINE: omniflux.of:26
+    //! OF_LINE: omniflux.of:28
     let result = {
-      //! OF_LINE: omniflux.of:27
-      input_file: "",
-      //! OF_LINE: omniflux.of:28
-      compile_only: false,
       //! OF_LINE: omniflux.of:29
-      strict: false,
+      input_file: "",
       //! OF_LINE: omniflux.of:30
-      watch: false,
+      compile_only: false,
       //! OF_LINE: omniflux.of:31
-      setup: false,
+      strict: false,
       //! OF_LINE: omniflux.of:32
-      help: false,
+      watch: false,
       //! OF_LINE: omniflux.of:33
-      verbose: false,
+      setup: false,
       //! OF_LINE: omniflux.of:34
-      force: false,
+      help: false,
       //! OF_LINE: omniflux.of:35
-      run_args: []
+      verbose: false,
       //! OF_LINE: omniflux.of:36
-    };
-    //! OF_LINE: omniflux.of:37
-    let after_dashdash = false;
-    //! OF_LINE: omniflux.of:38
-    for (let arg of argv) {
+      force: false,
+      //! OF_LINE: omniflux.of:37
+      version: false,
+      //! OF_LINE: omniflux.of:38
+      run_args: []
       //! OF_LINE: omniflux.of:39
+    };
+    //! OF_LINE: omniflux.of:40
+    let after_dashdash = false;
+    //! OF_LINE: omniflux.of:41
+    for (let arg of argv) {
+      //! OF_LINE: omniflux.of:42
       if (after_dashdash) {
-        //! OF_LINE: omniflux.of:40
-        arraypush(result.run_args, arg);
-        //! OF_LINE: omniflux.of:41
-      } else if (arg == "--") {
-        //! OF_LINE: omniflux.of:42
-        after_dashdash = true;
         //! OF_LINE: omniflux.of:43
-      } else if (arg == "--compile-only" || arg == "--no-run") {
-        //! OF_LINE: omniflux.of:44
-        result.compile_only = true;
-        //! OF_LINE: omniflux.of:45
-      } else if (arg == "--strict" || arg == "--no-llm") {
-        //! OF_LINE: omniflux.of:46
-        result.strict = true;
-        //! OF_LINE: omniflux.of:47
-      } else if (arg == "--watch" || arg == "-w") {
-        //! OF_LINE: omniflux.of:48
-        result.watch = true;
-        //! OF_LINE: omniflux.of:49
-      } else if (arg == "--setup" || arg == "--config") {
-        //! OF_LINE: omniflux.of:50
-        result.setup = true;
-        //! OF_LINE: omniflux.of:51
-      } else if (arg == "--help" || arg == "-h") {
-        //! OF_LINE: omniflux.of:52
-        result.help = true;
-        //! OF_LINE: omniflux.of:53
-      } else if (arg == "--verbose" || arg == "-v") {
-        //! OF_LINE: omniflux.of:54
-        result.verbose = true;
-        //! OF_LINE: omniflux.of:55
-      } else if (arg == "--force" || arg == "-f") {
-        //! OF_LINE: omniflux.of:56
-        result.force = true;
-        //! OF_LINE: omniflux.of:57
-      } else if (result.input_file == "") {
-        //! OF_LINE: omniflux.of:58
-        result.input_file = arg;
-        //! OF_LINE: omniflux.of:59
-      } else {
-        //! OF_LINE: omniflux.of:60
         arraypush(result.run_args, arg);
+        //! OF_LINE: omniflux.of:44
+      } else if (arg == "--") {
+        //! OF_LINE: omniflux.of:45
+        after_dashdash = true;
+        //! OF_LINE: omniflux.of:46
+      } else if (arg == "--compile-only" || arg == "--no-run") {
+        //! OF_LINE: omniflux.of:47
+        result.compile_only = true;
+        //! OF_LINE: omniflux.of:48
+      } else if (arg == "--strict" || arg == "--no-llm") {
+        //! OF_LINE: omniflux.of:49
+        result.strict = true;
+        //! OF_LINE: omniflux.of:50
+      } else if (arg == "--watch" || arg == "-w") {
+        //! OF_LINE: omniflux.of:51
+        result.watch = true;
+        //! OF_LINE: omniflux.of:52
+      } else if (arg == "--setup" || arg == "--config") {
+        //! OF_LINE: omniflux.of:53
+        result.setup = true;
+        //! OF_LINE: omniflux.of:54
+      } else if (arg == "--help" || arg == "-h") {
+        //! OF_LINE: omniflux.of:55
+        result.help = true;
+        //! OF_LINE: omniflux.of:56
+      } else if (arg == "--version") {
+        //! OF_LINE: omniflux.of:57
+        result.version = true;
+        //! OF_LINE: omniflux.of:58
+      } else if (arg == "--verbose" || arg == "-v") {
+        //! OF_LINE: omniflux.of:59
+        result.verbose = true;
+        //! OF_LINE: omniflux.of:60
+      } else if (arg == "--force" || arg == "-f") {
         //! OF_LINE: omniflux.of:61
-      }
-      //! OF_LINE: omniflux.of:62
-    }
-    //! OF_LINE: omniflux.of:63
-    if (result.input_file != "") {
-      //! OF_LINE: omniflux.of:64
-      if (!match(result.input_file, "/\\.of$/i")) {
+        result.force = true;
+        //! OF_LINE: omniflux.of:62
+      } else if (result.input_file == "") {
+        //! OF_LINE: omniflux.of:63
+        result.input_file = arg;
+        //! OF_LINE: omniflux.of:64
+      } else {
         //! OF_LINE: omniflux.of:65
-        result.input_file = result.input_file + ".of";
+        arraypush(result.run_args, arg);
         //! OF_LINE: omniflux.of:66
       }
       //! OF_LINE: omniflux.of:67
     }
     //! OF_LINE: omniflux.of:68
+    if (result.input_file != "") {
+      //! OF_LINE: omniflux.of:69
+      if (!match(result.input_file, "/\\.of$/i")) {
+        //! OF_LINE: omniflux.of:70
+        result.input_file = result.input_file + ".of";
+        //! OF_LINE: omniflux.of:71
+      }
+      //! OF_LINE: omniflux.of:72
+    }
+    //! OF_LINE: omniflux.of:73
     return result;
-    //! OF_LINE: omniflux.of:69
+    //! OF_LINE: omniflux.of:74
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:70
-//! OF_LINE: omniflux.of:71
-//! OF_LINE: omniflux.of:72
-//! OF_LINE: omniflux.of:73
-//! OF_LINE: omniflux.of:74
+//! OF_LINE: omniflux.of:75
+//! OF_LINE: omniflux.of:76
+//! OF_LINE: omniflux.of:77
+//! OF_LINE: omniflux.of:78
+//! OF_LINE: omniflux.of:79
 async function print_usage() {
   try {
-    //! OF_LINE: omniflux.of:75
-    print("Usage: omniflux <file.of> [options] [-- args...]");
-    //! OF_LINE: omniflux.of:76
-    print("");
-    //! OF_LINE: omniflux.of:77
-    print("Options:");
-    //! OF_LINE: omniflux.of:78
-    print("  -h, --help       Show this help information");
-    //! OF_LINE: omniflux.of:79
-    print("  -v, --verbose    Print detailed AI usage statistics");
     //! OF_LINE: omniflux.of:80
-    print("  -f, --force      Force rebuild even if output is up-to-date");
+    print("Usage: omniflux <file.of> [options] [-- args...]");
     //! OF_LINE: omniflux.of:81
-    print("  --compile-only   Compile only, do not run the output");
+    print("");
     //! OF_LINE: omniflux.of:82
-    print("  --strict         Fail if compilation requires AI assistance");
+    print("Options:");
     //! OF_LINE: omniflux.of:83
-    print("  --watch          Watch for changes and rebuild automatically");
+    print("  -h, --help       Show this help information");
     //! OF_LINE: omniflux.of:84
-    print("  --setup / --config Run the interactive setup wizard to configure the API key");
+    print("  --version        Show compiler version");
     //! OF_LINE: omniflux.of:85
-    print("  --               Pass remaining arguments to the compiled program");
+    print("  -v, --verbose    Print detailed AI usage statistics");
     //! OF_LINE: omniflux.of:86
-  } catch (err) {
-    throw err;
-  }
-}
-//! OF_LINE: omniflux.of:87
-//! OF_LINE: omniflux.of:88
-//! OF_LINE: omniflux.of:89
-//! OF_LINE: omniflux.of:90
-//! OF_LINE: omniflux.of:91
-async function config_path() {
-  try {
+    print("  -f, --force      Force rebuild even if output is up-to-date");
+    //! OF_LINE: omniflux.of:87
+    print("  --compile-only   Compile only, do not run the output");
+    //! OF_LINE: omniflux.of:88
+    print("  --strict         Fail if compilation requires AI assistance");
+    //! OF_LINE: omniflux.of:89
+    print("  --watch          Watch for changes and rebuild automatically");
+    //! OF_LINE: omniflux.of:90
+    print("  --setup / --config Run the interactive setup wizard to configure the API key");
+    //! OF_LINE: omniflux.of:91
+    print("  --               Pass remaining arguments to the compiled program");
     //! OF_LINE: omniflux.of:92
-    let home = getenv("HOME");
-    //! OF_LINE: omniflux.of:93
-    return home + "/.omnifluxrc";
-    //! OF_LINE: omniflux.of:94
   } catch (err) {
     throw err;
   }
 }
+//! OF_LINE: omniflux.of:93
+//! OF_LINE: omniflux.of:94
 //! OF_LINE: omniflux.of:95
 //! OF_LINE: omniflux.of:96
 //! OF_LINE: omniflux.of:97
-//! OF_LINE: omniflux.of:98
-//! OF_LINE: omniflux.of:99
-async function config_exists() {
+async function config_path() {
   try {
+    //! OF_LINE: omniflux.of:98
+    let home = getenv("HOME");
+    //! OF_LINE: omniflux.of:99
+    return home + "/.omnifluxrc";
     //! OF_LINE: omniflux.of:100
-    return fileexists(await config_path());
-    //! OF_LINE: omniflux.of:101
   } catch (err) {
     throw err;
   }
 }
+//! OF_LINE: omniflux.of:101
 //! OF_LINE: omniflux.of:102
 //! OF_LINE: omniflux.of:103
 //! OF_LINE: omniflux.of:104
 //! OF_LINE: omniflux.of:105
-//! OF_LINE: omniflux.of:106
-async function config_load() {
+async function config_exists() {
   try {
+    //! OF_LINE: omniflux.of:106
+    return fileexists(await config_path());
     //! OF_LINE: omniflux.of:107
-    let raw = fileread(await config_path());
-    //! OF_LINE: omniflux.of:108
-    return jsonparse(raw);
-    //! OF_LINE: omniflux.of:109
   } catch (err) {
     throw err;
   }
 }
+//! OF_LINE: omniflux.of:108
+//! OF_LINE: omniflux.of:109
 //! OF_LINE: omniflux.of:110
 //! OF_LINE: omniflux.of:111
 //! OF_LINE: omniflux.of:112
-//! OF_LINE: omniflux.of:113
-//! OF_LINE: omniflux.of:114
-async function config_save(cfg) {
+async function config_load() {
   try {
+    //! OF_LINE: omniflux.of:113
+    let raw = fileread(await config_path());
+    //! OF_LINE: omniflux.of:114
+    return jsonparse(raw);
     //! OF_LINE: omniflux.of:115
-    filewrite(await config_path(), jsonencode(cfg, true));
-    //! OF_LINE: omniflux.of:116
   } catch (err) {
     throw err;
   }
 }
+//! OF_LINE: omniflux.of:116
 //! OF_LINE: omniflux.of:117
 //! OF_LINE: omniflux.of:118
 //! OF_LINE: omniflux.of:119
 //! OF_LINE: omniflux.of:120
-//! OF_LINE: omniflux.of:121
+async function config_save(cfg) {
+  try {
+    //! OF_LINE: omniflux.of:121
+    filewrite(await config_path(), jsonencode(cfg, true));
+    //! OF_LINE: omniflux.of:122
+  } catch (err) {
+    throw err;
+  }
+}
+//! OF_LINE: omniflux.of:123
+//! OF_LINE: omniflux.of:124
+//! OF_LINE: omniflux.of:125
+//! OF_LINE: omniflux.of:126
+//! OF_LINE: omniflux.of:127
 async function run_wizard() {
   try {
-    //! OF_LINE: omniflux.of:122
-    print("=== Welcome to OmniFlux ===");
-    //! OF_LINE: omniflux.of:123
-    print("To use the AI Compiler features, you need an API key from the developer portal.");
-    //! OF_LINE: omniflux.of:124
-    print("If you do not have a key, please sign up and get one at:");
-    //! OF_LINE: omniflux.of:125
-    print("\u{1F449} https://omniflux.helicontech.co.il");
-    //! OF_LINE: omniflux.of:126
-    print("");
-    //! OF_LINE: omniflux.of:127
     //! OF_LINE: omniflux.of:128
-    let api_key = await input("Enter your OmniFlux API key: ");
+    print("=== Welcome to OmniFlux ===");
     //! OF_LINE: omniflux.of:129
-    if (api_key == "") {
-      //! OF_LINE: omniflux.of:130
-      print("Error: API key required.");
-      //! OF_LINE: omniflux.of:131
-      exit(1);
-      //! OF_LINE: omniflux.of:132
-    }
+    print("To use the AI Compiler features, you need an API key from the developer portal.");
+    //! OF_LINE: omniflux.of:130
+    print("If you do not have a key, please sign up and get one at:");
+    //! OF_LINE: omniflux.of:131
+    print("\u{1F449} https://omniflux.helicontech.co.il");
+    //! OF_LINE: omniflux.of:132
+    print("");
     //! OF_LINE: omniflux.of:133
     //! OF_LINE: omniflux.of:134
-    let cfg = {
-      //! OF_LINE: omniflux.of:135
-      api_key
+    let api_key = await input("Enter your OmniFlux API key: ");
+    //! OF_LINE: omniflux.of:135
+    if (api_key == "") {
       //! OF_LINE: omniflux.of:136
-    };
-    //! OF_LINE: omniflux.of:137
-    await config_save(cfg);
-    //! OF_LINE: omniflux.of:138
-    print("\n[OmniFlux Setup]: Successfully configured!\n");
+      print("Error: API key required.");
+      //! OF_LINE: omniflux.of:137
+      exit(1);
+      //! OF_LINE: omniflux.of:138
+    }
     //! OF_LINE: omniflux.of:139
-    return cfg;
     //! OF_LINE: omniflux.of:140
+    let cfg = {
+      //! OF_LINE: omniflux.of:141
+      api_key
+      //! OF_LINE: omniflux.of:142
+    };
+    //! OF_LINE: omniflux.of:143
+    await config_save(cfg);
+    //! OF_LINE: omniflux.of:144
+    print("\n[OmniFlux Setup]: Successfully configured!\n");
+    //! OF_LINE: omniflux.of:145
+    return cfg;
+    //! OF_LINE: omniflux.of:146
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:141
-//! OF_LINE: omniflux.of:142
-//! OF_LINE: omniflux.of:143
-//! OF_LINE: omniflux.of:144
-//! OF_LINE: omniflux.of:145
+//! OF_LINE: omniflux.of:147
+//! OF_LINE: omniflux.of:148
+//! OF_LINE: omniflux.of:149
+//! OF_LINE: omniflux.of:150
+//! OF_LINE: omniflux.of:151
 async function send_ai_request(cfg, messages) {
   try {
-    //! OF_LINE: omniflux.of:146
-    let url = "https://omniflux.helicontech.co.il/v1/chat/completions";
-    //! OF_LINE: omniflux.of:147
-    let body = { messages, temperature: 0.2 };
-    //! OF_LINE: omniflux.of:148
-    let headers = { "Authorization": "Bearer " + cfg.api_key };
-    //! OF_LINE: omniflux.of:149
-    //! OF_LINE: omniflux.of:150
-    let t0 = 0;
-    //! OF_LINE: omniflux.of:151
-    t0 = Date.now();
     //! OF_LINE: omniflux.of:152
+    let url = "https://omniflux.helicontech.co.il/v1/chat/completions";
     //! OF_LINE: omniflux.of:153
-    let response = await networkpost(url, body, headers);
+    let body = { messages, temperature: 0.2 };
     //! OF_LINE: omniflux.of:154
+    let headers = { "Authorization": "Bearer " + cfg.api_key };
     //! OF_LINE: omniflux.of:155
-    let elapsed = 0;
     //! OF_LINE: omniflux.of:156
-    elapsed = (Date.now() - t0) / 1e3;
+    let t0 = 0;
     //! OF_LINE: omniflux.of:157
+    t0 = Date.now();
     //! OF_LINE: omniflux.of:158
-    let err_msg = null;
     //! OF_LINE: omniflux.of:159
+    let response = await networkpost(url, body, headers);
+    //! OF_LINE: omniflux.of:160
+    //! OF_LINE: omniflux.of:161
+    let elapsed = 0;
+    //! OF_LINE: omniflux.of:162
+    elapsed = (Date.now() - t0) / 1e3;
+    //! OF_LINE: omniflux.of:163
+    //! OF_LINE: omniflux.of:164
+    let err_msg = null;
+    //! OF_LINE: omniflux.of:165
     if (!response || !response.choices) {
-      //! OF_LINE: omniflux.of:160
-      //! OF_LINE: omniflux.of:161
+      //! OF_LINE: omniflux.of:166
+      //! OF_LINE: omniflux.of:167
       if (response && response.error) {
-        //! OF_LINE: omniflux.of:162
+        //! OF_LINE: omniflux.of:168
         err_msg = typeof response.error === "object" ? response.error.message : response.error;
-        //! OF_LINE: omniflux.of:163
+        //! OF_LINE: omniflux.of:169
       }
-      //! OF_LINE: omniflux.of:164
-      //! OF_LINE: omniflux.of:165
+      //! OF_LINE: omniflux.of:170
+      //! OF_LINE: omniflux.of:171
       if (err_msg) {
-        //! OF_LINE: omniflux.of:166
+        //! OF_LINE: omniflux.of:172
         print("API Error: %s", err_msg);
-        //! OF_LINE: omniflux.of:167
+        //! OF_LINE: omniflux.of:173
       }
-      //! OF_LINE: omniflux.of:168
+      //! OF_LINE: omniflux.of:174
       return null;
-      //! OF_LINE: omniflux.of:169
+      //! OF_LINE: omniflux.of:175
     }
-    //! OF_LINE: omniflux.of:170
-    //! OF_LINE: omniflux.of:171
+    //! OF_LINE: omniflux.of:176
+    //! OF_LINE: omniflux.of:177
     cfg.last_verbose_data = response;
-    //! OF_LINE: omniflux.of:172
+    //! OF_LINE: omniflux.of:178
     cfg.last_elapsed = elapsed;
-    //! OF_LINE: omniflux.of:173
-    //! OF_LINE: omniflux.of:174
+    //! OF_LINE: omniflux.of:179
+    //! OF_LINE: omniflux.of:180
     return response.choices[0].message.content;
-    //! OF_LINE: omniflux.of:175
+    //! OF_LINE: omniflux.of:181
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:176
-//! OF_LINE: omniflux.of:177
-//! OF_LINE: omniflux.of:178
-//! OF_LINE: omniflux.of:179
-//! OF_LINE: omniflux.of:180
+//! OF_LINE: omniflux.of:182
+//! OF_LINE: omniflux.of:183
+//! OF_LINE: omniflux.of:184
+//! OF_LINE: omniflux.of:185
+//! OF_LINE: omniflux.of:186
 async function print_verbose_usage(data, elapsed) {
   try {
-    //! OF_LINE: omniflux.of:181
+    //! OF_LINE: omniflux.of:187
     let usage = data.usage;
-    //! OF_LINE: omniflux.of:182
+    //! OF_LINE: omniflux.of:188
     if (usage == null) {
-      //! OF_LINE: omniflux.of:183
+      //! OF_LINE: omniflux.of:189
       usage = {};
-      //! OF_LINE: omniflux.of:184
+      //! OF_LINE: omniflux.of:190
     }
-    //! OF_LINE: omniflux.of:185
-    let prompt_tokens = usage.prompt_tokens;
-    //! OF_LINE: omniflux.of:186
-    if (prompt_tokens == null) {
-      //! OF_LINE: omniflux.of:187
-      prompt_tokens = 0;
-      //! OF_LINE: omniflux.of:188
-    }
-    //! OF_LINE: omniflux.of:189
-    //! OF_LINE: omniflux.of:190
-    let completion_tokens = usage.completion_tokens;
     //! OF_LINE: omniflux.of:191
-    if (completion_tokens == null) {
-      //! OF_LINE: omniflux.of:192
-      completion_tokens = 0;
+    let prompt_tokens = usage.prompt_tokens;
+    //! OF_LINE: omniflux.of:192
+    if (prompt_tokens == null) {
       //! OF_LINE: omniflux.of:193
+      prompt_tokens = 0;
+      //! OF_LINE: omniflux.of:194
     }
-    //! OF_LINE: omniflux.of:194
     //! OF_LINE: omniflux.of:195
-    let total_tokens = usage.total_tokens;
     //! OF_LINE: omniflux.of:196
-    if (total_tokens == null) {
-      //! OF_LINE: omniflux.of:197
-      total_tokens = 0;
+    let completion_tokens = usage.completion_tokens;
+    //! OF_LINE: omniflux.of:197
+    if (completion_tokens == null) {
       //! OF_LINE: omniflux.of:198
+      completion_tokens = 0;
+      //! OF_LINE: omniflux.of:199
     }
-    //! OF_LINE: omniflux.of:199
     //! OF_LINE: omniflux.of:200
-    let reasoning_tokens = 0;
     //! OF_LINE: omniflux.of:201
-    if (usage.completion_tokens_details != null) {
-      //! OF_LINE: omniflux.of:202
-      if (usage.completion_tokens_details.reasoning_tokens != null) {
-        //! OF_LINE: omniflux.of:203
-        reasoning_tokens = usage.completion_tokens_details.reasoning_tokens;
-        //! OF_LINE: omniflux.of:204
-      }
-      //! OF_LINE: omniflux.of:205
+    let total_tokens = usage.total_tokens;
+    //! OF_LINE: omniflux.of:202
+    if (total_tokens == null) {
+      //! OF_LINE: omniflux.of:203
+      total_tokens = 0;
+      //! OF_LINE: omniflux.of:204
     }
+    //! OF_LINE: omniflux.of:205
     //! OF_LINE: omniflux.of:206
+    let reasoning_tokens = 0;
     //! OF_LINE: omniflux.of:207
-    let diff_tokens = total_tokens - prompt_tokens - completion_tokens;
-    //! OF_LINE: omniflux.of:208
-    let thinking_tokens = reasoning_tokens;
-    //! OF_LINE: omniflux.of:209
-    if (thinking_tokens == 0 && diff_tokens > 0) {
-      //! OF_LINE: omniflux.of:210
-      thinking_tokens = diff_tokens;
+    if (usage.completion_tokens_details != null) {
+      //! OF_LINE: omniflux.of:208
+      if (usage.completion_tokens_details.reasoning_tokens != null) {
+        //! OF_LINE: omniflux.of:209
+        reasoning_tokens = usage.completion_tokens_details.reasoning_tokens;
+        //! OF_LINE: omniflux.of:210
+      }
       //! OF_LINE: omniflux.of:211
     }
     //! OF_LINE: omniflux.of:212
     //! OF_LINE: omniflux.of:213
-    let resp_model = data.model;
+    let diff_tokens = total_tokens - prompt_tokens - completion_tokens;
     //! OF_LINE: omniflux.of:214
-    if (resp_model == null) {
-      //! OF_LINE: omniflux.of:215
-      resp_model = "unknown";
+    let thinking_tokens = reasoning_tokens;
+    //! OF_LINE: omniflux.of:215
+    if (thinking_tokens == 0 && diff_tokens > 0) {
       //! OF_LINE: omniflux.of:216
+      thinking_tokens = diff_tokens;
+      //! OF_LINE: omniflux.of:217
     }
-    //! OF_LINE: omniflux.of:217
     //! OF_LINE: omniflux.of:218
-    print("\x1B[1;33m\n[Verbose - AI Usage Details]:\x1B[0m");
     //! OF_LINE: omniflux.of:219
-    print("  Model Used:          " + resp_model);
+    let resp_model = data.model;
     //! OF_LINE: omniflux.of:220
-    print("  Input (Prompt):      " + prompt_tokens + " tokens");
-    //! OF_LINE: omniflux.of:221
-    print("  Output (Completion): " + completion_tokens + " tokens");
-    //! OF_LINE: omniflux.of:222
-    if (thinking_tokens != 0) {
-      //! OF_LINE: omniflux.of:223
-      print("  Thinking (Reasoning):" + thinking_tokens + " tokens");
-      //! OF_LINE: omniflux.of:224
+    if (resp_model == null) {
+      //! OF_LINE: omniflux.of:221
+      resp_model = "unknown";
+      //! OF_LINE: omniflux.of:222
     }
+    //! OF_LINE: omniflux.of:223
+    //! OF_LINE: omniflux.of:224
+    print("\x1B[1;33m\n[Verbose - AI Usage Details]:\x1B[0m");
     //! OF_LINE: omniflux.of:225
-    print("  Total Tokens:        " + total_tokens + " tokens");
+    print("  Model Used:          " + resp_model);
     //! OF_LINE: omniflux.of:226
-    print(sprintf("  Request Duration:    %.2fs", elapsed));
+    print("  Input (Prompt):      " + prompt_tokens + " tokens");
     //! OF_LINE: omniflux.of:227
-    print("\x1B[1;33m----------------------------------------\n\x1B[0m");
+    print("  Output (Completion): " + completion_tokens + " tokens");
     //! OF_LINE: omniflux.of:228
+    if (thinking_tokens != 0) {
+      //! OF_LINE: omniflux.of:229
+      print("  Thinking (Reasoning):" + thinking_tokens + " tokens");
+      //! OF_LINE: omniflux.of:230
+    }
+    //! OF_LINE: omniflux.of:231
+    print("  Total Tokens:        " + total_tokens + " tokens");
+    //! OF_LINE: omniflux.of:232
+    print(sprintf("  Request Duration:    %.2fs", elapsed));
+    //! OF_LINE: omniflux.of:233
+    print("\x1B[1;33m----------------------------------------\n\x1B[0m");
+    //! OF_LINE: omniflux.of:234
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:229
-//! OF_LINE: omniflux.of:230
-//! OF_LINE: omniflux.of:231
-//! OF_LINE: omniflux.of:232
-//! OF_LINE: omniflux.of:233
+//! OF_LINE: omniflux.of:235
+//! OF_LINE: omniflux.of:236
+//! OF_LINE: omniflux.of:237
+//! OF_LINE: omniflux.of:238
+//! OF_LINE: omniflux.of:239
 async function format_chat_response(txt) {
   try {
-    //! OF_LINE: omniflux.of:234
-    if (!txt) {
-      //! OF_LINE: omniflux.of:235
-      return "";
-      //! OF_LINE: omniflux.of:236
-    }
-    //! OF_LINE: omniflux.of:237
-    //! OF_LINE: omniflux.of:238
-    txt = strreplace(txt, "/```[a-zA-Z0-9]*\\n([\\s\\S]*?)\\n```/gm", "\n$1\n");
-    //! OF_LINE: omniflux.of:239
     //! OF_LINE: omniflux.of:240
-    txt = strreplace(txt, "/\\*\\*([^*]+)\\*\\*/g", "$1");
-    //! OF_LINE: omniflux.of:241
-    //! OF_LINE: omniflux.of:242
-    txt = strreplace(txt, "/^#{1,6}\\s+(.+)$/gm", "$1");
+    if (!txt) {
+      //! OF_LINE: omniflux.of:241
+      return "";
+      //! OF_LINE: omniflux.of:242
+    }
     //! OF_LINE: omniflux.of:243
-    return txt;
     //! OF_LINE: omniflux.of:244
-  } catch (err) {
-    throw err;
-  }
-}
-//! OF_LINE: omniflux.of:245
-//! OF_LINE: omniflux.of:246
-//! OF_LINE: omniflux.of:247
-//! OF_LINE: omniflux.of:248
-//! OF_LINE: omniflux.of:249
-async function read_system_prompt() {
-  try {
+    txt = strreplace(txt, "/```[a-zA-Z0-9]*\\n([\\s\\S]*?)\\n```/gm", "\n$1\n");
+    //! OF_LINE: omniflux.of:245
+    //! OF_LINE: omniflux.of:246
+    txt = strreplace(txt, "/\\*\\*([^*]+)\\*\\*/g", "$1");
+    //! OF_LINE: omniflux.of:247
+    //! OF_LINE: omniflux.of:248
+    txt = strreplace(txt, "/^#{1,6}\\s+(.+)$/gm", "$1");
+    //! OF_LINE: omniflux.of:249
+    return txt;
     //! OF_LINE: omniflux.of:250
-    //! OF_LINE: omniflux.of:251
-    return "";
-    //! OF_LINE: omniflux.of:252
   } catch (err) {
     throw err;
   }
 }
+//! OF_LINE: omniflux.of:251
+//! OF_LINE: omniflux.of:252
 //! OF_LINE: omniflux.of:253
 //! OF_LINE: omniflux.of:254
 //! OF_LINE: omniflux.of:255
-//! OF_LINE: omniflux.of:256
-//! OF_LINE: omniflux.of:257
+async function read_system_prompt() {
+  try {
+    //! OF_LINE: omniflux.of:256
+    //! OF_LINE: omniflux.of:257
+    return "";
+    //! OF_LINE: omniflux.of:258
+  } catch (err) {
+    throw err;
+  }
+}
+//! OF_LINE: omniflux.of:259
+//! OF_LINE: omniflux.of:260
+//! OF_LINE: omniflux.of:261
+//! OF_LINE: omniflux.of:262
+//! OF_LINE: omniflux.of:263
 async function detect_missing_includes(source_code) {
   try {
-    //! OF_LINE: omniflux.of:258
+    //! OF_LINE: omniflux.of:264
     let missing = [];
-    //! OF_LINE: omniflux.of:259
-    //! OF_LINE: omniflux.of:260
-    //! OF_LINE: omniflux.of:261
-    if (match(source_code, "/\\b(encrypt|decrypt|base64_encode|base64encode|base64_decode|base64decode)\\b/")) {
-      //! OF_LINE: omniflux.of:262
-      if (!match(source_code, "/stdlib\\/encrypt\\.of/")) {
-        //! OF_LINE: omniflux.of:263
-        arraypush(missing, "stdlib/encrypt.of");
-        //! OF_LINE: omniflux.of:264
-      }
-      //! OF_LINE: omniflux.of:265
-    }
+    //! OF_LINE: omniflux.of:265
     //! OF_LINE: omniflux.of:266
     //! OF_LINE: omniflux.of:267
-    //! OF_LINE: omniflux.of:268
-    if (match(source_code, "/\\b(networkget|networkpost)\\b/")) {
-      //! OF_LINE: omniflux.of:269
-      if (!match(source_code, "/stdlib\\/network\\.of/")) {
+    if (match(source_code, "/\\b(encrypt|decrypt|base64_encode|base64encode|base64_decode|base64decode)\\b/")) {
+      //! OF_LINE: omniflux.of:268
+      if (!match(source_code, "/stdlib\\/encrypt\\.of/")) {
+        //! OF_LINE: omniflux.of:269
+        arraypush(missing, "stdlib/encrypt.of");
         //! OF_LINE: omniflux.of:270
-        arraypush(missing, "stdlib/network.of");
-        //! OF_LINE: omniflux.of:271
       }
-      //! OF_LINE: omniflux.of:272
+      //! OF_LINE: omniflux.of:271
     }
+    //! OF_LINE: omniflux.of:272
     //! OF_LINE: omniflux.of:273
     //! OF_LINE: omniflux.of:274
-    //! OF_LINE: omniflux.of:275
-    if (match(source_code, "/\\b(datetime_now|datetime_format)\\b/")) {
-      //! OF_LINE: omniflux.of:276
-      if (!match(source_code, "/stdlib\\/datetime\\.of/")) {
+    if (match(source_code, "/\\b(networkget|networkpost)\\b/")) {
+      //! OF_LINE: omniflux.of:275
+      if (!match(source_code, "/stdlib\\/network\\.of/")) {
+        //! OF_LINE: omniflux.of:276
+        arraypush(missing, "stdlib/network.of");
         //! OF_LINE: omniflux.of:277
-        arraypush(missing, "stdlib/datetime.of");
-        //! OF_LINE: omniflux.of:278
       }
-      //! OF_LINE: omniflux.of:279
+      //! OF_LINE: omniflux.of:278
     }
+    //! OF_LINE: omniflux.of:279
     //! OF_LINE: omniflux.of:280
     //! OF_LINE: omniflux.of:281
-    //! OF_LINE: omniflux.of:282
-    if (match(source_code, "/\\b(mysqlconnect|mysql_connect|mysqlquery|mysql_query|mysqlclose|mysql_close)\\b/")) {
-      //! OF_LINE: omniflux.of:283
-      if (!match(source_code, "/stdlib\\/mysql\\.of/")) {
+    if (match(source_code, "/\\b(datetime_now|datetime_format)\\b/")) {
+      //! OF_LINE: omniflux.of:282
+      if (!match(source_code, "/stdlib\\/datetime\\.of/")) {
+        //! OF_LINE: omniflux.of:283
+        arraypush(missing, "stdlib/datetime.of");
         //! OF_LINE: omniflux.of:284
-        arraypush(missing, "stdlib/mysql.of");
-        //! OF_LINE: omniflux.of:285
       }
-      //! OF_LINE: omniflux.of:286
+      //! OF_LINE: omniflux.of:285
     }
+    //! OF_LINE: omniflux.of:286
     //! OF_LINE: omniflux.of:287
     //! OF_LINE: omniflux.of:288
+    if (match(source_code, "/\\b(mysqlconnect|mysql_connect|mysqlquery|mysql_query|mysqlclose|mysql_close)\\b/")) {
+      //! OF_LINE: omniflux.of:289
+      if (!match(source_code, "/stdlib\\/mysql\\.of/")) {
+        //! OF_LINE: omniflux.of:290
+        arraypush(missing, "stdlib/mysql.of");
+        //! OF_LINE: omniflux.of:291
+      }
+      //! OF_LINE: omniflux.of:292
+    }
+    //! OF_LINE: omniflux.of:293
+    //! OF_LINE: omniflux.of:294
     return missing;
-    //! OF_LINE: omniflux.of:289
+    //! OF_LINE: omniflux.of:295
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:290
-//! OF_LINE: omniflux.of:291
-//! OF_LINE: omniflux.of:292
-//! OF_LINE: omniflux.of:293
-//! OF_LINE: omniflux.of:294
+//! OF_LINE: omniflux.of:296
+//! OF_LINE: omniflux.of:297
+//! OF_LINE: omniflux.of:298
+//! OF_LINE: omniflux.of:299
+//! OF_LINE: omniflux.of:300
 async function ai_compile_file(cfg, src_path, target_js, runtime_error = null) {
   try {
-    //! OF_LINE: omniflux.of:295
-    let source_code = fileread(src_path);
-    //! OF_LINE: omniflux.of:296
-    let missing_libs = await detect_missing_includes(source_code);
-    //! OF_LINE: omniflux.of:297
-    //! OF_LINE: omniflux.of:298
-    source_code = await strip_comments(source_code);
-    //! OF_LINE: omniflux.of:299
-    //! OF_LINE: omniflux.of:300
     //! OF_LINE: omniflux.of:301
-    source_code = strreplace(source_code, `/\\binclude\\s+["']?([^\\."'\\s;]+(?:\\.[a-z]+)?)["']?/g`, "require('./$1')");
+    let source_code = fileread(src_path);
     //! OF_LINE: omniflux.of:302
+    let missing_libs = await detect_missing_includes(source_code);
     //! OF_LINE: omniflux.of:303
-    print("Falling back to AI Compiler...");
     //! OF_LINE: omniflux.of:304
+    source_code = await strip_comments(source_code);
     //! OF_LINE: omniflux.of:305
-    let prompt_addition = "";
     //! OF_LINE: omniflux.of:306
-    if (len(missing_libs) > 0) {
-      //! OF_LINE: omniflux.of:307
-      let lib_list = arrayjoin(missing_libs, ", ");
-      //! OF_LINE: omniflux.of:308
-      prompt_addition = "\n\nNOTE: The code uses functions from the following standard libraries but is missing their include statements: " + lib_list + '.\nYou MUST prepend the appropriate include directive(s) (e.g. include "' + missing_libs[0] + '") to the top of the OmniFlux source code, and you MUST return BOTH the [OmniFlux Source] block (containing the healed OmniFlux code) and the [OmniFlux Ready] block (containing the compiled JavaScript code).';
-      //! OF_LINE: omniflux.of:309
-    }
+    //! OF_LINE: omniflux.of:307
+    source_code = strreplace(source_code, `/\\binclude\\s+["']?([^\\."'\\s;]+(?:\\.[a-z]+)?)["']?/g`, "require('./$1')");
+    //! OF_LINE: omniflux.of:308
+    //! OF_LINE: omniflux.of:309
+    print("Falling back to AI Compiler...");
     //! OF_LINE: omniflux.of:310
-    if (runtime_error != null && runtime_error != "") {
-      //! OF_LINE: omniflux.of:311
-      prompt_addition = prompt_addition + "\n\nCRITICAL: A compiler/runtime error occurred when executing this code:\n" + runtime_error + "\nPlease fix this error in the OmniFlux code (such as adding missing include statements, fixing variables, typos, missing 'ref' keywords, or syntax errors). You MUST return BOTH the [OmniFlux Source] block (containing the healed OmniFlux code) and the [OmniFlux Ready] block (containing the compiled JavaScript code).";
-      //! OF_LINE: omniflux.of:312
-    }
-    //! OF_LINE: omniflux.of:313
-    //! OF_LINE: omniflux.of:314
-    let messages = [
+    //! OF_LINE: omniflux.of:311
+    let prompt_addition = "";
+    //! OF_LINE: omniflux.of:312
+    if (len(missing_libs) > 0) {
+      //! OF_LINE: omniflux.of:313
+      let lib_list = arrayjoin(missing_libs, ", ");
+      //! OF_LINE: omniflux.of:314
+      prompt_addition = "\n\nNOTE: The code uses functions from the following standard libraries but is missing their include statements: " + lib_list + '.\nYou MUST prepend the appropriate include directive(s) (e.g. include "' + missing_libs[0] + '") to the top of the OmniFlux source code, and you MUST return BOTH the [OmniFlux Source] block (containing the healed OmniFlux code) and the [OmniFlux Ready] block (containing the compiled JavaScript code).';
       //! OF_LINE: omniflux.of:315
-      { role: "user", content: "Please compile this code:" + prompt_addition + "\n\n" + source_code }
-      //! OF_LINE: omniflux.of:316
-    ];
-    //! OF_LINE: omniflux.of:317
-    //! OF_LINE: omniflux.of:318
-    let done = false;
-    //! OF_LINE: omniflux.of:319
-    while (!done) {
-      //! OF_LINE: omniflux.of:320
-      print("Thinking...");
-      //! OF_LINE: omniflux.of:321
-      let ai_response = await send_ai_request(cfg, messages);
-      //! OF_LINE: omniflux.of:322
-      if (ai_response == null) {
-        //! OF_LINE: omniflux.of:323
-        print("Error: AI request failed.");
-        //! OF_LINE: omniflux.of:324
-        return false;
-        //! OF_LINE: omniflux.of:325
-      }
-      //! OF_LINE: omniflux.of:326
-      //! OF_LINE: omniflux.of:327
-      if (match(ai_response, "/\\[OmniFlux Question\\]:/")) {
-        //! OF_LINE: omniflux.of:328
-        print("%s", await format_chat_response(ai_response));
-        //! OF_LINE: omniflux.of:329
-        if (cfg.verbose) {
-          //! OF_LINE: omniflux.of:330
-          await print_verbose_usage(cfg.last_verbose_data, cfg.last_elapsed);
-          //! OF_LINE: omniflux.of:331
-        }
-        //! OF_LINE: omniflux.of:332
-        let user_answer = await input("Your response > ");
-        //! OF_LINE: omniflux.of:333
-        arraypush(messages, { role: "assistant", content: ai_response });
-        //! OF_LINE: omniflux.of:334
-        arraypush(messages, { role: "user", content: user_answer });
-        //! OF_LINE: omniflux.of:335
-      } else {
-        //! OF_LINE: omniflux.of:336
-        //! OF_LINE: omniflux.of:337
-        let updated_source = null;
-        //! OF_LINE: omniflux.of:338
-        //! OF_LINE: omniflux.of:339
-        const source_marker = "[OmniFlux Source]";
-        //! OF_LINE: omniflux.of:340
-        const ready_marker = "[OmniFlux Ready]";
-        //! OF_LINE: omniflux.of:341
-        const s_idx = ai_response.indexOf(source_marker);
-        //! OF_LINE: omniflux.of:342
-        const r_idx = ai_response.indexOf(ready_marker);
-        //! OF_LINE: omniflux.of:343
-        if (s_idx !== -1 && r_idx !== -1 && s_idx < r_idx) {
-          //! OF_LINE: omniflux.of:344
-          let content = ai_response.substring(s_idx + source_marker.length, r_idx).trim();
-          //! OF_LINE: omniflux.of:345
-          content = content.replace(/^```(?:omniflux|of|[a-zA-Z0-9]*)\s*\n/i, "");
-          //! OF_LINE: omniflux.of:347
-          content = content.replace(/\n```\s*$/, "");
-          //! OF_LINE: omniflux.of:348
-          updated_source = content;
-          //! OF_LINE: omniflux.of:349
-        }
-        //! OF_LINE: omniflux.of:350
-        //! OF_LINE: omniflux.of:351
-        //! OF_LINE: omniflux.of:352
-        if (updated_source != null && updated_source != "") {
-          //! OF_LINE: omniflux.of:353
-          filewrite(src_path, updated_source);
-          //! OF_LINE: omniflux.of:354
-          print("\x1B[1;32m[Source file '%s' automatically updated/healed by AI!]\x1B[0m", pathbasename(src_path));
-          //! OF_LINE: omniflux.of:355
-          if (cfg != null) {
-            //! OF_LINE: omniflux.of:356
-            cfg.was_healed = true;
-            //! OF_LINE: omniflux.of:357
-          }
-          //! OF_LINE: omniflux.of:358
-        }
-        //! OF_LINE: omniflux.of:359
-        //! OF_LINE: omniflux.of:360
-        //! OF_LINE: omniflux.of:361
-        let js_code = ai_response;
-        //! OF_LINE: omniflux.of:362
-        //! OF_LINE: omniflux.of:363
-        {
-          //! OF_LINE: omniflux.of:364
-          const ready_marker2 = "[OmniFlux Ready]";
-          //! OF_LINE: omniflux.of:365
-          const r_idx2 = ai_response.indexOf(ready_marker2);
-          //! OF_LINE: omniflux.of:366
-          if (r_idx2 !== -1) {
-            //! OF_LINE: omniflux.of:367
-            js_code = ai_response.substring(r_idx2 + ready_marker2.length).trim();
-            //! OF_LINE: omniflux.of:368
-          }
-          //! OF_LINE: omniflux.of:369
-        }
-        //! OF_LINE: omniflux.of:370
-        //! OF_LINE: omniflux.of:371
-        //! OF_LINE: omniflux.of:372
-        js_code = strreplace(js_code, "/^```(?:javascript|js)?\\s*\\n/i", "");
-        //! OF_LINE: omniflux.of:373
-        js_code = strreplace(js_code, "/\\n```\\s*$/", "");
-        //! OF_LINE: omniflux.of:374
-        //! OF_LINE: omniflux.of:375
-        let dir = pathdirname(target_js);
-        //! OF_LINE: omniflux.of:376
-        dircreate(dir);
-        //! OF_LINE: omniflux.of:377
-        filewrite(target_js, js_code);
-        //! OF_LINE: omniflux.of:378
-        done = true;
-        //! OF_LINE: omniflux.of:379
-        if (cfg.verbose) {
-          //! OF_LINE: omniflux.of:380
-          await print_verbose_usage(cfg.last_verbose_data, cfg.last_elapsed);
-          //! OF_LINE: omniflux.of:381
-        }
-        //! OF_LINE: omniflux.of:382
-      }
-      //! OF_LINE: omniflux.of:383
     }
-    //! OF_LINE: omniflux.of:384
+    //! OF_LINE: omniflux.of:316
+    if (runtime_error != null && runtime_error != "") {
+      //! OF_LINE: omniflux.of:317
+      prompt_addition = prompt_addition + "\n\nCRITICAL: A compiler/runtime error occurred when executing this code:\n" + runtime_error + "\nPlease fix this error in the OmniFlux code (such as adding missing include statements, fixing variables, typos, missing 'ref' keywords, or syntax errors). You MUST return BOTH the [OmniFlux Source] block (containing the healed OmniFlux code) and the [OmniFlux Ready] block (containing the compiled JavaScript code).";
+      //! OF_LINE: omniflux.of:318
+    }
+    //! OF_LINE: omniflux.of:319
+    //! OF_LINE: omniflux.of:320
+    let messages = [
+      //! OF_LINE: omniflux.of:321
+      { role: "user", content: "Please compile this code:" + prompt_addition + "\n\n" + source_code }
+      //! OF_LINE: omniflux.of:322
+    ];
+    //! OF_LINE: omniflux.of:323
+    //! OF_LINE: omniflux.of:324
+    let done = false;
+    //! OF_LINE: omniflux.of:325
+    while (!done) {
+      //! OF_LINE: omniflux.of:326
+      print("Thinking...");
+      //! OF_LINE: omniflux.of:327
+      let ai_response = await send_ai_request(cfg, messages);
+      //! OF_LINE: omniflux.of:328
+      if (ai_response == null) {
+        //! OF_LINE: omniflux.of:329
+        print("Error: AI request failed.");
+        //! OF_LINE: omniflux.of:330
+        return false;
+        //! OF_LINE: omniflux.of:331
+      }
+      //! OF_LINE: omniflux.of:332
+      //! OF_LINE: omniflux.of:333
+      if (match(ai_response, "/\\[OmniFlux Question\\]:/")) {
+        //! OF_LINE: omniflux.of:334
+        print("%s", await format_chat_response(ai_response));
+        //! OF_LINE: omniflux.of:335
+        if (cfg.verbose) {
+          //! OF_LINE: omniflux.of:336
+          await print_verbose_usage(cfg.last_verbose_data, cfg.last_elapsed);
+          //! OF_LINE: omniflux.of:337
+        }
+        //! OF_LINE: omniflux.of:338
+        let user_answer = await input("Your response > ");
+        //! OF_LINE: omniflux.of:339
+        arraypush(messages, { role: "assistant", content: ai_response });
+        //! OF_LINE: omniflux.of:340
+        arraypush(messages, { role: "user", content: user_answer });
+        //! OF_LINE: omniflux.of:341
+      } else {
+        //! OF_LINE: omniflux.of:342
+        //! OF_LINE: omniflux.of:343
+        let updated_source = null;
+        //! OF_LINE: omniflux.of:344
+        //! OF_LINE: omniflux.of:345
+        const source_marker = "[OmniFlux Source]";
+        //! OF_LINE: omniflux.of:346
+        const ready_marker = "[OmniFlux Ready]";
+        //! OF_LINE: omniflux.of:347
+        const s_idx = ai_response.indexOf(source_marker);
+        //! OF_LINE: omniflux.of:348
+        const r_idx = ai_response.indexOf(ready_marker);
+        //! OF_LINE: omniflux.of:349
+        if (s_idx !== -1 && r_idx !== -1 && s_idx < r_idx) {
+          //! OF_LINE: omniflux.of:350
+          let content = ai_response.substring(s_idx + source_marker.length, r_idx).trim();
+          //! OF_LINE: omniflux.of:351
+          content = content.replace(/^```(?:omniflux|of|[a-zA-Z0-9]*)\s*\n/i, "");
+          //! OF_LINE: omniflux.of:353
+          content = content.replace(/\n```\s*$/, "");
+          //! OF_LINE: omniflux.of:354
+          updated_source = content;
+          //! OF_LINE: omniflux.of:355
+        }
+        //! OF_LINE: omniflux.of:356
+        //! OF_LINE: omniflux.of:357
+        //! OF_LINE: omniflux.of:358
+        if (updated_source != null && updated_source != "") {
+          //! OF_LINE: omniflux.of:359
+          filewrite(src_path, updated_source);
+          //! OF_LINE: omniflux.of:360
+          print("\x1B[1;32m[Source file '%s' automatically updated/healed by AI!]\x1B[0m", pathbasename(src_path));
+          //! OF_LINE: omniflux.of:361
+          if (cfg != null) {
+            //! OF_LINE: omniflux.of:362
+            cfg.was_healed = true;
+            //! OF_LINE: omniflux.of:363
+          }
+          //! OF_LINE: omniflux.of:364
+        }
+        //! OF_LINE: omniflux.of:365
+        //! OF_LINE: omniflux.of:366
+        //! OF_LINE: omniflux.of:367
+        let js_code = ai_response;
+        //! OF_LINE: omniflux.of:368
+        //! OF_LINE: omniflux.of:369
+        {
+          //! OF_LINE: omniflux.of:370
+          const ready_marker2 = "[OmniFlux Ready]";
+          //! OF_LINE: omniflux.of:371
+          const r_idx2 = ai_response.indexOf(ready_marker2);
+          //! OF_LINE: omniflux.of:372
+          if (r_idx2 !== -1) {
+            //! OF_LINE: omniflux.of:373
+            js_code = ai_response.substring(r_idx2 + ready_marker2.length).trim();
+            //! OF_LINE: omniflux.of:374
+          }
+          //! OF_LINE: omniflux.of:375
+        }
+        //! OF_LINE: omniflux.of:376
+        //! OF_LINE: omniflux.of:377
+        //! OF_LINE: omniflux.of:378
+        js_code = strreplace(js_code, "/^```(?:javascript|js)?\\s*\\n/i", "");
+        //! OF_LINE: omniflux.of:379
+        js_code = strreplace(js_code, "/\\n```\\s*$/", "");
+        //! OF_LINE: omniflux.of:380
+        //! OF_LINE: omniflux.of:381
+        let dir = pathdirname(target_js);
+        //! OF_LINE: omniflux.of:382
+        dircreate(dir);
+        //! OF_LINE: omniflux.of:383
+        filewrite(target_js, js_code);
+        //! OF_LINE: omniflux.of:384
+        done = true;
+        //! OF_LINE: omniflux.of:385
+        if (cfg.verbose) {
+          //! OF_LINE: omniflux.of:386
+          await print_verbose_usage(cfg.last_verbose_data, cfg.last_elapsed);
+          //! OF_LINE: omniflux.of:387
+        }
+        //! OF_LINE: omniflux.of:388
+      }
+      //! OF_LINE: omniflux.of:389
+    }
+    //! OF_LINE: omniflux.of:390
     return true;
-    //! OF_LINE: omniflux.of:385
+    //! OF_LINE: omniflux.of:391
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:386
-//! OF_LINE: omniflux.of:387
-//! OF_LINE: omniflux.of:388
-//! OF_LINE: omniflux.of:389
-//! OF_LINE: omniflux.of:390
+//! OF_LINE: omniflux.of:392
+//! OF_LINE: omniflux.of:393
+//! OF_LINE: omniflux.of:394
+//! OF_LINE: omniflux.of:395
+//! OF_LINE: omniflux.of:396
 async function interactive_chat(cfg) {
   try {
-    //! OF_LINE: omniflux.of:391
-    let messages = [];
-    //! OF_LINE: omniflux.of:392
-    //! OF_LINE: omniflux.of:393
-    print("=== OmniFlux Interactive Compiler ===");
-    //! OF_LINE: omniflux.of:394
-    print("Type a file name (e.g., script.of) to compile it,");
-    //! OF_LINE: omniflux.of:395
-    print("or just type a message to chat with the compiler.");
-    //! OF_LINE: omniflux.of:396
-    print("Type 'exit' or 'quit' to exit.");
     //! OF_LINE: omniflux.of:397
-    print("");
+    let messages = [];
     //! OF_LINE: omniflux.of:398
     //! OF_LINE: omniflux.of:399
+    print("=== OmniFlux Interactive Compiler ===");
+    //! OF_LINE: omniflux.of:400
+    print("Type a file name (e.g., script.of) to compile it,");
+    //! OF_LINE: omniflux.of:401
+    print("or just type a message to chat with the compiler.");
+    //! OF_LINE: omniflux.of:402
+    print("Type 'exit' or 'quit' to exit.");
+    //! OF_LINE: omniflux.of:403
+    print("");
+    //! OF_LINE: omniflux.of:404
+    //! OF_LINE: omniflux.of:405
     while (true) {
-      //! OF_LINE: omniflux.of:400
+      //! OF_LINE: omniflux.of:406
       let user_input = await input("OmniFlux > ");
-      //! OF_LINE: omniflux.of:401
-      if (user_input == null || user_input == "") {
-        //! OF_LINE: omniflux.of:402
-        continue;
-        //! OF_LINE: omniflux.of:403
-      }
-      //! OF_LINE: omniflux.of:404
-      if (user_input == "exit" || user_input == "quit") {
-        //! OF_LINE: omniflux.of:405
-        break;
-        //! OF_LINE: omniflux.of:406
-      }
       //! OF_LINE: omniflux.of:407
-      if (user_input == "run") {
+      if (user_input == null || user_input == "") {
         //! OF_LINE: omniflux.of:408
+        continue;
+        //! OF_LINE: omniflux.of:409
+      }
+      //! OF_LINE: omniflux.of:410
+      if (user_input == "exit" || user_input == "quit") {
+        //! OF_LINE: omniflux.of:411
+        break;
+        //! OF_LINE: omniflux.of:412
+      }
+      //! OF_LINE: omniflux.of:413
+      if (user_input == "run") {
+        //! OF_LINE: omniflux.of:414
         if (fileexists("sandbox.of")) {
-          //! OF_LINE: omniflux.of:409
-          let br = await build_once("sandbox.of", false, false, cfg);
-          //! OF_LINE: omniflux.of:410
-          if (br.ok) {
-            //! OF_LINE: omniflux.of:411
-            let chat_out = await system(br.output);
-            //! OF_LINE: omniflux.of:412
-            printf("%s", chat_out);
-            //! OF_LINE: omniflux.of:413
-          }
-          //! OF_LINE: omniflux.of:414
-        } else {
           //! OF_LINE: omniflux.of:415
-          print("Error: No code found in sandbox.of. Please ask the compiler to generate some code first!");
+          let br = await build_once("sandbox.of", false, false, cfg);
           //! OF_LINE: omniflux.of:416
+          if (br.ok) {
+            //! OF_LINE: omniflux.of:417
+            let chat_out = await system(br.output);
+            //! OF_LINE: omniflux.of:418
+            printf("%s", chat_out);
+            //! OF_LINE: omniflux.of:419
+          }
+          //! OF_LINE: omniflux.of:420
+        } else {
+          //! OF_LINE: omniflux.of:421
+          print("Error: No code found in sandbox.of. Please ask the compiler to generate some code first!");
+          //! OF_LINE: omniflux.of:422
           print("");
-          //! OF_LINE: omniflux.of:417
-        }
-        //! OF_LINE: omniflux.of:418
-        continue;
-        //! OF_LINE: omniflux.of:419
-      }
-      //! OF_LINE: omniflux.of:420
-      if (fileexists(user_input)) {
-        //! OF_LINE: omniflux.of:421
-        let fbr = await build_once(user_input, false, false, cfg);
-        //! OF_LINE: omniflux.of:422
-        if (fbr.ok) {
           //! OF_LINE: omniflux.of:423
-          let fout = await system(fbr.output);
-          //! OF_LINE: omniflux.of:424
-          printf("%s", fout);
-          //! OF_LINE: omniflux.of:425
         }
-        //! OF_LINE: omniflux.of:426
+        //! OF_LINE: omniflux.of:424
         continue;
+        //! OF_LINE: omniflux.of:425
+      }
+      //! OF_LINE: omniflux.of:426
+      if (fileexists(user_input)) {
         //! OF_LINE: omniflux.of:427
-      }
-      //! OF_LINE: omniflux.of:428
-      //! OF_LINE: omniflux.of:429
-      arraypush(messages, { role: "user", content: user_input });
-      //! OF_LINE: omniflux.of:430
-      print("Thinking...");
-      //! OF_LINE: omniflux.of:431
-      let response = await send_ai_request(cfg, messages);
-      //! OF_LINE: omniflux.of:432
-      if (response == null) {
-        //! OF_LINE: omniflux.of:433
-        print("Error: AI request failed.");
-        //! OF_LINE: omniflux.of:434
+        let fbr = await build_once(user_input, false, false, cfg);
+        //! OF_LINE: omniflux.of:428
+        if (fbr.ok) {
+          //! OF_LINE: omniflux.of:429
+          let fout = await system(fbr.output);
+          //! OF_LINE: omniflux.of:430
+          printf("%s", fout);
+          //! OF_LINE: omniflux.of:431
+        }
+        //! OF_LINE: omniflux.of:432
         continue;
-        //! OF_LINE: omniflux.of:435
+        //! OF_LINE: omniflux.of:433
       }
+      //! OF_LINE: omniflux.of:434
+      //! OF_LINE: omniflux.of:435
+      arraypush(messages, { role: "user", content: user_input });
       //! OF_LINE: omniflux.of:436
+      print("Thinking...");
       //! OF_LINE: omniflux.of:437
-      print("");
+      let response = await send_ai_request(cfg, messages);
       //! OF_LINE: omniflux.of:438
-      print("%s", await format_chat_response(response));
-      //! OF_LINE: omniflux.of:439
-      print("");
-      //! OF_LINE: omniflux.of:440
-      //! OF_LINE: omniflux.of:441
+      if (response == null) {
+        //! OF_LINE: omniflux.of:439
+        print("Error: AI request failed.");
+        //! OF_LINE: omniflux.of:440
+        continue;
+        //! OF_LINE: omniflux.of:441
+      }
       //! OF_LINE: omniflux.of:442
-      let code_m = match(response, "/```(?:omniflux|of|[a-zA-Z0-9]*)\\s*\\n([\\s\\S]*?)\\n```/");
       //! OF_LINE: omniflux.of:443
-      let code_saved = false;
+      print("");
       //! OF_LINE: omniflux.of:444
-      if (code_m) {
-        //! OF_LINE: omniflux.of:445
-        filewrite("sandbox.of", code_m[0]);
-        //! OF_LINE: omniflux.of:446
-        code_saved = true;
-        //! OF_LINE: omniflux.of:447
-      }
+      print("%s", await format_chat_response(response));
+      //! OF_LINE: omniflux.of:445
+      print("");
+      //! OF_LINE: omniflux.of:446
+      //! OF_LINE: omniflux.of:447
       //! OF_LINE: omniflux.of:448
-      if (code_saved) {
-        //! OF_LINE: omniflux.of:449
-        print("\x1B[1;32m[Code saved to sandbox.of. Type 'run' to execute it!]\x1B[0m");
-        //! OF_LINE: omniflux.of:450
-        print("");
+      let code_m = match(response, "/```(?:omniflux|of|[a-zA-Z0-9]*)\\s*\\n([\\s\\S]*?)\\n```/");
+      //! OF_LINE: omniflux.of:449
+      let code_saved = false;
+      //! OF_LINE: omniflux.of:450
+      if (code_m) {
         //! OF_LINE: omniflux.of:451
+        filewrite("sandbox.of", code_m[0]);
+        //! OF_LINE: omniflux.of:452
+        code_saved = true;
+        //! OF_LINE: omniflux.of:453
       }
-      //! OF_LINE: omniflux.of:452
-      //! OF_LINE: omniflux.of:453
-      if (cfg.verbose) {
-        //! OF_LINE: omniflux.of:454
-        await print_verbose_usage(cfg.last_verbose_data, cfg.last_elapsed);
+      //! OF_LINE: omniflux.of:454
+      if (code_saved) {
         //! OF_LINE: omniflux.of:455
+        print("\x1B[1;32m[Code saved to sandbox.of. Type 'run' to execute it!]\x1B[0m");
+        //! OF_LINE: omniflux.of:456
+        print("");
+        //! OF_LINE: omniflux.of:457
       }
-      //! OF_LINE: omniflux.of:456
-      //! OF_LINE: omniflux.of:457
-      arraypush(messages, { role: "assistant", content: response });
       //! OF_LINE: omniflux.of:458
+      //! OF_LINE: omniflux.of:459
+      if (cfg.verbose) {
+        //! OF_LINE: omniflux.of:460
+        await print_verbose_usage(cfg.last_verbose_data, cfg.last_elapsed);
+        //! OF_LINE: omniflux.of:461
+      }
+      //! OF_LINE: omniflux.of:462
+      //! OF_LINE: omniflux.of:463
+      arraypush(messages, { role: "assistant", content: response });
+      //! OF_LINE: omniflux.of:464
     }
-    //! OF_LINE: omniflux.of:459
+    //! OF_LINE: omniflux.of:465
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:460
-//! OF_LINE: omniflux.of:461
-//! OF_LINE: omniflux.of:462
-//! OF_LINE: omniflux.of:463
-//! OF_LINE: omniflux.of:464
+//! OF_LINE: omniflux.of:466
+//! OF_LINE: omniflux.of:467
+//! OF_LINE: omniflux.of:468
+//! OF_LINE: omniflux.of:469
+//! OF_LINE: omniflux.of:470
 async function read_runtime() {
   try {
-    //! OF_LINE: omniflux.of:465
+    //! OF_LINE: omniflux.of:471
     let parent_dir = pathdirname(scriptdir());
-    //! OF_LINE: omniflux.of:466
+    //! OF_LINE: omniflux.of:472
     let candidates = [
-      //! OF_LINE: omniflux.of:467
-      pathjoin(scriptdir(), "runtime.js"),
-      //! OF_LINE: omniflux.of:468
-      pathjoin(scriptdir(), "OmniFlux/runtime.js"),
-      //! OF_LINE: omniflux.of:469
-      pathjoin(parent_dir, "runtime.js"),
-      //! OF_LINE: omniflux.of:470
-      pathjoin(parent_dir, "OmniFlux/runtime.js"),
-      //! OF_LINE: omniflux.of:471
-      "/usr/local/share/omniflux/runtime.js",
-      //! OF_LINE: omniflux.of:472
-      "/usr/local/share/omniflux/OmniFlux/runtime.js",
       //! OF_LINE: omniflux.of:473
-      "/usr/share/omniflux/runtime.js",
+      pathjoin(scriptdir(), "runtime.js"),
       //! OF_LINE: omniflux.of:474
-      "/usr/share/omniflux/OmniFlux/runtime.js"
+      pathjoin(scriptdir(), "OmniFlux/runtime.js"),
       //! OF_LINE: omniflux.of:475
-    ];
-    //! OF_LINE: omniflux.of:476
-    for (let path2 of candidates) {
+      pathjoin(parent_dir, "runtime.js"),
+      //! OF_LINE: omniflux.of:476
+      pathjoin(parent_dir, "OmniFlux/runtime.js"),
       //! OF_LINE: omniflux.of:477
-      if (fileexists(path2)) {
-        //! OF_LINE: omniflux.of:478
-        return fileread(path2);
-        //! OF_LINE: omniflux.of:479
-      }
+      "/usr/local/share/omniflux/runtime.js",
+      //! OF_LINE: omniflux.of:478
+      "/usr/local/share/omniflux/OmniFlux/runtime.js",
+      //! OF_LINE: omniflux.of:479
+      "/usr/share/omniflux/runtime.js",
       //! OF_LINE: omniflux.of:480
-    }
-    //! OF_LINE: omniflux.of:481
-    print("Error: Cannot find OmniFlux runtime.js");
+      "/usr/share/omniflux/OmniFlux/runtime.js"
+      //! OF_LINE: omniflux.of:481
+    ];
     //! OF_LINE: omniflux.of:482
+    for (let path2 of candidates) {
+      //! OF_LINE: omniflux.of:483
+      if (fileexists(path2)) {
+        //! OF_LINE: omniflux.of:484
+        return fileread(path2);
+        //! OF_LINE: omniflux.of:485
+      }
+      //! OF_LINE: omniflux.of:486
+    }
+    //! OF_LINE: omniflux.of:487
+    print("Error: Cannot find OmniFlux runtime.js");
+    //! OF_LINE: omniflux.of:488
     exit(1);
-    //! OF_LINE: omniflux.of:483
+    //! OF_LINE: omniflux.of:489
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:484
-//! OF_LINE: omniflux.of:485
-//! OF_LINE: omniflux.of:486
-//! OF_LINE: omniflux.of:487
-//! OF_LINE: omniflux.of:488
+//! OF_LINE: omniflux.of:490
+//! OF_LINE: omniflux.of:491
+//! OF_LINE: omniflux.of:492
+//! OF_LINE: omniflux.of:493
+//! OF_LINE: omniflux.of:494
 async function compile_file(abs_path, runtime_js, global_user_tasks) {
   try {
-    //! OF_LINE: omniflux.of:489
-    let raw = fileread(abs_path);
-    //! OF_LINE: omniflux.of:490
-    let filename = pathbasename(abs_path);
-    //! OF_LINE: omniflux.of:491
-    //! OF_LINE: omniflux.of:492
-    //! OF_LINE: omniflux.of:493
-    let content = await strip_comments(raw);
-    //! OF_LINE: omniflux.of:494
     //! OF_LINE: omniflux.of:495
+    let raw = fileread(abs_path);
     //! OF_LINE: omniflux.of:496
-    let vresult = await validate(content, filename);
+    let filename = pathbasename(abs_path);
     //! OF_LINE: omniflux.of:497
-    if (!vresult.ok) {
-      //! OF_LINE: omniflux.of:498
-      print("Compilation Error in %s:", filename);
-      //! OF_LINE: omniflux.of:499
-      print("%s", vresult.error);
-      //! OF_LINE: omniflux.of:500
-      return null;
-      //! OF_LINE: omniflux.of:501
-    }
+    //! OF_LINE: omniflux.of:498
+    //! OF_LINE: omniflux.of:499
+    let content = await strip_comments(raw);
+    //! OF_LINE: omniflux.of:500
+    //! OF_LINE: omniflux.of:501
     //! OF_LINE: omniflux.of:502
+    let vresult = await validate(content, filename);
     //! OF_LINE: omniflux.of:503
-    //! OF_LINE: omniflux.of:504
-    let file_tasks = await prescan_tasks(content);
-    //! OF_LINE: omniflux.of:505
-    Object.assign(global_user_tasks, file_tasks);
-    //! OF_LINE: omniflux.of:506
-    //! OF_LINE: omniflux.of:507
-    //! OF_LINE: omniflux.of:508
-    var user_task_keys = Object.keys(global_user_tasks);
-    //! OF_LINE: omniflux.of:509
-    let tresult = await transpile(content, abs_path, global_user_tasks, runtime_js);
-    //! OF_LINE: omniflux.of:510
-    if (!tresult.ok) {
-      //! OF_LINE: omniflux.of:511
-      print("Transpile Error in %s:", filename);
-      //! OF_LINE: omniflux.of:512
-      print("%s", tresult.error);
-      //! OF_LINE: omniflux.of:513
+    if (!vresult.ok) {
+      //! OF_LINE: omniflux.of:504
+      print("Compilation Error in %s:", filename);
+      //! OF_LINE: omniflux.of:505
+      print("%s", vresult.error);
+      //! OF_LINE: omniflux.of:506
       return null;
-      //! OF_LINE: omniflux.of:514
+      //! OF_LINE: omniflux.of:507
     }
+    //! OF_LINE: omniflux.of:508
+    //! OF_LINE: omniflux.of:509
+    //! OF_LINE: omniflux.of:510
+    let file_tasks = await prescan_tasks(content);
+    //! OF_LINE: omniflux.of:511
+    Object.assign(global_user_tasks, file_tasks);
+    //! OF_LINE: omniflux.of:512
+    //! OF_LINE: omniflux.of:513
+    //! OF_LINE: omniflux.of:514
+    var user_task_keys = Object.keys(global_user_tasks);
     //! OF_LINE: omniflux.of:515
+    let tresult = await transpile(content, abs_path, global_user_tasks, runtime_js);
     //! OF_LINE: omniflux.of:516
+    if (!tresult.ok) {
+      //! OF_LINE: omniflux.of:517
+      print("Transpile Error in %s:", filename);
+      //! OF_LINE: omniflux.of:518
+      print("%s", tresult.error);
+      //! OF_LINE: omniflux.of:519
+      return null;
+      //! OF_LINE: omniflux.of:520
+    }
+    //! OF_LINE: omniflux.of:521
+    //! OF_LINE: omniflux.of:522
     return tresult.js;
-    //! OF_LINE: omniflux.of:517
+    //! OF_LINE: omniflux.of:523
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:518
-//! OF_LINE: omniflux.of:519
-//! OF_LINE: omniflux.of:520
-//! OF_LINE: omniflux.of:521
-//! OF_LINE: omniflux.of:522
-//! OF_LINE: omniflux.of:523
+//! OF_LINE: omniflux.of:524
+//! OF_LINE: omniflux.of:525
+//! OF_LINE: omniflux.of:526
+//! OF_LINE: omniflux.of:527
+//! OF_LINE: omniflux.of:528
+//! OF_LINE: omniflux.of:529
 async function build_once(input_file, compile_only, strict, cfg, force) {
   try {
-    //! OF_LINE: omniflux.of:524
+    //! OF_LINE: omniflux.of:530
     let start_time = 0;
-    //! OF_LINE: omniflux.of:525
+    //! OF_LINE: omniflux.of:531
     start_time = Date.now();
-    //! OF_LINE: omniflux.of:526
-    let abs_input = pathresolve(input_file);
-    //! OF_LINE: omniflux.of:527
-    //! OF_LINE: omniflux.of:528
-    if (!fileexists(abs_input)) {
-      //! OF_LINE: omniflux.of:529
-      print("Error: File '%s' does not exist.", input_file);
-      //! OF_LINE: omniflux.of:530
-      return { ok: false };
-      //! OF_LINE: omniflux.of:531
-    }
     //! OF_LINE: omniflux.of:532
+    let abs_input = pathresolve(input_file);
     //! OF_LINE: omniflux.of:533
     //! OF_LINE: omniflux.of:534
-    let deps = await get_all_dependencies(abs_input, null);
-    //! OF_LINE: omniflux.of:535
-    //! OF_LINE: omniflux.of:536
-    let output_file = await get_output_path(abs_input);
-    //! OF_LINE: omniflux.of:537
+    if (!fileexists(abs_input)) {
+      //! OF_LINE: omniflux.of:535
+      print("Error: File '%s' does not exist.", input_file);
+      //! OF_LINE: omniflux.of:536
+      return { ok: false };
+      //! OF_LINE: omniflux.of:537
+    }
     //! OF_LINE: omniflux.of:538
     //! OF_LINE: omniflux.of:539
-    let force_build = false;
     //! OF_LINE: omniflux.of:540
-    if (force != null) {
-      //! OF_LINE: omniflux.of:541
-      force_build = force;
-      //! OF_LINE: omniflux.of:542
-    }
+    let deps = await get_all_dependencies(abs_input, null);
+    //! OF_LINE: omniflux.of:541
+    //! OF_LINE: omniflux.of:542
+    let output_file = await get_output_path(abs_input);
     //! OF_LINE: omniflux.of:543
     //! OF_LINE: omniflux.of:544
-    let can_skip = false;
     //! OF_LINE: omniflux.of:545
+    let force_build = false;
+    //! OF_LINE: omniflux.of:546
+    if (force != null) {
+      //! OF_LINE: omniflux.of:547
+      force_build = force;
+      //! OF_LINE: omniflux.of:548
+    }
+    //! OF_LINE: omniflux.of:549
+    //! OF_LINE: omniflux.of:550
+    let can_skip = false;
+    //! OF_LINE: omniflux.of:551
     if (!force_build) {
-      //! OF_LINE: omniflux.of:546
+      //! OF_LINE: omniflux.of:552
       if (fileexists(output_file)) {
-        //! OF_LINE: omniflux.of:547
+        //! OF_LINE: omniflux.of:553
         let out_stat = filestat(output_file);
-        //! OF_LINE: omniflux.of:548
+        //! OF_LINE: omniflux.of:554
         if (out_stat) {
-          //! OF_LINE: omniflux.of:549
+          //! OF_LINE: omniflux.of:555
           can_skip = true;
-          //! OF_LINE: omniflux.of:550
+          //! OF_LINE: omniflux.of:556
           for (let dep_path of deps) {
-            //! OF_LINE: omniflux.of:551
+            //! OF_LINE: omniflux.of:557
             let dep_stat = filestat(dep_path);
-            //! OF_LINE: omniflux.of:552
-            if (dep_stat) {
-              //! OF_LINE: omniflux.of:553
-              if (dep_stat.modifiedat > out_stat.modifiedat) {
-                //! OF_LINE: omniflux.of:554
-                can_skip = false;
-                //! OF_LINE: omniflux.of:555
-                break;
-                //! OF_LINE: omniflux.of:556
-              }
-              //! OF_LINE: omniflux.of:557
-            }
             //! OF_LINE: omniflux.of:558
+            if (dep_stat) {
+              //! OF_LINE: omniflux.of:559
+              if (dep_stat.modifiedat > out_stat.modifiedat) {
+                //! OF_LINE: omniflux.of:560
+                can_skip = false;
+                //! OF_LINE: omniflux.of:561
+                break;
+                //! OF_LINE: omniflux.of:562
+              }
+              //! OF_LINE: omniflux.of:563
+            }
+            //! OF_LINE: omniflux.of:564
           }
-          //! OF_LINE: omniflux.of:559
+          //! OF_LINE: omniflux.of:565
         }
-        //! OF_LINE: omniflux.of:560
+        //! OF_LINE: omniflux.of:566
       }
-      //! OF_LINE: omniflux.of:561
+      //! OF_LINE: omniflux.of:567
     }
-    //! OF_LINE: omniflux.of:562
-    //! OF_LINE: omniflux.of:563
-    if (can_skip) {
-      //! OF_LINE: omniflux.of:564
-      print("Build up-to-date: %s", output_file);
-      //! OF_LINE: omniflux.of:565
-      return { ok: true, output: output_file };
-      //! OF_LINE: omniflux.of:566
-    }
-    //! OF_LINE: omniflux.of:567
     //! OF_LINE: omniflux.of:568
     //! OF_LINE: omniflux.of:569
-    let runtime_js = await read_runtime();
-    //! OF_LINE: omniflux.of:570
-    //! OF_LINE: omniflux.of:571
-    let rebuild_needed = true;
-    //! OF_LINE: omniflux.of:572
-    let compiled_map = {};
+    if (can_skip) {
+      //! OF_LINE: omniflux.of:570
+      print("Build up-to-date: %s", output_file);
+      //! OF_LINE: omniflux.of:571
+      return { ok: true, output: output_file };
+      //! OF_LINE: omniflux.of:572
+    }
     //! OF_LINE: omniflux.of:573
-    let ok = true;
     //! OF_LINE: omniflux.of:574
-    let heal_attempts = 0;
     //! OF_LINE: omniflux.of:575
-    let max_heal_attempts = 2;
+    let runtime_js = await read_runtime();
     //! OF_LINE: omniflux.of:576
     //! OF_LINE: omniflux.of:577
+    let rebuild_needed = true;
+    //! OF_LINE: omniflux.of:578
+    let compiled_map = {};
+    //! OF_LINE: omniflux.of:579
+    let ok = true;
+    //! OF_LINE: omniflux.of:580
+    let heal_attempts = 0;
+    //! OF_LINE: omniflux.of:581
+    let max_heal_attempts = 2;
+    //! OF_LINE: omniflux.of:582
+    //! OF_LINE: omniflux.of:583
     while (rebuild_needed) {
-      //! OF_LINE: omniflux.of:578
-      rebuild_needed = false;
-      //! OF_LINE: omniflux.of:579
-      if (cfg != null) {
-        //! OF_LINE: omniflux.of:580
-        cfg.was_healed = false;
-        //! OF_LINE: omniflux.of:581
-      }
-      //! OF_LINE: omniflux.of:582
-      //! OF_LINE: omniflux.of:583
-      compiled_map = {};
       //! OF_LINE: omniflux.of:584
-      let global_user_tasks = {};
+      rebuild_needed = false;
       //! OF_LINE: omniflux.of:585
-      ok = true;
-      //! OF_LINE: omniflux.of:586
-      //! OF_LINE: omniflux.of:587
-      //! OF_LINE: omniflux.of:588
-      for (let dep_path of deps) {
-        //! OF_LINE: omniflux.of:589
-        let raw = fileread(dep_path);
-        //! OF_LINE: omniflux.of:590
-        let content = await strip_comments(raw);
-        //! OF_LINE: omniflux.of:591
-        let tasks = await prescan_tasks(content);
-        //! OF_LINE: omniflux.of:592
-        Object.assign(global_user_tasks, tasks);
-        //! OF_LINE: omniflux.of:593
+      if (cfg != null) {
+        //! OF_LINE: omniflux.of:586
+        cfg.was_healed = false;
+        //! OF_LINE: omniflux.of:587
       }
+      //! OF_LINE: omniflux.of:588
+      //! OF_LINE: omniflux.of:589
+      compiled_map = {};
+      //! OF_LINE: omniflux.of:590
+      let global_user_tasks = {};
+      //! OF_LINE: omniflux.of:591
+      ok = true;
+      //! OF_LINE: omniflux.of:592
+      //! OF_LINE: omniflux.of:593
       //! OF_LINE: omniflux.of:594
-      //! OF_LINE: omniflux.of:595
-      //! OF_LINE: omniflux.of:596
       for (let dep_path of deps) {
+        //! OF_LINE: omniflux.of:595
+        let raw = fileread(dep_path);
+        //! OF_LINE: omniflux.of:596
+        let content = await strip_comments(raw);
         //! OF_LINE: omniflux.of:597
-        let js = await compile_file(dep_path, runtime_js, global_user_tasks);
+        let tasks = await prescan_tasks(content);
         //! OF_LINE: omniflux.of:598
+        Object.assign(global_user_tasks, tasks);
+        //! OF_LINE: omniflux.of:599
+      }
+      //! OF_LINE: omniflux.of:600
+      //! OF_LINE: omniflux.of:601
+      //! OF_LINE: omniflux.of:602
+      for (let dep_path of deps) {
+        //! OF_LINE: omniflux.of:603
+        let js = await compile_file(dep_path, runtime_js, global_user_tasks);
+        //! OF_LINE: omniflux.of:604
         if (!js) {
-          //! OF_LINE: omniflux.of:599
-          //! OF_LINE: omniflux.of:600
-          if (strict || !cfg) {
-            //! OF_LINE: omniflux.of:601
-            print("\x1B[1;31mStrict Mode Error: Local compilation failed on %s. AI compilation is disabled.\x1B[0m", dep_path);
-            //! OF_LINE: omniflux.of:602
-            ok = false;
-            //! OF_LINE: omniflux.of:603
-            break;
-            //! OF_LINE: omniflux.of:604
-          }
           //! OF_LINE: omniflux.of:605
-          let cache_path = await get_cache_path(dep_path);
           //! OF_LINE: omniflux.of:606
-          let ai_ok = await ai_compile_file(cfg, dep_path, cache_path);
-          //! OF_LINE: omniflux.of:607
-          if (!ai_ok) {
+          if (strict || !cfg) {
+            //! OF_LINE: omniflux.of:607
+            print("\x1B[1;31mStrict Mode Error: Local compilation failed on %s. AI compilation is disabled.\x1B[0m", dep_path);
             //! OF_LINE: omniflux.of:608
             ok = false;
             //! OF_LINE: omniflux.of:609
@@ -13498,675 +13497,696 @@ async function build_once(input_file, compile_only, strict, cfg, force) {
             //! OF_LINE: omniflux.of:610
           }
           //! OF_LINE: omniflux.of:611
+          let cache_path = await get_cache_path(dep_path);
           //! OF_LINE: omniflux.of:612
-          js = fileread(cache_path);
+          let ai_ok = await ai_compile_file(cfg, dep_path, cache_path);
           //! OF_LINE: omniflux.of:613
-        }
-        //! OF_LINE: omniflux.of:614
-        compiled_map[dep_path] = js;
-        //! OF_LINE: omniflux.of:615
-        print("Compiled: %s", dep_path);
-        //! OF_LINE: omniflux.of:616
-      }
-      //! OF_LINE: omniflux.of:617
-      //! OF_LINE: omniflux.of:618
-      if (!ok) {
-        //! OF_LINE: omniflux.of:619
-        return { ok: false };
-        //! OF_LINE: omniflux.of:620
-      }
-      //! OF_LINE: omniflux.of:621
-      //! OF_LINE: omniflux.of:622
-      if (cfg != null && cfg.was_healed) {
-        //! OF_LINE: omniflux.of:623
-        heal_attempts = heal_attempts + 1;
-        //! OF_LINE: omniflux.of:624
-        if (heal_attempts > max_heal_attempts) {
-          //! OF_LINE: omniflux.of:625
-          print("\x1B[1;31mError: Exceeded maximum AI healing attempts (%d). Aborting compilation to prevent infinite loops.\x1B[0m", max_heal_attempts);
-          //! OF_LINE: omniflux.of:626
-          return { ok: false };
-          //! OF_LINE: omniflux.of:627
-        }
-        //! OF_LINE: omniflux.of:628
-        rebuild_needed = true;
-        //! OF_LINE: omniflux.of:629
-        //! OF_LINE: omniflux.of:630
-        deps = await get_all_dependencies(abs_input, null);
-        //! OF_LINE: omniflux.of:631
-        continue;
-        //! OF_LINE: omniflux.of:632
-      }
-      //! OF_LINE: omniflux.of:633
-      //! OF_LINE: omniflux.of:634
-      //! OF_LINE: omniflux.of:635
-      bresult = await build(abs_input, output_file, compiled_map);
-      //! OF_LINE: omniflux.of:636
-      //! OF_LINE: omniflux.of:637
-      if (!bresult.ok) {
-        //! OF_LINE: omniflux.of:638
-        if (strict || !cfg) {
-          //! OF_LINE: omniflux.of:639
-          return bresult;
-          //! OF_LINE: omniflux.of:640
-        }
-        //! OF_LINE: omniflux.of:641
-        //! OF_LINE: omniflux.of:642
-        let failed_file = null;
-        //! OF_LINE: omniflux.of:643
-        let err_msg = bresult.error;
-        //! OF_LINE: omniflux.of:644
-        //! OF_LINE: omniflux.of:645
-        const m = /\.omniflux_cache\/([^\s:]+)\.js/.exec(err_msg);
-        //! OF_LINE: omniflux.of:646
-        if (m) {
-          //! OF_LINE: omniflux.of:647
-          const rel = m[1] + ".of";
-          //! OF_LINE: omniflux.of:648
-          for (const abs_path of Object.keys(compiled_map)) {
-            //! OF_LINE: omniflux.of:650
-            if (abs_path.endsWith(rel)) {
-              //! OF_LINE: omniflux.of:651
-              failed_file = abs_path;
-              //! OF_LINE: omniflux.of:652
-              break;
-              //! OF_LINE: omniflux.of:653
-            }
-            //! OF_LINE: omniflux.of:654
+          if (!ai_ok) {
+            //! OF_LINE: omniflux.of:614
+            ok = false;
+            //! OF_LINE: omniflux.of:615
+            break;
+            //! OF_LINE: omniflux.of:616
           }
-          //! OF_LINE: omniflux.of:655
+          //! OF_LINE: omniflux.of:617
+          //! OF_LINE: omniflux.of:618
+          js = fileread(cache_path);
+          //! OF_LINE: omniflux.of:619
         }
-        //! OF_LINE: omniflux.of:656
-        //! OF_LINE: omniflux.of:657
-        if (!failed_file) {
-          //! OF_LINE: omniflux.of:658
-          //! OF_LINE: omniflux.of:659
-          failed_file = abs_input;
-          //! OF_LINE: omniflux.of:660
+        //! OF_LINE: omniflux.of:620
+        compiled_map[dep_path] = js;
+        //! OF_LINE: omniflux.of:621
+        print("Compiled: %s", dep_path);
+        //! OF_LINE: omniflux.of:622
+      }
+      //! OF_LINE: omniflux.of:623
+      //! OF_LINE: omniflux.of:624
+      if (!ok) {
+        //! OF_LINE: omniflux.of:625
+        return { ok: false };
+        //! OF_LINE: omniflux.of:626
+      }
+      //! OF_LINE: omniflux.of:627
+      //! OF_LINE: omniflux.of:628
+      if (cfg != null && cfg.was_healed) {
+        //! OF_LINE: omniflux.of:629
+        heal_attempts = heal_attempts + 1;
+        //! OF_LINE: omniflux.of:630
+        if (heal_attempts > max_heal_attempts) {
+          //! OF_LINE: omniflux.of:631
+          print("\x1B[1;31mError: Exceeded maximum AI healing attempts (%d). Aborting compilation to prevent infinite loops.\x1B[0m", max_heal_attempts);
+          //! OF_LINE: omniflux.of:632
+          return { ok: false };
+          //! OF_LINE: omniflux.of:633
         }
-        //! OF_LINE: omniflux.of:661
+        //! OF_LINE: omniflux.of:634
+        rebuild_needed = true;
+        //! OF_LINE: omniflux.of:635
+        //! OF_LINE: omniflux.of:636
+        deps = await get_all_dependencies(abs_input, null);
+        //! OF_LINE: omniflux.of:637
+        continue;
+        //! OF_LINE: omniflux.of:638
+      }
+      //! OF_LINE: omniflux.of:639
+      //! OF_LINE: omniflux.of:640
+      //! OF_LINE: omniflux.of:641
+      bresult = await build(abs_input, output_file, compiled_map);
+      //! OF_LINE: omniflux.of:642
+      //! OF_LINE: omniflux.of:643
+      if (!bresult.ok) {
+        //! OF_LINE: omniflux.of:644
+        if (strict || !cfg) {
+          //! OF_LINE: omniflux.of:645
+          return bresult;
+          //! OF_LINE: omniflux.of:646
+        }
+        //! OF_LINE: omniflux.of:647
+        //! OF_LINE: omniflux.of:648
+        let failed_file = null;
+        //! OF_LINE: omniflux.of:649
+        let err_msg = bresult.error;
+        //! OF_LINE: omniflux.of:650
+        //! OF_LINE: omniflux.of:651
+        const m = /\.omniflux_cache\/([^\s:]+)\.js/.exec(err_msg);
+        //! OF_LINE: omniflux.of:652
+        if (m) {
+          //! OF_LINE: omniflux.of:653
+          const rel = m[1] + ".of";
+          //! OF_LINE: omniflux.of:654
+          for (const abs_path of Object.keys(compiled_map)) {
+            //! OF_LINE: omniflux.of:656
+            if (abs_path.endsWith(rel)) {
+              //! OF_LINE: omniflux.of:657
+              failed_file = abs_path;
+              //! OF_LINE: omniflux.of:658
+              break;
+              //! OF_LINE: omniflux.of:659
+            }
+            //! OF_LINE: omniflux.of:660
+          }
+          //! OF_LINE: omniflux.of:661
+        }
         //! OF_LINE: omniflux.of:662
-        print("\x1B[1;33mBundling failed due to JS syntax error. Falling back to AI Compiler for %s...\x1B[0m", failed_file);
         //! OF_LINE: omniflux.of:663
-        let cache_path = await get_cache_path(failed_file);
-        //! OF_LINE: omniflux.of:664
-        if (fileexists(cache_path)) {
+        if (!failed_file) {
+          //! OF_LINE: omniflux.of:664
           //! OF_LINE: omniflux.of:665
-          filedelete(cache_path);
+          failed_file = abs_input;
           //! OF_LINE: omniflux.of:666
         }
         //! OF_LINE: omniflux.of:667
-        let ai_ok = await ai_compile_file(cfg, failed_file, cache_path, bresult.error);
         //! OF_LINE: omniflux.of:668
+        print("\x1B[1;33mBundling failed due to JS syntax error. Falling back to AI Compiler for %s...\x1B[0m", failed_file);
+        //! OF_LINE: omniflux.of:669
+        let cache_path = await get_cache_path(failed_file);
+        //! OF_LINE: omniflux.of:670
+        if (fileexists(cache_path)) {
+          //! OF_LINE: omniflux.of:671
+          filedelete(cache_path);
+          //! OF_LINE: omniflux.of:672
+        }
+        //! OF_LINE: omniflux.of:673
+        let ai_ok = await ai_compile_file(cfg, failed_file, cache_path, bresult.error);
+        //! OF_LINE: omniflux.of:674
         if (!ai_ok) {
-          //! OF_LINE: omniflux.of:669
+          //! OF_LINE: omniflux.of:675
           return bresult;
-          //! OF_LINE: omniflux.of:670
+          //! OF_LINE: omniflux.of:676
         }
-        //! OF_LINE: omniflux.of:671
-        //! OF_LINE: omniflux.of:672
+        //! OF_LINE: omniflux.of:677
+        //! OF_LINE: omniflux.of:678
         if (cfg != null && cfg.was_healed) {
-          //! OF_LINE: omniflux.of:673
-          heal_attempts = heal_attempts + 1;
-          //! OF_LINE: omniflux.of:674
-          if (heal_attempts > max_heal_attempts) {
-            //! OF_LINE: omniflux.of:675
-            print("\x1B[1;31mError: Exceeded maximum AI healing attempts (%d). Aborting compilation to prevent infinite loops.\x1B[0m", max_heal_attempts);
-            //! OF_LINE: omniflux.of:676
-            return { ok: false };
-            //! OF_LINE: omniflux.of:677
-          }
-          //! OF_LINE: omniflux.of:678
-          rebuild_needed = true;
           //! OF_LINE: omniflux.of:679
-          deps = await get_all_dependencies(abs_input, null);
+          heal_attempts = heal_attempts + 1;
           //! OF_LINE: omniflux.of:680
+          if (heal_attempts > max_heal_attempts) {
+            //! OF_LINE: omniflux.of:681
+            print("\x1B[1;31mError: Exceeded maximum AI healing attempts (%d). Aborting compilation to prevent infinite loops.\x1B[0m", max_heal_attempts);
+            //! OF_LINE: omniflux.of:682
+            return { ok: false };
+            //! OF_LINE: omniflux.of:683
+          }
+          //! OF_LINE: omniflux.of:684
+          rebuild_needed = true;
+          //! OF_LINE: omniflux.of:685
+          deps = await get_all_dependencies(abs_input, null);
+          //! OF_LINE: omniflux.of:686
           continue;
-          //! OF_LINE: omniflux.of:681
+          //! OF_LINE: omniflux.of:687
         }
-        //! OF_LINE: omniflux.of:682
-        //! OF_LINE: omniflux.of:683
-        //! OF_LINE: omniflux.of:684
+        //! OF_LINE: omniflux.of:688
+        //! OF_LINE: omniflux.of:689
+        //! OF_LINE: omniflux.of:690
         compiled_map[failed_file] = fileread(cache_path);
-        //! OF_LINE: omniflux.of:685
-        //! OF_LINE: omniflux.of:686
+        //! OF_LINE: omniflux.of:691
+        //! OF_LINE: omniflux.of:692
         bresult = await build(abs_input, output_file, compiled_map);
-        //! OF_LINE: omniflux.of:687
+        //! OF_LINE: omniflux.of:693
       }
-      //! OF_LINE: omniflux.of:688
-    }
-    //! OF_LINE: omniflux.of:689
-    //! OF_LINE: omniflux.of:690
-    if (bresult.ok) {
-      //! OF_LINE: omniflux.of:691
-      let end_time = 0;
-      //! OF_LINE: omniflux.of:692
-      end_time = Date.now();
-      //! OF_LINE: omniflux.of:693
-      let duration = end_time - start_time;
       //! OF_LINE: omniflux.of:694
-      print("Build Successful -> %s (%dms)", output_file, duration);
-      //! OF_LINE: omniflux.of:695
     }
+    //! OF_LINE: omniflux.of:695
     //! OF_LINE: omniflux.of:696
+    if (bresult.ok) {
+      //! OF_LINE: omniflux.of:697
+      let end_time = 0;
+      //! OF_LINE: omniflux.of:698
+      end_time = Date.now();
+      //! OF_LINE: omniflux.of:699
+      let duration = end_time - start_time;
+      //! OF_LINE: omniflux.of:700
+      print("Build Successful -> %s (%dms)", output_file, duration);
+      //! OF_LINE: omniflux.of:701
+    }
+    //! OF_LINE: omniflux.of:702
     return bresult;
-    //! OF_LINE: omniflux.of:697
+    //! OF_LINE: omniflux.of:703
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:698
-//! OF_LINE: omniflux.of:699
-//! OF_LINE: omniflux.of:700
-//! OF_LINE: omniflux.of:701
-//! OF_LINE: omniflux.of:702
+//! OF_LINE: omniflux.of:704
+//! OF_LINE: omniflux.of:705
+//! OF_LINE: omniflux.of:706
+//! OF_LINE: omniflux.of:707
+//! OF_LINE: omniflux.of:708
 async function run_output(output_file, run_args) {
   try {
-    //! OF_LINE: omniflux.of:703
-    print("Running: %s", output_file);
-    //! OF_LINE: omniflux.of:704
-    print("----------------------------------------");
-    //! OF_LINE: omniflux.of:705
-    //! OF_LINE: omniflux.of:706
-    const { spawn } = require("child_process");
-    //! OF_LINE: omniflux.of:707
-    const child = spawn(output_file, run_args || [], { stdio: ["inherit", "pipe", "pipe"] });
-    //! OF_LINE: omniflux.of:708
-    let output = "";
     //! OF_LINE: omniflux.of:709
+    print("Running: %s", output_file);
     //! OF_LINE: omniflux.of:710
-    child.stdout.on("data", (data) => {
-      //! OF_LINE: omniflux.of:711
-      process.stdout.write(data);
-      //! OF_LINE: omniflux.of:712
-      output += data.toString();
-      //! OF_LINE: omniflux.of:713
-    });
+    print("----------------------------------------");
+    //! OF_LINE: omniflux.of:711
+    //! OF_LINE: omniflux.of:712
+    const { spawn } = require("child_process");
+    //! OF_LINE: omniflux.of:713
+    const child = spawn(output_file, run_args || [], { stdio: ["inherit", "pipe", "pipe"] });
     //! OF_LINE: omniflux.of:714
+    let output = "";
     //! OF_LINE: omniflux.of:715
-    child.stderr.on("data", (data) => {
-      //! OF_LINE: omniflux.of:716
-      process.stderr.write(data);
+    //! OF_LINE: omniflux.of:716
+    child.stdout.on("data", (data) => {
       //! OF_LINE: omniflux.of:717
-      output += data.toString();
+      process.stdout.write(data);
       //! OF_LINE: omniflux.of:718
+      output += data.toString();
+      //! OF_LINE: omniflux.of:719
     });
-    //! OF_LINE: omniflux.of:719
     //! OF_LINE: omniflux.of:720
-    return new Promise((resolve) => {
-      //! OF_LINE: omniflux.of:721
-      child.on("close", (code) => {
-        //! OF_LINE: omniflux.of:722
-        console.log("----------------------------------------");
-        //! OF_LINE: omniflux.of:723
-        resolve(output);
-        //! OF_LINE: omniflux.of:724
-      });
-      //! OF_LINE: omniflux.of:725
-      child.on("error", (err) => {
-        //! OF_LINE: omniflux.of:726
-        console.error("Failed to start process:", err.message);
-        //! OF_LINE: omniflux.of:727
-        console.log("----------------------------------------");
-        //! OF_LINE: omniflux.of:728
-        resolve(output);
-        //! OF_LINE: omniflux.of:729
-      });
-      //! OF_LINE: omniflux.of:730
+    //! OF_LINE: omniflux.of:721
+    child.stderr.on("data", (data) => {
+      //! OF_LINE: omniflux.of:722
+      process.stderr.write(data);
+      //! OF_LINE: omniflux.of:723
+      output += data.toString();
+      //! OF_LINE: omniflux.of:724
     });
-    //! OF_LINE: omniflux.of:731
-    //! OF_LINE: omniflux.of:732
+    //! OF_LINE: omniflux.of:725
+    //! OF_LINE: omniflux.of:726
+    return new Promise((resolve) => {
+      //! OF_LINE: omniflux.of:727
+      child.on("close", (code) => {
+        //! OF_LINE: omniflux.of:728
+        console.log("----------------------------------------");
+        //! OF_LINE: omniflux.of:729
+        resolve(output);
+        //! OF_LINE: omniflux.of:730
+      });
+      //! OF_LINE: omniflux.of:731
+      child.on("error", (err) => {
+        //! OF_LINE: omniflux.of:732
+        console.error("Failed to start process:", err.message);
+        //! OF_LINE: omniflux.of:733
+        console.log("----------------------------------------");
+        //! OF_LINE: omniflux.of:734
+        resolve(output);
+        //! OF_LINE: omniflux.of:735
+      });
+      //! OF_LINE: omniflux.of:736
+    });
+    //! OF_LINE: omniflux.of:737
+    //! OF_LINE: omniflux.of:738
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:733
-//! OF_LINE: omniflux.of:734
-//! OF_LINE: omniflux.of:735
-//! OF_LINE: omniflux.of:736
-//! OF_LINE: omniflux.of:737
+//! OF_LINE: omniflux.of:739
+//! OF_LINE: omniflux.of:740
+//! OF_LINE: omniflux.of:741
+//! OF_LINE: omniflux.of:742
+//! OF_LINE: omniflux.of:743
 async function restart_watch_process(output_file) {
   try {
-    //! OF_LINE: omniflux.of:738
-    //! OF_LINE: omniflux.of:739
+    //! OF_LINE: omniflux.of:744
+    //! OF_LINE: omniflux.of:745
     if (global.__running_watch_child) {
-      //! OF_LINE: omniflux.of:740
+      //! OF_LINE: omniflux.of:746
       try {
-        //! OF_LINE: omniflux.of:741
+        //! OF_LINE: omniflux.of:747
         global.__running_watch_child.kill("SIGTERM");
-        //! OF_LINE: omniflux.of:742
+        //! OF_LINE: omniflux.of:748
       } catch (e) {
       }
-      //! OF_LINE: omniflux.of:743
+      //! OF_LINE: omniflux.of:749
       global.__running_watch_child = null;
-      //! OF_LINE: omniflux.of:744
+      //! OF_LINE: omniflux.of:750
     }
-    //! OF_LINE: omniflux.of:745
+    //! OF_LINE: omniflux.of:751
     const { spawn } = require("child_process");
-    //! OF_LINE: omniflux.of:746
+    //! OF_LINE: omniflux.of:752
     global.__running_watch_child = spawn(output_file, [], { stdio: "inherit" });
-    //! OF_LINE: omniflux.of:747
-    //! OF_LINE: omniflux.of:748
+    //! OF_LINE: omniflux.of:753
+    //! OF_LINE: omniflux.of:754
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:749
-//! OF_LINE: omniflux.of:750
-//! OF_LINE: omniflux.of:751
-//! OF_LINE: omniflux.of:752
-//! OF_LINE: omniflux.of:753
+//! OF_LINE: omniflux.of:755
+//! OF_LINE: omniflux.of:756
+//! OF_LINE: omniflux.of:757
+//! OF_LINE: omniflux.of:758
+//! OF_LINE: omniflux.of:759
 async function watch_loop(input_file, compile_only) {
   try {
-    //! OF_LINE: omniflux.of:754
+    //! OF_LINE: omniflux.of:760
     let last_build_ok = false;
-    //! OF_LINE: omniflux.of:755
+    //! OF_LINE: omniflux.of:761
     let output_file = "";
-    //! OF_LINE: omniflux.of:756
-    //! OF_LINE: omniflux.of:757
+    //! OF_LINE: omniflux.of:762
+    //! OF_LINE: omniflux.of:763
     let result = await build_once(input_file, compile_only, false, null);
-    //! OF_LINE: omniflux.of:758
+    //! OF_LINE: omniflux.of:764
     if (result.ok) {
-      //! OF_LINE: omniflux.of:759
+      //! OF_LINE: omniflux.of:765
       last_build_ok = true;
-      //! OF_LINE: omniflux.of:760
+      //! OF_LINE: omniflux.of:766
       output_file = result.output;
-      //! OF_LINE: omniflux.of:761
+      //! OF_LINE: omniflux.of:767
       if (!compile_only) {
-        //! OF_LINE: omniflux.of:762
+        //! OF_LINE: omniflux.of:768
         await restart_watch_process(output_file);
-        //! OF_LINE: omniflux.of:763
+        //! OF_LINE: omniflux.of:769
       }
-      //! OF_LINE: omniflux.of:764
+      //! OF_LINE: omniflux.of:770
     }
-    //! OF_LINE: omniflux.of:765
-    //! OF_LINE: omniflux.of:766
-    print("Watching for changes... (Press Ctrl+C to stop)");
-    //! OF_LINE: omniflux.of:767
-    //! OF_LINE: omniflux.of:768
-    let abs_input = pathresolve(input_file);
-    //! OF_LINE: omniflux.of:769
-    let deps = await get_all_dependencies(abs_input, null);
-    //! OF_LINE: omniflux.of:770
     //! OF_LINE: omniflux.of:771
     //! OF_LINE: omniflux.of:772
-    let mod_times = {};
+    print("Watching for changes... (Press Ctrl+C to stop)");
     //! OF_LINE: omniflux.of:773
-    for (let dep_path of deps) {
-      //! OF_LINE: omniflux.of:774
-      let stat = filestat(dep_path);
-      //! OF_LINE: omniflux.of:775
-      if (stat) {
-        //! OF_LINE: omniflux.of:776
-        mod_times[dep_path] = stat.modifiedat;
-        //! OF_LINE: omniflux.of:777
-      }
-      //! OF_LINE: omniflux.of:778
-    }
+    //! OF_LINE: omniflux.of:774
+    let abs_input = pathresolve(input_file);
+    //! OF_LINE: omniflux.of:775
+    let deps = await get_all_dependencies(abs_input, null);
+    //! OF_LINE: omniflux.of:776
+    //! OF_LINE: omniflux.of:777
+    //! OF_LINE: omniflux.of:778
+    let mod_times = {};
     //! OF_LINE: omniflux.of:779
-    //! OF_LINE: omniflux.of:780
-    while (true) {
+    for (let dep_path of deps) {
+      //! OF_LINE: omniflux.of:780
+      let stat = filestat(dep_path);
       //! OF_LINE: omniflux.of:781
-      await new Promise((resolve) => setTimeout(resolve, 1 * 1e3));
-      //! OF_LINE: omniflux.of:782
-      //! OF_LINE: omniflux.of:783
+      if (stat) {
+        //! OF_LINE: omniflux.of:782
+        mod_times[dep_path] = stat.modifiedat;
+        //! OF_LINE: omniflux.of:783
+      }
       //! OF_LINE: omniflux.of:784
-      let changed = false;
-      //! OF_LINE: omniflux.of:785
-      for (let dep_path of deps) {
-        //! OF_LINE: omniflux.of:786
-        if (!fileexists(dep_path)) {
-          //! OF_LINE: omniflux.of:787
-          changed = true;
-          //! OF_LINE: omniflux.of:788
-          break;
-          //! OF_LINE: omniflux.of:789
-        }
-        //! OF_LINE: omniflux.of:790
-        let stat2 = filestat(dep_path);
-        //! OF_LINE: omniflux.of:791
-        if (stat2 && mod_times[dep_path] && stat2.modifiedat > mod_times[dep_path]) {
-          //! OF_LINE: omniflux.of:792
-          changed = true;
-          //! OF_LINE: omniflux.of:793
-          break;
-          //! OF_LINE: omniflux.of:794
-        }
-        //! OF_LINE: omniflux.of:795
-      }
-      //! OF_LINE: omniflux.of:796
-      //! OF_LINE: omniflux.of:797
-      if (changed) {
-        //! OF_LINE: omniflux.of:798
-        print("\nChange detected. Rebuilding...");
-        //! OF_LINE: omniflux.of:799
-        let new_result = await build_once(input_file, compile_only, false, null);
-        //! OF_LINE: omniflux.of:800
-        if (new_result.ok) {
-          //! OF_LINE: omniflux.of:801
-          output_file = new_result.output;
-          //! OF_LINE: omniflux.of:802
-          if (!compile_only) {
-            //! OF_LINE: omniflux.of:803
-            await restart_watch_process(output_file);
-            //! OF_LINE: omniflux.of:804
-          }
-          //! OF_LINE: omniflux.of:805
-        } else {
-          //! OF_LINE: omniflux.of:806
-          print("Rebuild failed. Waiting for fixes...");
-          //! OF_LINE: omniflux.of:807
-        }
-        //! OF_LINE: omniflux.of:808
-        //! OF_LINE: omniflux.of:809
-        //! OF_LINE: omniflux.of:810
-        deps = await get_all_dependencies(abs_input, null);
-        //! OF_LINE: omniflux.of:811
-        mod_times = {};
-        //! OF_LINE: omniflux.of:812
-        for (let dep_path2 of deps) {
-          //! OF_LINE: omniflux.of:813
-          let stat3 = filestat(dep_path2);
-          //! OF_LINE: omniflux.of:814
-          if (stat3) {
-            //! OF_LINE: omniflux.of:815
-            mod_times[dep_path2] = stat3.modifiedat;
-            //! OF_LINE: omniflux.of:816
-          }
-          //! OF_LINE: omniflux.of:817
-        }
-        //! OF_LINE: omniflux.of:818
-      }
-      //! OF_LINE: omniflux.of:819
     }
-    //! OF_LINE: omniflux.of:820
+    //! OF_LINE: omniflux.of:785
+    //! OF_LINE: omniflux.of:786
+    while (true) {
+      //! OF_LINE: omniflux.of:787
+      await new Promise((resolve) => setTimeout(resolve, 1 * 1e3));
+      //! OF_LINE: omniflux.of:788
+      //! OF_LINE: omniflux.of:789
+      //! OF_LINE: omniflux.of:790
+      let changed = false;
+      //! OF_LINE: omniflux.of:791
+      for (let dep_path of deps) {
+        //! OF_LINE: omniflux.of:792
+        if (!fileexists(dep_path)) {
+          //! OF_LINE: omniflux.of:793
+          changed = true;
+          //! OF_LINE: omniflux.of:794
+          break;
+          //! OF_LINE: omniflux.of:795
+        }
+        //! OF_LINE: omniflux.of:796
+        let stat2 = filestat(dep_path);
+        //! OF_LINE: omniflux.of:797
+        if (stat2 && mod_times[dep_path] && stat2.modifiedat > mod_times[dep_path]) {
+          //! OF_LINE: omniflux.of:798
+          changed = true;
+          //! OF_LINE: omniflux.of:799
+          break;
+          //! OF_LINE: omniflux.of:800
+        }
+        //! OF_LINE: omniflux.of:801
+      }
+      //! OF_LINE: omniflux.of:802
+      //! OF_LINE: omniflux.of:803
+      if (changed) {
+        //! OF_LINE: omniflux.of:804
+        print("\nChange detected. Rebuilding...");
+        //! OF_LINE: omniflux.of:805
+        let new_result = await build_once(input_file, compile_only, false, null);
+        //! OF_LINE: omniflux.of:806
+        if (new_result.ok) {
+          //! OF_LINE: omniflux.of:807
+          output_file = new_result.output;
+          //! OF_LINE: omniflux.of:808
+          if (!compile_only) {
+            //! OF_LINE: omniflux.of:809
+            await restart_watch_process(output_file);
+            //! OF_LINE: omniflux.of:810
+          }
+          //! OF_LINE: omniflux.of:811
+        } else {
+          //! OF_LINE: omniflux.of:812
+          print("Rebuild failed. Waiting for fixes...");
+          //! OF_LINE: omniflux.of:813
+        }
+        //! OF_LINE: omniflux.of:814
+        //! OF_LINE: omniflux.of:815
+        //! OF_LINE: omniflux.of:816
+        deps = await get_all_dependencies(abs_input, null);
+        //! OF_LINE: omniflux.of:817
+        mod_times = {};
+        //! OF_LINE: omniflux.of:818
+        for (let dep_path2 of deps) {
+          //! OF_LINE: omniflux.of:819
+          let stat3 = filestat(dep_path2);
+          //! OF_LINE: omniflux.of:820
+          if (stat3) {
+            //! OF_LINE: omniflux.of:821
+            mod_times[dep_path2] = stat3.modifiedat;
+            //! OF_LINE: omniflux.of:822
+          }
+          //! OF_LINE: omniflux.of:823
+        }
+        //! OF_LINE: omniflux.of:824
+      }
+      //! OF_LINE: omniflux.of:825
+    }
+    //! OF_LINE: omniflux.of:826
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:821
-//! OF_LINE: omniflux.of:822
-//! OF_LINE: omniflux.of:823
-//! OF_LINE: omniflux.of:824
-//! OF_LINE: omniflux.of:825
+//! OF_LINE: omniflux.of:827
+//! OF_LINE: omniflux.of:828
+//! OF_LINE: omniflux.of:829
+//! OF_LINE: omniflux.of:830
+//! OF_LINE: omniflux.of:831
 async function watch_loop_ai(input_file, compile_only, strict, cfg) {
   try {
-    //! OF_LINE: omniflux.of:826
+    //! OF_LINE: omniflux.of:832
     let output_file = "";
-    //! OF_LINE: omniflux.of:827
-    //! OF_LINE: omniflux.of:828
+    //! OF_LINE: omniflux.of:833
+    //! OF_LINE: omniflux.of:834
     let result = await build_once(input_file, compile_only, strict, cfg);
-    //! OF_LINE: omniflux.of:829
-    if (result.ok) {
-      //! OF_LINE: omniflux.of:830
-      output_file = result.output;
-      //! OF_LINE: omniflux.of:831
-      if (!compile_only) {
-        //! OF_LINE: omniflux.of:832
-        await restart_watch_process(output_file);
-        //! OF_LINE: omniflux.of:833
-      }
-      //! OF_LINE: omniflux.of:834
-    }
     //! OF_LINE: omniflux.of:835
-    //! OF_LINE: omniflux.of:836
-    print("Watching for changes... (Press Ctrl+C to stop)");
-    //! OF_LINE: omniflux.of:837
-    //! OF_LINE: omniflux.of:838
-    let abs_input = pathresolve(input_file);
-    //! OF_LINE: omniflux.of:839
-    let deps = await get_all_dependencies(abs_input, null);
-    //! OF_LINE: omniflux.of:840
+    if (result.ok) {
+      //! OF_LINE: omniflux.of:836
+      output_file = result.output;
+      //! OF_LINE: omniflux.of:837
+      if (!compile_only) {
+        //! OF_LINE: omniflux.of:838
+        await restart_watch_process(output_file);
+        //! OF_LINE: omniflux.of:839
+      }
+      //! OF_LINE: omniflux.of:840
+    }
     //! OF_LINE: omniflux.of:841
-    let mod_times = {};
     //! OF_LINE: omniflux.of:842
-    for (let dep_path of deps) {
-      //! OF_LINE: omniflux.of:843
-      let stat = filestat(dep_path);
-      //! OF_LINE: omniflux.of:844
-      if (stat) {
-        //! OF_LINE: omniflux.of:845
-        mod_times[dep_path] = stat.modifiedat;
-        //! OF_LINE: omniflux.of:846
-      }
-      //! OF_LINE: omniflux.of:847
-    }
+    print("Watching for changes... (Press Ctrl+C to stop)");
+    //! OF_LINE: omniflux.of:843
+    //! OF_LINE: omniflux.of:844
+    let abs_input = pathresolve(input_file);
+    //! OF_LINE: omniflux.of:845
+    let deps = await get_all_dependencies(abs_input, null);
+    //! OF_LINE: omniflux.of:846
+    //! OF_LINE: omniflux.of:847
+    let mod_times = {};
     //! OF_LINE: omniflux.of:848
-    //! OF_LINE: omniflux.of:849
-    while (true) {
+    for (let dep_path of deps) {
+      //! OF_LINE: omniflux.of:849
+      let stat = filestat(dep_path);
       //! OF_LINE: omniflux.of:850
-      await new Promise((resolve) => setTimeout(resolve, 1 * 1e3));
-      //! OF_LINE: omniflux.of:851
-      //! OF_LINE: omniflux.of:852
-      let changed = false;
+      if (stat) {
+        //! OF_LINE: omniflux.of:851
+        mod_times[dep_path] = stat.modifiedat;
+        //! OF_LINE: omniflux.of:852
+      }
       //! OF_LINE: omniflux.of:853
-      for (let dep_path of deps) {
-        //! OF_LINE: omniflux.of:854
-        if (!fileexists(dep_path)) {
-          //! OF_LINE: omniflux.of:855
-          changed = true;
-          //! OF_LINE: omniflux.of:856
-          break;
-          //! OF_LINE: omniflux.of:857
-        }
-        //! OF_LINE: omniflux.of:858
-        let stat2 = filestat(dep_path);
-        //! OF_LINE: omniflux.of:859
-        if (stat2 && mod_times[dep_path] && stat2.modifiedat > mod_times[dep_path]) {
-          //! OF_LINE: omniflux.of:860
-          changed = true;
-          //! OF_LINE: omniflux.of:861
-          break;
-          //! OF_LINE: omniflux.of:862
-        }
-        //! OF_LINE: omniflux.of:863
-      }
-      //! OF_LINE: omniflux.of:864
-      //! OF_LINE: omniflux.of:865
-      if (changed) {
-        //! OF_LINE: omniflux.of:866
-        print("\nChange detected. Rebuilding...");
-        //! OF_LINE: omniflux.of:867
-        let new_result = await build_once(input_file, compile_only, strict, cfg);
-        //! OF_LINE: omniflux.of:868
-        if (new_result.ok) {
-          //! OF_LINE: omniflux.of:869
-          output_file = new_result.output;
-          //! OF_LINE: omniflux.of:870
-          if (!compile_only) {
-            //! OF_LINE: omniflux.of:871
-            await restart_watch_process(output_file);
-            //! OF_LINE: omniflux.of:872
-          }
-          //! OF_LINE: omniflux.of:873
-        } else {
-          //! OF_LINE: omniflux.of:874
-          print("Rebuild failed. Waiting for fixes...");
-          //! OF_LINE: omniflux.of:875
-        }
-        //! OF_LINE: omniflux.of:876
-        //! OF_LINE: omniflux.of:877
-        deps = await get_all_dependencies(abs_input, null);
-        //! OF_LINE: omniflux.of:878
-        mod_times = {};
-        //! OF_LINE: omniflux.of:879
-        for (let dep_path2 of deps) {
-          //! OF_LINE: omniflux.of:880
-          let stat3 = filestat(dep_path2);
-          //! OF_LINE: omniflux.of:881
-          if (stat3) {
-            //! OF_LINE: omniflux.of:882
-            mod_times[dep_path2] = stat3.modifiedat;
-            //! OF_LINE: omniflux.of:883
-          }
-          //! OF_LINE: omniflux.of:884
-        }
-        //! OF_LINE: omniflux.of:885
-      }
-      //! OF_LINE: omniflux.of:886
     }
-    //! OF_LINE: omniflux.of:887
+    //! OF_LINE: omniflux.of:854
+    //! OF_LINE: omniflux.of:855
+    while (true) {
+      //! OF_LINE: omniflux.of:856
+      await new Promise((resolve) => setTimeout(resolve, 1 * 1e3));
+      //! OF_LINE: omniflux.of:857
+      //! OF_LINE: omniflux.of:858
+      let changed = false;
+      //! OF_LINE: omniflux.of:859
+      for (let dep_path of deps) {
+        //! OF_LINE: omniflux.of:860
+        if (!fileexists(dep_path)) {
+          //! OF_LINE: omniflux.of:861
+          changed = true;
+          //! OF_LINE: omniflux.of:862
+          break;
+          //! OF_LINE: omniflux.of:863
+        }
+        //! OF_LINE: omniflux.of:864
+        let stat2 = filestat(dep_path);
+        //! OF_LINE: omniflux.of:865
+        if (stat2 && mod_times[dep_path] && stat2.modifiedat > mod_times[dep_path]) {
+          //! OF_LINE: omniflux.of:866
+          changed = true;
+          //! OF_LINE: omniflux.of:867
+          break;
+          //! OF_LINE: omniflux.of:868
+        }
+        //! OF_LINE: omniflux.of:869
+      }
+      //! OF_LINE: omniflux.of:870
+      //! OF_LINE: omniflux.of:871
+      if (changed) {
+        //! OF_LINE: omniflux.of:872
+        print("\nChange detected. Rebuilding...");
+        //! OF_LINE: omniflux.of:873
+        let new_result = await build_once(input_file, compile_only, strict, cfg);
+        //! OF_LINE: omniflux.of:874
+        if (new_result.ok) {
+          //! OF_LINE: omniflux.of:875
+          output_file = new_result.output;
+          //! OF_LINE: omniflux.of:876
+          if (!compile_only) {
+            //! OF_LINE: omniflux.of:877
+            await restart_watch_process(output_file);
+            //! OF_LINE: omniflux.of:878
+          }
+          //! OF_LINE: omniflux.of:879
+        } else {
+          //! OF_LINE: omniflux.of:880
+          print("Rebuild failed. Waiting for fixes...");
+          //! OF_LINE: omniflux.of:881
+        }
+        //! OF_LINE: omniflux.of:882
+        //! OF_LINE: omniflux.of:883
+        deps = await get_all_dependencies(abs_input, null);
+        //! OF_LINE: omniflux.of:884
+        mod_times = {};
+        //! OF_LINE: omniflux.of:885
+        for (let dep_path2 of deps) {
+          //! OF_LINE: omniflux.of:886
+          let stat3 = filestat(dep_path2);
+          //! OF_LINE: omniflux.of:887
+          if (stat3) {
+            //! OF_LINE: omniflux.of:888
+            mod_times[dep_path2] = stat3.modifiedat;
+            //! OF_LINE: omniflux.of:889
+          }
+          //! OF_LINE: omniflux.of:890
+        }
+        //! OF_LINE: omniflux.of:891
+      }
+      //! OF_LINE: omniflux.of:892
+    }
+    //! OF_LINE: omniflux.of:893
   } catch (err) {
     throw err;
   }
 }
-//! OF_LINE: omniflux.of:888
-//! OF_LINE: omniflux.of:889
-//! OF_LINE: omniflux.of:890
-//! OF_LINE: omniflux.of:891
-//! OF_LINE: omniflux.of:892
+//! OF_LINE: omniflux.of:894
+//! OF_LINE: omniflux.of:895
+//! OF_LINE: omniflux.of:896
+//! OF_LINE: omniflux.of:897
+//! OF_LINE: omniflux.of:898
 async function __on_start_1() {
-  //! OF_LINE: omniflux.of:893
-  let cli = await parse_args(args);
-  //! OF_LINE: omniflux.of:894
-  //! OF_LINE: omniflux.of:895
-  if (cli.help) {
-    //! OF_LINE: omniflux.of:896
-    await print_usage();
-    //! OF_LINE: omniflux.of:897
-    exit(0);
-    //! OF_LINE: omniflux.of:898
-  }
   //! OF_LINE: omniflux.of:899
+  let cli = await parse_args(args);
   //! OF_LINE: omniflux.of:900
-  if (cli.setup) {
-    //! OF_LINE: omniflux.of:901
-    await run_wizard();
+  //! OF_LINE: omniflux.of:901
+  if (cli.help) {
     //! OF_LINE: omniflux.of:902
-    exit(0);
+    await print_usage();
     //! OF_LINE: omniflux.of:903
+    exit(0);
+    //! OF_LINE: omniflux.of:904
   }
-  //! OF_LINE: omniflux.of:904
   //! OF_LINE: omniflux.of:905
   //! OF_LINE: omniflux.of:906
-  let cfg = null;
-  //! OF_LINE: omniflux.of:907
-  if (!await config_exists()) {
+  if (cli.version) {
+    //! OF_LINE: omniflux.of:907
+    print("OmniFlux version " + global.vars.VERSION);
     //! OF_LINE: omniflux.of:908
-    if (cli.strict) {
-      //! OF_LINE: omniflux.of:909
-      cfg = { api_key: "" };
-      //! OF_LINE: omniflux.of:910
-    } else {
-      //! OF_LINE: omniflux.of:911
-      cfg = await run_wizard();
-      //! OF_LINE: omniflux.of:912
-    }
-    //! OF_LINE: omniflux.of:913
-  } else {
-    //! OF_LINE: omniflux.of:914
-    cfg = await config_load();
-    //! OF_LINE: omniflux.of:915
+    exit(0);
+    //! OF_LINE: omniflux.of:909
   }
+  //! OF_LINE: omniflux.of:910
+  //! OF_LINE: omniflux.of:911
+  if (cli.setup) {
+    //! OF_LINE: omniflux.of:912
+    await run_wizard();
+    //! OF_LINE: omniflux.of:913
+    exit(0);
+    //! OF_LINE: omniflux.of:914
+  }
+  //! OF_LINE: omniflux.of:915
   //! OF_LINE: omniflux.of:916
   //! OF_LINE: omniflux.of:917
-  cfg.verbose = cli.verbose;
+  let cfg = null;
   //! OF_LINE: omniflux.of:918
-  //! OF_LINE: omniflux.of:919
-  //! OF_LINE: omniflux.of:920
-  if (cli.input_file == "") {
-    //! OF_LINE: omniflux.of:921
-    await interactive_chat(cfg);
-    //! OF_LINE: omniflux.of:922
-    exit(0);
-    //! OF_LINE: omniflux.of:923
-  }
-  //! OF_LINE: omniflux.of:924
-  //! OF_LINE: omniflux.of:925
-  if (cli.watch) {
-    //! OF_LINE: omniflux.of:926
-    await watch_loop_ai(cli.input_file, cli.compile_only, cli.strict, cfg);
-    //! OF_LINE: omniflux.of:927
+  if (!await config_exists()) {
+    //! OF_LINE: omniflux.of:919
+    if (cli.strict) {
+      //! OF_LINE: omniflux.of:920
+      cfg = { api_key: "" };
+      //! OF_LINE: omniflux.of:921
+    } else {
+      //! OF_LINE: omniflux.of:922
+      cfg = await run_wizard();
+      //! OF_LINE: omniflux.of:923
+    }
+    //! OF_LINE: omniflux.of:924
   } else {
-    //! OF_LINE: omniflux.of:928
-    let result = await build_once(cli.input_file, cli.compile_only, cli.strict, cfg, cli.force);
-    //! OF_LINE: omniflux.of:929
-    if (!result.ok) {
-      //! OF_LINE: omniflux.of:930
-      exit(1);
-      //! OF_LINE: omniflux.of:931
-    }
-    //! OF_LINE: omniflux.of:932
-    if (!cli.compile_only) {
-      //! OF_LINE: omniflux.of:933
-      let run_out = await run_output(result.output, cli.run_args);
-      //! OF_LINE: omniflux.of:934
-      //! OF_LINE: omniflux.of:935
-      //! OF_LINE: omniflux.of:936
-      if (run_out && match(run_out, "/ReferenceError|TypeError|is not defined|Cannot read properties|is not a function/") && !cli.strict) {
-        //! OF_LINE: omniflux.of:937
-        print("\x1B[1;33mRuntime error detected. Falling back to AI Compiler...\x1B[0m");
-        //! OF_LINE: omniflux.of:938
-        let abs_input2 = pathresolve(cli.input_file);
-        //! OF_LINE: omniflux.of:939
-        let deps2 = await get_all_dependencies(abs_input2, null);
-        //! OF_LINE: omniflux.of:940
-        //! OF_LINE: omniflux.of:941
-        for (let dep_path2 of deps2) {
-          //! OF_LINE: omniflux.of:942
-          let cache_path2 = await get_cache_path(dep_path2);
-          //! OF_LINE: omniflux.of:943
-          if (fileexists(cache_path2)) {
-            //! OF_LINE: omniflux.of:944
-            filedelete(cache_path2);
-            //! OF_LINE: omniflux.of:945
-          }
-          //! OF_LINE: omniflux.of:946
-          await ai_compile_file(cfg, dep_path2, cache_path2, run_out);
-          //! OF_LINE: omniflux.of:947
-        }
-        //! OF_LINE: omniflux.of:948
-        //! OF_LINE: omniflux.of:949
-        if (cfg != null && cfg.was_healed) {
-          //! OF_LINE: omniflux.of:950
-          let rebuild_res = await build_once(cli.input_file, cli.compile_only, cli.strict, cfg, true);
-          //! OF_LINE: omniflux.of:951
-          if (rebuild_res.ok) {
-            //! OF_LINE: omniflux.of:952
-            await run_output(rebuild_res.output, cli.run_args);
-            //! OF_LINE: omniflux.of:953
-          }
-          //! OF_LINE: omniflux.of:954
-        } else {
-          //! OF_LINE: omniflux.of:955
-          //! OF_LINE: omniflux.of:956
-          let abs_inp2 = pathresolve(cli.input_file);
-          //! OF_LINE: omniflux.of:957
-          let out_path2 = await get_output_path(abs_inp2);
-          //! OF_LINE: omniflux.of:958
-          let ai_deps = await get_all_dependencies(abs_inp2, null);
-          //! OF_LINE: omniflux.of:959
-          let ai_map = {};
-          //! OF_LINE: omniflux.of:960
-          for (let ai_dep of ai_deps) {
-            //! OF_LINE: omniflux.of:961
-            let ai_cache = await get_cache_path(ai_dep);
-            //! OF_LINE: omniflux.of:962
-            ai_map[ai_dep] = fileread(ai_cache);
-            //! OF_LINE: omniflux.of:963
-          }
-          //! OF_LINE: omniflux.of:964
-          let result2 = await build(abs_inp2, out_path2, ai_map);
-          //! OF_LINE: omniflux.of:965
-          if (result2.ok) {
-            //! OF_LINE: omniflux.of:966
-            await run_output(result2.output, cli.run_args);
-            //! OF_LINE: omniflux.of:967
-          }
-          //! OF_LINE: omniflux.of:968
-        }
-        //! OF_LINE: omniflux.of:969
-      }
-      //! OF_LINE: omniflux.of:970
-    }
-    //! OF_LINE: omniflux.of:971
-    exit(0);
-    //! OF_LINE: omniflux.of:972
+    //! OF_LINE: omniflux.of:925
+    cfg = await config_load();
+    //! OF_LINE: omniflux.of:926
   }
-  //! OF_LINE: omniflux.of:973
+  //! OF_LINE: omniflux.of:927
+  //! OF_LINE: omniflux.of:928
+  cfg.verbose = cli.verbose;
+  //! OF_LINE: omniflux.of:929
+  //! OF_LINE: omniflux.of:930
+  //! OF_LINE: omniflux.of:931
+  if (cli.input_file == "") {
+    //! OF_LINE: omniflux.of:932
+    await interactive_chat(cfg);
+    //! OF_LINE: omniflux.of:933
+    exit(0);
+    //! OF_LINE: omniflux.of:934
+  }
+  //! OF_LINE: omniflux.of:935
+  //! OF_LINE: omniflux.of:936
+  if (cli.watch) {
+    //! OF_LINE: omniflux.of:937
+    await watch_loop_ai(cli.input_file, cli.compile_only, cli.strict, cfg);
+    //! OF_LINE: omniflux.of:938
+  } else {
+    //! OF_LINE: omniflux.of:939
+    let result = await build_once(cli.input_file, cli.compile_only, cli.strict, cfg, cli.force);
+    //! OF_LINE: omniflux.of:940
+    if (!result.ok) {
+      //! OF_LINE: omniflux.of:941
+      exit(1);
+      //! OF_LINE: omniflux.of:942
+    }
+    //! OF_LINE: omniflux.of:943
+    if (!cli.compile_only) {
+      //! OF_LINE: omniflux.of:944
+      let run_out = await run_output(result.output, cli.run_args);
+      //! OF_LINE: omniflux.of:945
+      //! OF_LINE: omniflux.of:946
+      //! OF_LINE: omniflux.of:947
+      if (run_out && match(run_out, "/ReferenceError|TypeError|is not defined|Cannot read properties|is not a function/") && !cli.strict) {
+        //! OF_LINE: omniflux.of:948
+        print("\x1B[1;33mRuntime error detected. Falling back to AI Compiler...\x1B[0m");
+        //! OF_LINE: omniflux.of:949
+        let abs_input2 = pathresolve(cli.input_file);
+        //! OF_LINE: omniflux.of:950
+        let deps2 = await get_all_dependencies(abs_input2, null);
+        //! OF_LINE: omniflux.of:951
+        //! OF_LINE: omniflux.of:952
+        for (let dep_path2 of deps2) {
+          //! OF_LINE: omniflux.of:953
+          let cache_path2 = await get_cache_path(dep_path2);
+          //! OF_LINE: omniflux.of:954
+          if (fileexists(cache_path2)) {
+            //! OF_LINE: omniflux.of:955
+            filedelete(cache_path2);
+            //! OF_LINE: omniflux.of:956
+          }
+          //! OF_LINE: omniflux.of:957
+          await ai_compile_file(cfg, dep_path2, cache_path2, run_out);
+          //! OF_LINE: omniflux.of:958
+        }
+        //! OF_LINE: omniflux.of:959
+        //! OF_LINE: omniflux.of:960
+        if (cfg != null && cfg.was_healed) {
+          //! OF_LINE: omniflux.of:961
+          let rebuild_res = await build_once(cli.input_file, cli.compile_only, cli.strict, cfg, true);
+          //! OF_LINE: omniflux.of:962
+          if (rebuild_res.ok) {
+            //! OF_LINE: omniflux.of:963
+            await run_output(rebuild_res.output, cli.run_args);
+            //! OF_LINE: omniflux.of:964
+          }
+          //! OF_LINE: omniflux.of:965
+        } else {
+          //! OF_LINE: omniflux.of:966
+          //! OF_LINE: omniflux.of:967
+          let abs_inp2 = pathresolve(cli.input_file);
+          //! OF_LINE: omniflux.of:968
+          let out_path2 = await get_output_path(abs_inp2);
+          //! OF_LINE: omniflux.of:969
+          let ai_deps = await get_all_dependencies(abs_inp2, null);
+          //! OF_LINE: omniflux.of:970
+          let ai_map = {};
+          //! OF_LINE: omniflux.of:971
+          for (let ai_dep of ai_deps) {
+            //! OF_LINE: omniflux.of:972
+            let ai_cache = await get_cache_path(ai_dep);
+            //! OF_LINE: omniflux.of:973
+            ai_map[ai_dep] = fileread(ai_cache);
+            //! OF_LINE: omniflux.of:974
+          }
+          //! OF_LINE: omniflux.of:975
+          let result2 = await build(abs_inp2, out_path2, ai_map);
+          //! OF_LINE: omniflux.of:976
+          if (result2.ok) {
+            //! OF_LINE: omniflux.of:977
+            await run_output(result2.output, cli.run_args);
+            //! OF_LINE: omniflux.of:978
+          }
+          //! OF_LINE: omniflux.of:979
+        }
+        //! OF_LINE: omniflux.of:980
+      }
+      //! OF_LINE: omniflux.of:981
+    }
+    //! OF_LINE: omniflux.of:982
+    exit(0);
+    //! OF_LINE: omniflux.of:983
+  }
+  //! OF_LINE: omniflux.of:984
 }
-//! OF_LINE: omniflux.of:974
-//! OF_LINE: omniflux.of:975
+//! OF_LINE: omniflux.of:985
+//! OF_LINE: omniflux.of:986
 global.parse_args = parse_args;
 global.print_usage = print_usage;
 global.config_path = config_path;
