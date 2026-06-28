@@ -1,5 +1,3 @@
-include "stdlib/mysql.of"
-
 # === AI Generated Code Start ===
 # Request: Fix 'rowz is not defined' error in mysqlquery task
 define task mysqlquery(query, params) {
