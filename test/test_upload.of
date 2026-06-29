@@ -1,0 +1,44 @@
+include "stdlib/network.of"
+include "stdlib/system.of"
+
+listen on port 3080
+
+POST "/upload" (req, res) {
+    print("Received upload request...")
+    var ok = uploadfile(req, scriptdir())
+    if ok {
+        respond json { "success": true, "files": req.files, "body": req.body }
+    } else {
+        respond status 500 and json { "success": false, "error": "upload failed" }
+    }
+}
+
+on start {
+    print("Server started on port 3080...")
+    wait 1 second
+
+    # We run curl in the background/system command to test the upload
+    print("Running curl request...")
+    var curl_cmd = "curl -s -F \"myfile=@test/test.of\" -F \"username=shira\" http://localhost:3080/upload"
+    var response_str = system(curl_cmd)
+    print("Curl response: %s", response_str)
+
+    # Let's parse the response to check if it succeeded
+    var response = jsonparse(response_str)
+    if response && response.success {
+        print("Upload test succeeded!")
+        var uploaded_file_path = response.files[0].path
+        if fileexists(uploaded_file_path) {
+            print("Uploaded file exists at: %s", uploaded_file_path)
+            filedelete(uploaded_file_path)
+            print("Cleaned up uploaded file.")
+            exit(0)
+        } else {
+            print("Error: Uploaded file does not exist on disk!")
+            exit(1)
+        }
+    } else {
+        print("Error: Upload response failed or was malformed!")
+        exit(1)
+    }
+}
