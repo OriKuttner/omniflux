@@ -60,6 +60,10 @@ cp ./runtime.js "$BUILD_DIR/usr/local/share/omniflux/runtime.js"
 mkdir -p "$BUILD_DIR/usr/local/share/omniflux/assets"
 cp -r ./assets/* "$BUILD_DIR/usr/local/share/omniflux/assets/"
 
+# 5.5. Copy stdlib to /usr/local/share/omniflux/stdlib
+mkdir -p "$BUILD_DIR/usr/local/share/omniflux/stdlib"
+cp -r ./stdlib/* "$BUILD_DIR/usr/local/share/omniflux/stdlib/"
+
 # 6. Copy the VS Code extension
 cp -r ./editors/vscode "$BUILD_DIR/usr/share/omniflux/extensions/omniflux-support"
 

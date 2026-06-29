@@ -1197,302 +1197,308 @@ document.addEventListener('click', async (e) => {
       "networkpost",
       "network_post",
       //! OF_LINE: symbols.of:53
+      "uploadfile",
+      "upload_file",
       //! OF_LINE: symbols.of:54
-      "template",
       //! OF_LINE: symbols.of:55
+      "template",
       //! OF_LINE: symbols.of:56
-      "len",
       //! OF_LINE: symbols.of:57
-      "keys",
+      "len",
       //! OF_LINE: symbols.of:58
+      "keys",
+      //! OF_LINE: symbols.of:59
       "errorinfo",
       "error_info",
-      //! OF_LINE: symbols.of:59
-      "match",
       //! OF_LINE: symbols.of:60
+      "match",
+      //! OF_LINE: symbols.of:61
       "strsplit",
       "str_split",
-      //! OF_LINE: symbols.of:61
+      //! OF_LINE: symbols.of:62
       "strtrim",
       "str_trim",
-      //! OF_LINE: symbols.of:62
+      //! OF_LINE: symbols.of:63
       "strsub",
       "str_sub",
-      //! OF_LINE: symbols.of:63
+      //! OF_LINE: symbols.of:64
       "strindexof",
       "str_index_of",
-      //! OF_LINE: symbols.of:64
+      //! OF_LINE: symbols.of:65
       "strlastindexof",
       "str_last_index_of",
-      //! OF_LINE: symbols.of:65
+      //! OF_LINE: symbols.of:66
       "strrepeat",
       "str_repeat",
-      //! OF_LINE: symbols.of:66
+      //! OF_LINE: symbols.of:67
       "strreplace",
       "str_replace",
-      //! OF_LINE: symbols.of:67
+      //! OF_LINE: symbols.of:68
       "strupper",
       "str_upper",
-      //! OF_LINE: symbols.of:68
+      //! OF_LINE: symbols.of:69
       "strlower",
       "str_lower",
-      //! OF_LINE: symbols.of:69
       //! OF_LINE: symbols.of:70
+      //! OF_LINE: symbols.of:71
       "arraypush",
       "array_push",
-      //! OF_LINE: symbols.of:71
+      //! OF_LINE: symbols.of:72
       "arrayunshift",
       "array_unshift",
-      //! OF_LINE: symbols.of:72
+      //! OF_LINE: symbols.of:73
       "arraypop",
       "array_pop",
-      //! OF_LINE: symbols.of:73
+      //! OF_LINE: symbols.of:74
       "arrayshift",
       "array_shift",
-      //! OF_LINE: symbols.of:74
+      //! OF_LINE: symbols.of:75
       "arraycontains",
       "array_contains",
-      //! OF_LINE: symbols.of:75
+      //! OF_LINE: symbols.of:76
       "arrayjoin",
       "array_join",
-      //! OF_LINE: symbols.of:76
+      //! OF_LINE: symbols.of:77
       "arrayslice",
       "array_slice",
-      //! OF_LINE: symbols.of:77
+      //! OF_LINE: symbols.of:78
       "arrayreverse",
       "array_reverse",
-      //! OF_LINE: symbols.of:78
+      //! OF_LINE: symbols.of:79
       "arraysort",
       "array_sort",
-      //! OF_LINE: symbols.of:79
+      //! OF_LINE: symbols.of:80
       "arraymap",
       "array_map",
-      //! OF_LINE: symbols.of:80
+      //! OF_LINE: symbols.of:81
       "arrayfilter",
       "array_filter",
-      //! OF_LINE: symbols.of:81
+      //! OF_LINE: symbols.of:82
       "arrayfind",
       "array_find",
-      //! OF_LINE: symbols.of:82
       //! OF_LINE: symbols.of:83
+      //! OF_LINE: symbols.of:84
       "pathjoin",
       "path_join",
-      //! OF_LINE: symbols.of:84
+      //! OF_LINE: symbols.of:85
       "pathresolve",
       "path_resolve",
-      //! OF_LINE: symbols.of:85
+      //! OF_LINE: symbols.of:86
       "pathdirname",
       "path_dir_name",
-      //! OF_LINE: symbols.of:86
+      //! OF_LINE: symbols.of:87
       "pathbasename",
       "path_base_name",
-      //! OF_LINE: symbols.of:87
+      //! OF_LINE: symbols.of:88
       "pathextension",
       "path_extension",
-      //! OF_LINE: symbols.of:88
+      //! OF_LINE: symbols.of:89
       "pathisabsolute",
       "path_is_absolute",
-      //! OF_LINE: symbols.of:89
       //! OF_LINE: symbols.of:90
+      //! OF_LINE: symbols.of:91
       "time",
       "microtime",
       "micro_time",
-      //! OF_LINE: symbols.of:91
+      //! OF_LINE: symbols.of:92
       "dateyear",
       "date_year",
-      //! OF_LINE: symbols.of:92
+      //! OF_LINE: symbols.of:93
       "datemonth",
       "date_month",
-      //! OF_LINE: symbols.of:93
+      //! OF_LINE: symbols.of:94
       "dateday",
       "date_day",
-      //! OF_LINE: symbols.of:94
+      //! OF_LINE: symbols.of:95
       "datehour",
       "date_hour",
-      //! OF_LINE: symbols.of:95
+      //! OF_LINE: symbols.of:96
       "dateminute",
       "date_minute",
-      //! OF_LINE: symbols.of:96
+      //! OF_LINE: symbols.of:97
       "datesecond",
       "date_second",
-      //! OF_LINE: symbols.of:97
+      //! OF_LINE: symbols.of:98
       "dateweekday",
       "date_weekday",
-      //! OF_LINE: symbols.of:98
       //! OF_LINE: symbols.of:99
-      "describe",
       //! OF_LINE: symbols.of:100
+      "describe",
       //! OF_LINE: symbols.of:101
+      //! OF_LINE: symbols.of:102
       "jsonparse",
       "json_parse",
-      //! OF_LINE: symbols.of:102
+      //! OF_LINE: symbols.of:103
       "jsondecode",
       "json_decode",
-      //! OF_LINE: symbols.of:103
+      //! OF_LINE: symbols.of:104
       "jsonencode",
       "json_encode",
-      //! OF_LINE: symbols.of:104
       //! OF_LINE: symbols.of:105
+      //! OF_LINE: symbols.of:106
       "args",
       "global",
       "console",
       "require",
       "module",
       "process",
-      //! OF_LINE: symbols.of:106
+      //! OF_LINE: symbols.of:107
       "Math",
       "JSON",
       "Array",
       "Object",
       "String",
       "Number",
-      //! OF_LINE: symbols.of:107
+      //! OF_LINE: symbols.of:108
       "Boolean",
       "Error",
       "setTimeout",
       "setInterval",
-      //! OF_LINE: symbols.of:108
+      //! OF_LINE: symbols.of:109
       "clearTimeout",
       "clearInterval",
       "NaN"
-      //! OF_LINE: symbols.of:109
+      //! OF_LINE: symbols.of:110
     ];
-    //! OF_LINE: symbols.of:110
     //! OF_LINE: symbols.of:111
     //! OF_LINE: symbols.of:112
     //! OF_LINE: symbols.of:113
+    //! OF_LINE: symbols.of:114
     var ASYNC_BUILTINS = [
-      //! OF_LINE: symbols.of:114
-      "input",
       //! OF_LINE: symbols.of:115
+      "input",
+      //! OF_LINE: symbols.of:116
       "cacheset",
       "cache_set",
-      //! OF_LINE: symbols.of:116
+      //! OF_LINE: symbols.of:117
       "cacheget",
       "cache_get",
-      //! OF_LINE: symbols.of:117
+      //! OF_LINE: symbols.of:118
       "mysqlconnect",
       "mysql_connect",
-      //! OF_LINE: symbols.of:118
+      //! OF_LINE: symbols.of:119
       "mysqlquery",
       "mysql_query",
-      //! OF_LINE: symbols.of:119
+      //! OF_LINE: symbols.of:120
       "mysqlclose",
       "mysql_close",
-      //! OF_LINE: symbols.of:120
+      //! OF_LINE: symbols.of:121
       "networkget",
       "network_get",
-      //! OF_LINE: symbols.of:121
+      //! OF_LINE: symbols.of:122
       "networkpost",
       "network_post",
-      //! OF_LINE: symbols.of:122
+      //! OF_LINE: symbols.of:123
+      "uploadfile",
+      "upload_file",
+      //! OF_LINE: symbols.of:124
       "arraymap",
       "array_map",
-      //! OF_LINE: symbols.of:123
+      //! OF_LINE: symbols.of:125
       "arrayfilter",
       "array_filter",
-      //! OF_LINE: symbols.of:124
+      //! OF_LINE: symbols.of:126
       "arrayfind",
       "array_find",
-      //! OF_LINE: symbols.of:125
+      //! OF_LINE: symbols.of:127
       "arraysort",
       "array_sort"
-      //! OF_LINE: symbols.of:126
+      //! OF_LINE: symbols.of:128
     ];
-    //! OF_LINE: symbols.of:127
-    //! OF_LINE: symbols.of:128
     //! OF_LINE: symbols.of:129
     //! OF_LINE: symbols.of:130
     //! OF_LINE: symbols.of:131
     //! OF_LINE: symbols.of:132
+    //! OF_LINE: symbols.of:133
+    //! OF_LINE: symbols.of:134
     async function prescan_tasks2(content) {
       try {
-        //! OF_LINE: symbols.of:133
-        let tasks = {};
-        //! OF_LINE: symbols.of:134
         //! OF_LINE: symbols.of:135
-        let lines = strsplit2(content, "\n");
+        let tasks = {};
         //! OF_LINE: symbols.of:136
+        //! OF_LINE: symbols.of:137
+        let lines = strsplit2(content, "\n");
+        //! OF_LINE: symbols.of:138
         for (let line of lines) {
-          //! OF_LINE: symbols.of:137
-          let clean = strreplace2(line, "/#[^\n]*/", "");
-          //! OF_LINE: symbols.of:138
-          clean = strtrim2(clean);
           //! OF_LINE: symbols.of:139
+          let clean = strreplace2(line, "/#[^\n]*/", "");
           //! OF_LINE: symbols.of:140
-          let m1 = match2(clean, "/^define\\s+task\\s+(\\w+)/i");
+          clean = strtrim2(clean);
           //! OF_LINE: symbols.of:141
+          //! OF_LINE: symbols.of:142
+          let m1 = match2(clean, "/^define\\s+task\\s+(\\w+)/i");
+          //! OF_LINE: symbols.of:143
           if (m1) {
-            //! OF_LINE: symbols.of:142
+            //! OF_LINE: symbols.of:144
             tasks[m1[0]] = true;
-            //! OF_LINE: symbols.of:143
+            //! OF_LINE: symbols.of:145
           }
-          //! OF_LINE: symbols.of:144
-          //! OF_LINE: symbols.of:145
-          let m2 = match2(clean, "/^fn\\s+(\\w+)/i");
           //! OF_LINE: symbols.of:146
+          //! OF_LINE: symbols.of:147
+          let m2 = match2(clean, "/^fn\\s+(\\w+)/i");
+          //! OF_LINE: symbols.of:148
           if (m2) {
-            //! OF_LINE: symbols.of:147
+            //! OF_LINE: symbols.of:149
             tasks[m2[0]] = true;
-            //! OF_LINE: symbols.of:148
+            //! OF_LINE: symbols.of:150
           }
-          //! OF_LINE: symbols.of:149
+          //! OF_LINE: symbols.of:151
         }
-        //! OF_LINE: symbols.of:150
-        //! OF_LINE: symbols.of:151
-        return tasks;
         //! OF_LINE: symbols.of:152
+        //! OF_LINE: symbols.of:153
+        return tasks;
+        //! OF_LINE: symbols.of:154
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:153
-    //! OF_LINE: symbols.of:154
     //! OF_LINE: symbols.of:155
     //! OF_LINE: symbols.of:156
+    //! OF_LINE: symbols.of:157
+    //! OF_LINE: symbols.of:158
     async function is_builtin(name) {
       try {
-        //! OF_LINE: symbols.of:157
+        //! OF_LINE: symbols.of:159
         return arraycontains2(BUILTINS, name);
-        //! OF_LINE: symbols.of:158
+        //! OF_LINE: symbols.of:160
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:159
-    //! OF_LINE: symbols.of:160
     //! OF_LINE: symbols.of:161
     //! OF_LINE: symbols.of:162
     //! OF_LINE: symbols.of:163
+    //! OF_LINE: symbols.of:164
+    //! OF_LINE: symbols.of:165
     async function is_async(name, user_tasks) {
       try {
-        //! OF_LINE: symbols.of:164
+        //! OF_LINE: symbols.of:166
         if (arraycontains2(ASYNC_BUILTINS, name)) {
-          //! OF_LINE: symbols.of:165
+          //! OF_LINE: symbols.of:167
           return true;
-          //! OF_LINE: symbols.of:166
-        }
-        //! OF_LINE: symbols.of:167
-        if (user_tasks[name]) {
           //! OF_LINE: symbols.of:168
-          return true;
-          //! OF_LINE: symbols.of:169
         }
-        //! OF_LINE: symbols.of:170
+        //! OF_LINE: symbols.of:169
+        if (user_tasks[name]) {
+          //! OF_LINE: symbols.of:170
+          return true;
+          //! OF_LINE: symbols.of:171
+        }
+        //! OF_LINE: symbols.of:172
         return false;
-        //! OF_LINE: symbols.of:171
+        //! OF_LINE: symbols.of:173
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:172
-    //! OF_LINE: symbols.of:173
-    global.BUILTINS = BUILTINS;
     //! OF_LINE: symbols.of:174
-    global.ASYNC_BUILTINS = ASYNC_BUILTINS;
     //! OF_LINE: symbols.of:175
+    global.BUILTINS = BUILTINS;
     //! OF_LINE: symbols.of:176
+    global.ASYNC_BUILTINS = ASYNC_BUILTINS;
     //! OF_LINE: symbols.of:177
+    //! OF_LINE: symbols.of:178
+    //! OF_LINE: symbols.of:179
     global.prescan_tasks = prescan_tasks2;
     global.is_builtin = is_builtin;
     global.is_async = is_async;
@@ -11290,10 +11296,186 @@ document.addEventListener('click', async (e) => {
     }
     //! OF_LINE: network.of:81
     //! OF_LINE: network.of:82
+    async function uploadfile(req, dest_dir) {
+      try {
+        //! OF_LINE: network.of:83
+        //! OF_LINE: network.of:84
+        return new Promise((resolve, reject) => {
+          //! OF_LINE: network.of:85
+          const contentType = req.headers["content-type"] || "";
+          //! OF_LINE: network.of:86
+          const boundaryMatch = contentType.match(/boundary=(.+)/);
+          //! OF_LINE: network.of:87
+          if (!boundaryMatch) {
+            //! OF_LINE: network.of:88
+            reject(new Error("\u05DC\u05D0 \u05E0\u05DE\u05E6\u05D0 Multipart boundary \u05D1\u05D1\u05E7\u05E9\u05D4"));
+            //! OF_LINE: network.of:89
+            return;
+            //! OF_LINE: network.of:90
+          }
+          //! OF_LINE: network.of:91
+          //! OF_LINE: network.of:92
+          const boundary = Buffer.from("--" + boundaryMatch[1]);
+          //! OF_LINE: network.of:93
+          const chunks = [];
+          //! OF_LINE: network.of:94
+          //! OF_LINE: network.of:95
+          req.on("data", (chunk) => chunks.push(chunk));
+          //! OF_LINE: network.of:96
+          req.on("end", () => {
+            //! OF_LINE: network.of:97
+            try {
+              //! OF_LINE: network.of:98
+              const fs3 = require("fs");
+              //! OF_LINE: network.of:99
+              const path3 = require("path");
+              //! OF_LINE: network.of:100
+              const buffer = Buffer.concat(chunks);
+              //! OF_LINE: network.of:101
+              const parts = [];
+              //! OF_LINE: network.of:102
+              let start = 0;
+              //! OF_LINE: network.of:103
+              //! OF_LINE: network.of:104
+              while (start < buffer.length) {
+                //! OF_LINE: network.of:106
+                const index = buffer.indexOf(boundary, start);
+                //! OF_LINE: network.of:107
+                if (index === -1)
+                  break;
+                //! OF_LINE: network.of:108
+                //! OF_LINE: network.of:109
+                const nextIndex = buffer.indexOf(boundary, index + boundary.length);
+                //! OF_LINE: network.of:110
+                if (nextIndex === -1)
+                  break;
+                //! OF_LINE: network.of:111
+                //! OF_LINE: network.of:112
+                const part = buffer.slice(index + boundary.length + 2, nextIndex - 2);
+                parts.push(part);
+                //! OF_LINE: network.of:114
+                start = nextIndex;
+                //! OF_LINE: network.of:115
+              }
+              //! OF_LINE: network.of:116
+              //! OF_LINE: network.of:117
+              req.body = req.body || {};
+              //! OF_LINE: network.of:118
+              req.files = req.files || [];
+              //! OF_LINE: network.of:119
+              //! OF_LINE: network.of:120
+              for (const part of parts) {
+                //! OF_LINE: network.of:121
+                const headerEnd = part.indexOf(Buffer.from("\r\n\r\n"));
+                //! OF_LINE: network.of:122
+                if (headerEnd === -1)
+                  continue;
+                //! OF_LINE: network.of:123
+                //! OF_LINE: network.of:124
+                const headersStr = part.slice(0, headerEnd).toString();
+                //! OF_LINE: network.of:125
+                const body = part.slice(headerEnd + 4);
+                //! OF_LINE: network.of:126
+                //! OF_LINE: network.of:127
+                const nameMatch = headersStr.match(/name=\x22([^\x22]+)\x22/);
+                //! OF_LINE: network.of:128
+                const filenameMatch = headersStr.match(/filename=\x22([^\x22]+)\x22/);
+                //! OF_LINE: network.of:129
+                //! OF_LINE: network.of:130
+                if (nameMatch) {
+                  //! OF_LINE: network.of:131
+                  const fieldName = nameMatch[1];
+                  //! OF_LINE: network.of:132
+                  if (filenameMatch) {
+                    //! OF_LINE: network.of:133
+                    const originalName = filenameMatch[1];
+                    //! OF_LINE: network.of:135
+                    if (!originalName)
+                      continue;
+                    //! OF_LINE: network.of:136
+                    //! OF_LINE: network.of:137
+                    const ext = path3.extname(originalName);
+                    //! OF_LINE: network.of:138
+                    const uniqueFilename = Date.now() + "-" + Math.round(Math.random() * 1e9) + ext;
+                    //! OF_LINE: network.of:139
+                    const fullPath = path3.join(dest_dir, uniqueFilename);
+                    //! OF_LINE: network.of:140
+                    //! OF_LINE: network.of:141
+                    fs3.writeFileSync(fullPath, body);
+                    //! OF_LINE: network.of:143
+                    //! OF_LINE: network.of:144
+                    const fileMetadata = {
+                      //! OF_LINE: network.of:145
+                      fieldname: fieldName,
+                      //! OF_LINE: network.of:146
+                      originalname: originalName,
+                      //! OF_LINE: network.of:147
+                      filename: uniqueFilename,
+                      //! OF_LINE: network.of:148
+                      path: fullPath,
+                      //! OF_LINE: network.of:149
+                      size: body.length
+                      //! OF_LINE: network.of:150
+                    };
+                    //! OF_LINE: network.of:151
+                    //! OF_LINE: network.of:152
+                    req.files.push(fileMetadata);
+                    //! OF_LINE: network.of:153
+                    if (!req.file) {
+                      //! OF_LINE: network.of:154
+                      req.file = fileMetadata;
+                    }
+                    //! OF_LINE: network.of:156
+                  } else {
+                    //! OF_LINE: network.of:157
+                    req.body[fieldName] = body.toString("utf8").trim();
+                    //! OF_LINE: network.of:159
+                  }
+                  //! OF_LINE: network.of:160
+                }
+                //! OF_LINE: network.of:161
+              }
+              //! OF_LINE: network.of:162
+              resolve(true);
+              //! OF_LINE: network.of:163
+            } catch (err) {
+              //! OF_LINE: network.of:164
+              reject(err);
+              //! OF_LINE: network.of:165
+            }
+            //! OF_LINE: network.of:166
+          });
+          //! OF_LINE: network.of:167
+          //! OF_LINE: network.of:168
+          req.on("error", (err) => reject(err));
+          //! OF_LINE: network.of:169
+        });
+        //! OF_LINE: network.of:170
+        //! OF_LINE: network.of:171
+      } catch (err) {
+        throw err;
+      }
+    }
+    //! OF_LINE: network.of:172
+    //! OF_LINE: network.of:173
+    async function upload_file(req, dest_dir) {
+      try {
+        //! OF_LINE: network.of:174
+        return await uploadfile(req, dest_dir);
+        //! OF_LINE: network.of:175
+      } catch (err) {
+        throw err;
+      }
+    }
+    //! OF_LINE: network.of:176
+    //! OF_LINE: network.of:177
+    //! OF_LINE: network.of:178
     global.networkget = networkget;
     global.network_get = network_get;
     global.networkpost = networkpost2;
     global.network_post = network_post;
+    global.uploadfile = uploadfile;
+    global.upload_file = upload_file;
     if (require.main === module2) {
       (async () => {
         const hooks = global.__on_start_hooks || [];
@@ -12884,7 +13066,7 @@ async function detect_missing_includes(source_code) {
     //! OF_LINE: omniflux.of:272
     //! OF_LINE: omniflux.of:273
     //! OF_LINE: omniflux.of:274
-    if (match(source_code, "/\\b(networkget|networkpost)\\b/")) {
+    if (match(source_code, "/\\b(networkget|networkpost|uploadfile|upload_file)\\b/")) {
       //! OF_LINE: omniflux.of:275
       if (!match(source_code, "/stdlib\\/network\\.of/")) {
         //! OF_LINE: omniflux.of:276

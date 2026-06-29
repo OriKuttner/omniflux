@@ -762,18 +762,17 @@ on start {
 Provides tasks for sending HTTP requests and talking to public APIs:
 * `networkget(url)`: Performs an HTTP GET request to the specified URL. Automatically parses and returns JSON if the response is JSON, otherwise returns plain text.
 * `networkpost(url, data)`: Performs an HTTP POST request to the specified URL, sending the data payload (either an object or a raw string).
+* `uploadfile(req, dest_dir)`: Parses a multipart/form-data request, saving uploaded files to `dest_dir` with unique filenames, and populates `req.files` (metadata array), `req.file` (shortcut to first file), and `req.body` (text fields).
 ```omniflux
 include "stdlib/network.of"
 
-on start {
-    # Fetch a joke from a public API
-    var joke = networkget("https://official-joke-api.appspot.com/random_joke")
-    print("Joke: %s", joke.setup)
-    print("Answer: %s", joke.punchline)
-    
-    # Submit data to an API
-    var response = networkpost("https://httpbin.org/post", { username: "Alice" })
-    print("Response status: %s", response.url)
+POST "/upload" (req, res) {
+    var ok = uploadfile(req, scriptdir() + "/uploads")
+    if ok {
+        respond json { "success": true, "files": req.files }
+    } else {
+        respond status 500 and json { "success": false }
+    }
 }
 ```
 

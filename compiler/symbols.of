@@ -51,6 +51,7 @@ var BUILTINS = [
     "setcookie", "set_cookie",
     "networkget", "network_get",
     "networkpost", "network_post",
+    "uploadfile", "upload_file",
     // Template
     "template",
     // Strings
@@ -120,6 +121,7 @@ var ASYNC_BUILTINS = [
     "mysqlclose", "mysql_close",
     "networkget", "network_get",
     "networkpost", "network_post",
+    "uploadfile", "upload_file",
     "arraymap", "array_map",
     "arrayfilter", "array_filter",
     "arrayfind", "array_find",
