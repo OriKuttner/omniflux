@@ -248,7 +248,14 @@ function getcookie(req, name) {
     const cookies = req.headers.cookie.split(';');
     for (let c of cookies) {
         const parts = c.split('=');
-        if (parts[0].trim() === name) return parts[1].trim();
+        if (parts[0].trim() === name) {
+            const val = parts[1].trim();
+            try {
+                return decodeURIComponent(val);
+            } catch (e) {
+                return val;
+            }
+        }
     }
     return null;
 }

@@ -13,7 +13,10 @@ vsix:
 	cp README.md editors/vscode/README.md
 	cd editors/vscode && npx -y @vscode/vsce package
 
-deb: vsix
+compiler:
+	omniflux compiler/omniflux.of --compile-only --force
+
+deb: vsix compiler
 	./build_deb.sh
 
 releases: deb

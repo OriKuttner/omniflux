@@ -117,7 +117,15 @@ define task validate(content, filename) {
             if word_match {
                 var word = word_match[0]
                 last_word = word
-                if word == "define" || word == "task" || word == "fn" || word == "on" || word == "GET" || word == "POST" || word == "PUT" || word == "DELETE" || word == "PATCH" {
+                var is_on_error = false
+                if word == "on" {
+                    var rest = strsub(line, i + len(word), length - i - len(word))
+                    var rest_trimmed = strtrim(rest)
+                    if match(rest_trimmed, "/^error\\b/i") {
+                        is_on_error = true
+                    }
+                }
+                if (word == "define" || word == "task" || word == "fn" || word == "on" || word == "GET" || word == "POST" || word == "PUT" || word == "DELETE" || word == "PATCH") && !is_on_error {
                     in_definition_state = true
                 }
                 i = i + len(word)
