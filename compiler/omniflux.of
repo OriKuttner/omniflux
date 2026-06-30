@@ -13,7 +13,7 @@
 //   7. Bundle with esbuild
 //   8. Run the output (unless --compile-only)
 
-$VERSION = "1.0.4"
+$VERSION = "1.0.5"
 
 include "compiler/bundler.of"
 include "compiler/validator.of"
@@ -289,6 +289,13 @@ define task detect_missing_includes(source_code) {
     if match(source_code, "/\\b(mysqlconnect|mysql_connect|mysqlquery|mysql_query|mysqlclose|mysql_close)\\b/") {
         if !match(source_code, "/stdlib\\/mysql\\.of/") {
             arraypush(missing, "stdlib/mysql.of")
+        }
+    }
+
+    // Check system
+    if match(source_code, "/\\b(system|exec|spawn|pterminate|pwait|pstatus)\\b/") {
+        if !match(source_code, "/stdlib\\/system\\.of/") {
+            arraypush(missing, "stdlib/system.of")
         }
     }
 
