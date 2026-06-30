@@ -185,6 +185,9 @@ define task count_braces(str) {
 define task pre_process_line(raw_line, user_tasks) {
     var line = strtrim(raw_line)
 
+    // Strip var / const / let from global variable declarations
+    line = strreplace(line, "/\\b(var|const|let)\\s+\\$/gi", "$")
+
     // --- $VAR → global.vars.VAR ---
     line = replace_globals(line)
 
@@ -809,7 +812,7 @@ define task transpile(content, filename, user_tasks, runtime_js) {
     // Start server if needed
     if state.server_port != "" {
         arraypush(output_lines, "global.__app_root = process.cwd();")
-        arraypush(output_lines, "app.listen(" + state.server_port + ", () => console.log('Server started on port ' + " + state.server_port + "));")
+        arraypush(output_lines, "app.listen(" + state.server_port + ", (err) => { if (err) throw err; console.log('Server started on port ' + " + state.server_port + "); });")
     }
 
     // Entry point runner
