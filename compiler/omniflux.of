@@ -13,7 +13,7 @@
 //   7. Bundle with esbuild
 //   8. Run the output (unless --compile-only)
 
-$VERSION = "1.0.3"
+$VERSION = "1.0.4"
 
 include "compiler/bundler.of"
 include "compiler/validator.of"
@@ -357,10 +357,35 @@ define task ai_compile_file(cfg, src_path, target_js, runtime_error = null) {
             @}
 
             if updated_source != null && updated_source != "" {
-                filewrite(src_path, updated_source)
-                print("\x1b[1;32m[Source file '%s' automatically updated/healed by AI!]\x1b[0m", pathbasename(src_path))
-                if cfg != null {
-                    cfg.was_healed = true
+                var original_len = len(source_code)
+                var updated_len = len(updated_source)
+
+                var is_suspicious = false
+                if original_len > 100 {
+                    if updated_len < original_len * 0.85 {
+                        is_suspicious = true
+                    }
+                }
+
+                var orig_has_start = match(source_code, "/\\bon\\s+start\\b/i")
+                var upd_has_start = match(updated_source, "/\\bon\\s+start\\b/i")
+                if orig_has_start && !upd_has_start {
+                    is_suspicious = true
+                }
+
+                if is_suspicious {
+                    print("\x1b[1;31m[OmniFlux Compiler Warning]: AI healed code is suspiciously shorter than the original file (%d vs %d chars) or missing key blocks. Skipping automatic source file overwrite to prevent truncation.\x1b[0m", original_len, updated_len)
+                } else {
+                    @{
+                        try {
+                            require('fs').copyFileSync(src_path, src_path + ".bak");
+                        } catch (e) {}
+                    @}
+                    filewrite(src_path, updated_source)
+                    print("\x1b[1;32m[Source file '%s' automatically updated/healed by AI! (Backup saved to .bak)]\x1b[0m", pathbasename(src_path))
+                    if cfg != null {
+                        cfg.was_healed = true
+                    }
                 }
             }
 
