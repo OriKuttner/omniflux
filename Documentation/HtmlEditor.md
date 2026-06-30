@@ -64,7 +64,8 @@ Include the assets in your HTML layout and insert the `<html-editor>` custom ele
 | :--- | :--- | :--- |
 | `name` | The name attribute for the hidden input field, used for standard form submissions. | `""` |
 | `content` | The initial HTML content to load into the editor. | `""` |
-| `dir` | Text direction alignment: `"ltr"` (left-to-right) or `"rtl"` (right-to-left). | `"ltr"` |
+| `dir` | Text direction alignment: `"ltr"` (left-to-right) or `"rtl"` (right-to-left). Controls layout and infers default translation. | `"ltr"` |
+| `lang` | The UI language: `"he"` (Hebrew) or `"en"` (English). If not specified, automatically determined by the `dir` attribute (Hebrew for `"rtl"`, English for `"ltr"`). | (dynamic) |
 | `cancel-url` | If supplied, renders a "Cancel" link pointing to this URL on the toolbar. | `""` |
 
 ---
@@ -148,3 +149,25 @@ GET "/public/*file" (req, res) {
    ```html
    <img src="/public/uploads/1782709013900-482783355.png">
    ```
+
+---
+
+## 4. Key Built-in Features 🌟
+
+### Dynamic Localization (i18n)
+The editor supports Hebrew and English UI texts (buttons, dialogs, warnings, and messages) out of the box. Changing the `dir` or `lang` attribute dynamically at runtime will instantly update all UI texts without losing cursor focus or editor state:
+```javascript
+// Switch editor language and direction to English dynamically
+const editor = document.querySelector('html-editor');
+editor.setAttribute('dir', 'ltr');  // Automatically switches UI text to English
+```
+
+### Auto-saving and Unsaved Changes Protection
+* **Autosave**: The editor checks for changes every 30 seconds. If the content is dirty (modified since the last save), it automatically performs an asynchronous form submission (via AJAX) to the form's `action` URL, showing a subtle "Saving..." / "Autosaving..." status indicator on the toolbar.
+* **Unsaved Warnings**: The editor registers a `beforeunload` listener that warns the user if they try to close or reload the browser tab while having unsaved changes in the editor.
+
+### Typographic Paragraph Indentation Normalization
+The editor automatically implements smart typographic paragraph rules:
+* It normalizes freeform line break behaviors into clean `<p>` paragraph structures.
+* It dynamically injects `style="text-indent: 0;"` to any paragraph that immediately follows one or more blank lines (or lines containing only spaces/line-breaks). This prevents unwanted text indentation after blank/spacing breaks, aligning with standard book and article typography.
+* It works in real-time on keystrokes (`O(1)` local inspection) ensuring smooth performance even for massive documents.
