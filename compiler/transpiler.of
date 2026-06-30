@@ -813,19 +813,29 @@ define task transpile(content, filename, user_tasks, runtime_js) {
     }
 
     // Entry point runner
-    arraypush(output_lines, "if (require.main === module) {")
-    arraypush(output_lines, "    (async () => {")
-    // Inject top-level awaited statements that can't be at module scope in CJS
-    for ds of deferred_stmts {
-        arraypush(output_lines, "        " + ds)
+    if state.server_port != "" {
+        arraypush(output_lines, "(async () => {")
+        for ds of deferred_stmts {
+            arraypush(output_lines, "    " + ds)
+        }
+        arraypush(output_lines, "    const hooks = global.__on_start_hooks || [];")
+        arraypush(output_lines, "    for (const hook of hooks) { await hook(); }")
+    } else {
+        arraypush(output_lines, "if (require.main === module) {")
+        arraypush(output_lines, "    (async () => {")
+        for ds of deferred_stmts {
+            arraypush(output_lines, "        " + ds)
+        }
+        arraypush(output_lines, "        const hooks = global.__on_start_hooks || [];")
+        arraypush(output_lines, "        for (const hook of hooks) { await hook(); }")
     }
-    arraypush(output_lines, "        const hooks = global.__on_start_hooks || [];")
-    arraypush(output_lines, "        for (const hook of hooks) { await hook(); }")
     arraypush(output_lines, "    })().catch(err => {")
     arraypush(output_lines, "        if (typeof formatRuntimeError === 'function') { formatRuntimeError(err); } else { console.error(err); }")
     arraypush(output_lines, "        process.exit(1);")
     arraypush(output_lines, "    });")
-    arraypush(output_lines, "}")
+    if state.server_port == "" {
+        arraypush(output_lines, "}")
+    }
 
     return { ok: true, js: arrayjoin(output_lines, "\n") }
 }

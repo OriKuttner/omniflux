@@ -10000,40 +10000,61 @@ document.addEventListener('click', async (e) => {
         //! OF_LINE: transpiler.of:813
         //! OF_LINE: transpiler.of:814
         //! OF_LINE: transpiler.of:815
-        arraypush2(output_lines, "if (require.main === module) {");
-        //! OF_LINE: transpiler.of:816
-        arraypush2(output_lines, "    (async () => {");
-        //! OF_LINE: transpiler.of:817
-        //! OF_LINE: transpiler.of:818
-        for (let ds of deferred_stmts) {
-          //! OF_LINE: transpiler.of:819
-          arraypush2(output_lines, "        " + ds);
+        if (state.server_port != "") {
+          //! OF_LINE: transpiler.of:816
+          arraypush2(output_lines, "(async () => {");
+          //! OF_LINE: transpiler.of:817
+          for (let ds of deferred_stmts) {
+            //! OF_LINE: transpiler.of:818
+            arraypush2(output_lines, "    " + ds);
+            //! OF_LINE: transpiler.of:819
+          }
           //! OF_LINE: transpiler.of:820
+          arraypush2(output_lines, "    const hooks = global.__on_start_hooks || [];");
+          //! OF_LINE: transpiler.of:821
+          arraypush2(output_lines, "    for (const hook of hooks) { await hook(); }");
+          //! OF_LINE: transpiler.of:822
+        } else {
+          //! OF_LINE: transpiler.of:823
+          arraypush2(output_lines, "if (require.main === module) {");
+          //! OF_LINE: transpiler.of:824
+          arraypush2(output_lines, "    (async () => {");
+          //! OF_LINE: transpiler.of:825
+          for (let ds of deferred_stmts) {
+            //! OF_LINE: transpiler.of:826
+            arraypush2(output_lines, "        " + ds);
+            //! OF_LINE: transpiler.of:827
+          }
+          //! OF_LINE: transpiler.of:828
+          arraypush2(output_lines, "        const hooks = global.__on_start_hooks || [];");
+          //! OF_LINE: transpiler.of:829
+          arraypush2(output_lines, "        for (const hook of hooks) { await hook(); }");
+          //! OF_LINE: transpiler.of:830
         }
-        //! OF_LINE: transpiler.of:821
-        arraypush2(output_lines, "        const hooks = global.__on_start_hooks || [];");
-        //! OF_LINE: transpiler.of:822
-        arraypush2(output_lines, "        for (const hook of hooks) { await hook(); }");
-        //! OF_LINE: transpiler.of:823
+        //! OF_LINE: transpiler.of:831
         arraypush2(output_lines, "    })().catch(err => {");
-        //! OF_LINE: transpiler.of:824
+        //! OF_LINE: transpiler.of:832
         arraypush2(output_lines, "        if (typeof formatRuntimeError === 'function') { formatRuntimeError(err); } else { console.error(err); }");
-        //! OF_LINE: transpiler.of:825
+        //! OF_LINE: transpiler.of:833
         arraypush2(output_lines, "        process.exit(1);");
-        //! OF_LINE: transpiler.of:826
+        //! OF_LINE: transpiler.of:834
         arraypush2(output_lines, "    });");
-        //! OF_LINE: transpiler.of:827
-        arraypush2(output_lines, "}");
-        //! OF_LINE: transpiler.of:828
-        //! OF_LINE: transpiler.of:829
+        //! OF_LINE: transpiler.of:835
+        if (state.server_port == "") {
+          //! OF_LINE: transpiler.of:836
+          arraypush2(output_lines, "}");
+          //! OF_LINE: transpiler.of:837
+        }
+        //! OF_LINE: transpiler.of:838
+        //! OF_LINE: transpiler.of:839
         return { ok: true, js: arrayjoin2(output_lines, "\n") };
-        //! OF_LINE: transpiler.of:830
+        //! OF_LINE: transpiler.of:840
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: transpiler.of:831
-    //! OF_LINE: transpiler.of:832
+    //! OF_LINE: transpiler.of:841
+    //! OF_LINE: transpiler.of:842
     global.ensure_parens = ensure_parens;
     global.clean_template_args = clean_template_args;
     global.replace_globals = replace_globals;
