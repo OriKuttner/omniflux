@@ -2,7 +2,7 @@
   "name": "omniflux-support",
   "displayName": "OmniFlux Language Support",
   "description": "Syntax highlighting and snippets for the OmniFlux Programming Language.",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "publisher": "omniflux",
   "homepage": "https://omniflux.helicontech.co.il",
   "repository": {

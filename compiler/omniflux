@@ -12665,7 +12665,7 @@ process.on("unhandledRejection", (reason) => {
 //! OF_LINE: omniflux.of:13
 //! OF_LINE: omniflux.of:14
 //! OF_LINE: omniflux.of:15
-global.vars.VERSION = "1.0.5";
+global.vars.VERSION = "1.0.6";
 //! OF_LINE: omniflux.of:16
 //! OF_LINE: omniflux.of:17
 require_bundler();
