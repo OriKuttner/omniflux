@@ -1,4 +1,4 @@
-.PHONY: all vsix deb releases clean
+.PHONY: all vsix compiler deb releases clean test
 
 all: vsix deb releases
 
@@ -13,14 +13,20 @@ vsix:
 	cp README.md editors/vscode/README.md
 	cd editors/vscode && npx -y @vscode/vsce package
 
-compiler:
+compiler: omniflux
+
+omniflux: compiler/omniflux.of compiler/bundler.of compiler/validator.of compiler/transpiler.of compiler/symbols.of stdlib/system.of stdlib/network.of
 	omniflux compiler/omniflux.of --compile-only --force
+	cp compiler/omniflux .
 
 deb: vsix compiler
 	./build_deb.sh
 
 releases: deb
 	./build_releases.sh
+
+test: compiler
+	./omniflux regressiontest/runner.of
 
 clean:
 	rm -rf editors/vscode/assets

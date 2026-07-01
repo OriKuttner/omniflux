@@ -1,0 +1,46 @@
+on start {
+    print("=== Testing Local JSON Database ===")
+    
+    # 1. Clean previous test runs
+    if fileexists("db.json") {
+        print with "Delete file db.json"
+        filedelete("db.json")
+    }
+    
+    # 2. Insert items
+    var u1 = dbinsert("users", { name: "Alice", role: "admin", age: 30 })
+    var u2 = dbinsert("users", { name: "Bob", role: "member", age: 25 })
+    var u3 = dbinsert("users", { name: "Charlie", role: "member", age: 35 })
+    
+    # Show all id's in database along with user name.
+    //print("Inserted Alice ID: %s", u1.id)
+    //print("Inserted Bob ID: %s", u2.id)
+    //print("Inserted Charlie ID: %s", u3.id)
+    
+    # 3. Select items
+    var admins = dbselect("users", { role: "admin" })
+    print("Number of admins: %d", len(admins))
+    print("First admin name: %s", admins[0].name)
+    
+    var members = dbselect("users", { role: "member" })
+    print("Number of members: %d", len(members))
+    
+    # 4. Update item
+    var updated = dbupdate("users", { id: u2.id }, { role: "admin", age: 26 })
+    print("Updated count: %d", updated)
+    
+    # Verify update
+    admins = dbselect("users", { role: "admin" })
+    print("Number of admins after update: %d (expected: 2)", len(admins))
+    
+    # 5. Delete item
+    var deleted = dbdelete("users", { id: u3.id })
+    print("Deleted count: %d", deleted)
+    
+    # Verify delete
+    var all_users = dbselect("users")
+    print("Total users remaining: %d (expected: 2)", len(all_users))
+    
+    
+    print("=== Local JSON Database Test Passed ===")
+}

@@ -1,0 +1,170 @@
+# runner.of - Automated Regression Test Suite for OmniFlux
+
+define task run_cmd(cmd, args) {
+    @{
+        const { spawn } = require('child_process');
+        return new Promise((resolve) => {
+            const child = spawn(cmd, args || [], { shell: true });
+            let output = '';
+            if (child.stdout) {
+                child.stdout.on('data', (data) => { output += data.toString(); });
+            }
+            if (child.stderr) {
+                child.stderr.on('data', (data) => { output += data.toString(); });
+            }
+            child.on('close', (code) => {
+                resolve({ code: code !== null ? code : 0, output: output });
+            });
+            child.on('error', (err) => {
+                resolve({ code: 1, output: output + (err ? err.message : '') });
+            });
+        });
+    @}
+}
+
+on start {
+    print("\n\u001b[1m=== Starting OmniFlux Regression Test Suite ===\u001b[0m\n")
+    
+    var passed = 0
+    var failed = 0
+    
+    # Define test cases
+    var test_files = [
+        "regressiontest/01_hello_world.of",
+        "regressiontest/test_main.of",
+        "regressiontest/test_multiple_lifecycle.of",
+        "regressiontest/test_validator.of",
+        "regressiontest/test_new_helpers.of",
+        "regressiontest/test_system.of",
+        "regressiontest/test_local_db.of",
+        "regressiontest/test_spawn_functions.of",
+        "regressiontest/test_node_block.of",
+        "regressiontest/test_node_block_error.of",
+        "regressiontest/test_syntax_errors_closure.of"
+    ]
+    
+    # Define expected failure status:
+    # 0: expected to compile and run successfully
+    # 1: expected to fail at compile-time
+    # 2: expected to compile successfully but fail at run-time
+    var test_behavior = [
+        0, # 01_hello_world.of
+        0, # test_main.of
+        0, # test_multiple_lifecycle.of
+        0, # test_validator.of
+        0, # test_new_helpers.of
+        0, # test_system.of
+        0, # test_local_db.of
+        0, # test_spawn_functions.of
+        0, # test_node_block.of
+        2, # test_node_block_error.of (runtime error)
+        1  # test_syntax_errors_closure.of (compile error)
+    ]
+    
+    # Define expected substrings to find in either compilation or execution output
+    var test_expected_substrings = [
+        "Hello, Alice!",                              # 01_hello_world.of
+        "No newline: 42 -> Now newline!",              # test_main.of
+        "Main on start 2",                            # test_multiple_lifecycle.of
+        "8 passed, 0 failed",                         # test_validator.of
+        "=== All tests completed successfully ===",   # test_new_helpers.of
+        "=== System Test Passed ===",                 # test_system.of
+        "=== Local JSON Database Test Passed ===",    # test_local_db.of
+        "=== Spawn functions test passed ===",        # test_spawn_functions.of
+        "Node block test completed successfully!",    # test_node_block.of
+        "test_node_block_error.of:9",                 # test_node_block_error.of
+        "SyntaxError"                                 # test_syntax_errors_closure.of
+    ]
+    
+    var i = 0
+    var total_tests = len(test_files)
+    
+    while i < total_tests {
+        var file_path = test_files[i]
+        var behavior = test_behavior[i]
+        var expected_sub = test_expected_substrings[i]
+        
+        printf("Running %s... ", file_path)
+        
+        # Step 1: Compile the script with strict mode
+        var comp_res = run_cmd("./omniflux", [file_path, "--compile-only", "--strict", "--force"])
+        
+        var is_ok = true
+        var actual_output = comp_res.output
+        var stage = "Compilation"
+        
+        if behavior == 1 {
+            # Expected to fail compilation
+            if comp_res.code == 0 {
+                is_ok = false
+            } else {
+                # Verify that the expected error message is present
+                var found = strindexof(comp_res.output, expected_sub)
+                if found < 0 {
+                    is_ok = false
+                }
+            }
+        } else {
+            # Expected to compile successfully
+            if comp_res.code != 0 {
+                is_ok = false
+            } else {
+                # Step 2: Run the compiled binary directly
+                stage = "Execution"
+                var binary_path = strreplace(file_path, ".of", "")
+                var run_res = run_cmd("./" + binary_path, [])
+                actual_output = run_res.output
+                
+                if behavior == 2 {
+                    # Expected to fail at runtime
+                    if run_res.code == 0 {
+                        is_ok = false
+                    } else {
+                        var found2 = strindexof(run_res.output, expected_sub)
+                        if found2 < 0 {
+                            is_ok = false
+                        }
+                    }
+                } else {
+                    # Expected to succeed at runtime
+                    if run_res.code != 0 {
+                        is_ok = false
+                    } else {
+                        var found3 = strindexof(run_res.output, expected_sub)
+                        if found3 < 0 {
+                            is_ok = false
+                        }
+                    }
+                }
+            }
+        }
+        
+        if is_ok {
+            print("\u001b[32m[ PASS ]\u001b[0m")
+            passed = passed + 1
+        } else {
+            print("\u001b[31m[ FAIL ]\u001b[0m")
+            print("----------------------------------------")
+            print("Failed Stage: %s", stage)
+            print("Expected Behavior Type: %d (0=Success, 1=CompileFail, 2=RunFail)", behavior)
+            print("Expected string: '%s'", expected_sub)
+            print("Actual output:")
+            print("%s", actual_output)
+            print("----------------------------------------")
+            failed = failed + 1
+        }
+        
+        i = i + 1
+    }
+    
+    print("\n\u001b[1m=== Test Run Summary ===\u001b[0m")
+    print("Passed: \u001b[32m%d\u001b[0m", passed)
+    print("Failed: \u001b[31m%d\u001b[0m", failed)
+    
+    if failed > 0 {
+        exit(1)
+    } else {
+        print("\n\u001b[32;1mAll regression tests passed successfully!\u001b[0m\n")
+        exit(0)
+    }
+}

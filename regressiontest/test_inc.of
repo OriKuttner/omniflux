@@ -1,0 +1,7 @@
+define task sayHello() {
+    print("Hello from local compilation!");
+}
+
+define task greet_user with name, age {
+    print("Greeted: %s (%d)", name, age)
+}

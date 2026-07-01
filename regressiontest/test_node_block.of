@@ -1,0 +1,26 @@
+on start {
+    print("Starting node block test")
+    
+    # We will declare a task that uses the node block to call node standard libraries
+    var res = call_node_fs()
+    print("Result from Node.js fs: %s", res)
+    
+    # Let's test a second task using the node block
+    var sum = add_in_node(5, 7)
+    print("Sum from Node: %d", sum)
+    print("Node block test completed successfully!")
+}
+
+define task call_node_fs {
+    @{
+        const fs = require('fs');
+        const content = fs.readFileSync('test/test_node_block.of', 'utf8');
+        return content.substring(0, 10);
+    @}
+}
+
+define task add_in_node(a, b) {
+    @{
+        return a + b;
+    @}
+}

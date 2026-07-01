@@ -1,0 +1,9 @@
+on start {
+    print("Testing real-world early closure detection")
+    
+    # Unexpected closing brace inside on start
+    }
+    
+    # Subsequent statements
+    var x = 10
+}

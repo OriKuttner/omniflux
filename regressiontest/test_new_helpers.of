@@ -1,0 +1,144 @@
+# test_new_helpers.of - Test suite for new standard functions
+include "stdlib/encrypt.of"
+
+define task doubler(x) {
+    return x * 2
+}
+
+define task is_even(x) {
+    return x % 2 == 0
+}
+
+define task is_three(x) {
+    return x == 3
+}
+
+on start {
+    print("=== Starting test suite for new helper functions ===")
+
+    # 1. Test strtrim
+    var t1 = strtrim("  hello  ")
+    print("strtrim both: '%s' (expected: 'hello')", t1)
+    
+    var t2 = strtrim("  hello  ", "left")
+    print("strtrim left: '%s' (expected: 'hello  ')", t2)
+    
+    var t3 = strtrim("  hello  ", "right")
+    print("strtrim right: '%s' (expected: '  hello')", t3)
+
+    # 2. Test strsub
+    var s1 = strsub("hello world", 6)
+    print("strsub from 6: '%s' (expected: 'world')", s1)
+    
+    var s2 = strsub("hello world", 0, 5)
+    print("strsub 0 to 5: '%s' (expected: 'hello')", s2)
+
+    # 3. Test strindexof & strlastindexof
+    var idx1 = strindexof("hello world", "world")
+    print("strindexof 'world': %d (expected: 6)", idx1)
+    
+    var idx2 = strindexof("hello world", "notfound")
+    print("strindexof 'notfound': %d (expected: -1)", idx2)
+    
+    var idx3 = strlastindexof("hello hello", "hello")
+    print("strlastindexof 'hello': %d (expected: 6)", idx3)
+
+    # 4. Test strrepeat
+    var rep = strrepeat("ab", 3)
+    print("strrepeat 'ab' 3 times: '%s' (expected: 'ababab')", rep)
+
+    # 5. Test strreplace
+    var repl1 = strreplace("hello world", "world", "everyone")
+    print("strreplace string: '%s' (expected: 'hello everyone')", repl1)
+    
+    var repl2 = strreplace("hello hello", "/hello/g", "hi")
+    print("strreplace regex global: '%s' (expected: 'hi hi')", repl2)
+
+    # 6. Test strupper & strlower
+    var upper = strupper("hello")
+    print("strupper: '%s' (expected: 'HELLO')", upper)
+    
+    var lower = strlower("HELLO")
+    print("strlower: '%s' (expected: 'hello')", lower)
+
+    # 7. Test strsplit with string and regex
+    var split1 = strsplit("a,b,c", ",")
+    print("strsplit string: %j (expected: ['a','b','c'])", split1)
+    
+    var split2 = strsplit("a  b   c", "/\\s+/")
+    print("strsplit regex: %j (expected: ['a','b','c'])", split2)
+
+    # 8. Test path utilities
+    var p1 = pathjoin("a", "b", "c")
+    print("pathjoin: '%s' (expected: 'a/b/c')", p1)
+    
+    var p2 = pathdirname("/a/b/c")
+    print("pathdirname: '%s' (expected: '/a/b')", p2)
+    
+    var p3 = pathbasename("/a/b/c.txt")
+    print("pathbasename: '%s' (expected: 'c.txt')", p3)
+    
+    var p4 = pathextension("/a/b/c.txt")
+    print("pathextension: '%s' (expected: '.txt')", p4)
+    
+    var p5 = pathisabsolute("/a/b/c")
+    print("pathisabsolute absolute: %j (expected: true)", p5)
+    
+    var p6 = pathisabsolute("a/b/c")
+    print("pathisabsolute relative: %j (expected: false)", p6)
+
+    # 9. Test array utilities
+    var arr1 = arrayreverse([1, 2, 3])
+    print("arrayreverse: %j (expected: [3,2,1])", arr1)
+    
+    var arr2 = arraysort([3, 1, 2])
+    print("arraysort: %j (expected: [1,2,3])", arr2)
+    
+    var list = [1, 2, 3]
+    var shifted = arrayshift(list)
+    print("arrayshift element: %d (expected: 1)", shifted)
+    print("arrayshift remaining: %j (expected: [2,3])", list)
+
+    # 10. Test async array helpers (arraymap, arrayfilter, arrayfind)
+    var mapped = arraymap([1, 2, 3], ref doubler)
+    print("arraymap: %j (expected: [2,4,6])", mapped)
+    
+    var filtered = arrayfilter([1, 2, 3, 4], ref is_even)
+    print("arrayfilter: %j (expected: [2,4])", filtered)
+    
+    var found = arrayfind([1, 2, 3, 4], ref is_three)
+    print("arrayfind: %d (expected: 3)", found)
+    # 10.5. Test dateweekday
+    # June 25, 2024 (1719273600) was a Tuesday
+    var wday1 = dateweekday(1719273600)
+    print("dateweekday number: %d (expected: 2)", wday1)
+    
+    var wday2 = dateweekday(1719273600, "short")
+    print("dateweekday short: '%s' (expected: 'Tue')", wday2)
+    # 10.7. Test encrypt & decrypt
+    var secret_text = "hello_world_secret"
+    var master_key = "secretpassword"
+    var encrypted_res = encrypt(secret_text, master_key)
+    var decrypted_res = decrypt(encrypted_res, master_key)
+    print("decrypted output: '%s' (expected: 'hello_world_secret')", decrypted_res)
+    
+    var decrypted_wrong = decrypt(encrypted_res, "wrongpassword")
+    print("decrypted wrong key: %j (expected: null)", decrypted_wrong)
+    # 10.9. Test setcookie
+    var mock_res = @{ {
+        cookie: function(name, val, opts) {
+            this.name = name;
+            this.val = val;
+            this.opts = opts;
+        }
+    } @}
+    setcookie(mock_res, "session", "123", { httpOnly: true })
+    var cookie_name = @{ mock_res.name @}
+    var cookie_val = @{ mock_res.val @}
+    print("setcookie name: '%s' (expected: 'session')", cookie_name)
+    print("setcookie val: '%s' (expected: '123')", cookie_val)
+    print("=== All tests completed successfully ===")
+    
+    # 11. Test exit
+    exit(0)
+}

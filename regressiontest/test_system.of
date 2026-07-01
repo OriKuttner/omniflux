@@ -1,0 +1,21 @@
+include "stdlib/system.of"
+
+on start {
+    print("=== Testing System Standard Library ===")
+    
+    # 1. Test system (output capture)
+    # Run a simple echo command
+    var out = system("echo 'hello from system'")
+    print("Output captured: %s", out)
+    
+    # 2. Test exec (status code)
+    # Success command (exit code should be 0)
+    var status1 = exec("true")
+    print("Success status: %d (expected: 0)", status1)
+    
+    # Fail command (exit code should be non-zero, usually 1)
+    var status2 = exec("false")
+    print("Fail status: %d (expected: non-zero)", status2)
+    
+    print("=== System Test Passed ===")
+}

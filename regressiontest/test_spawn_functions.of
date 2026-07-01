@@ -1,0 +1,32 @@
+include "stdlib/system.of"
+
+on start {
+    print("Spawning a background sleep task...")
+    var pid = spawn("sleep", ["2"])
+    print("Spawned process with PID: %d", pid)
+    
+    var status = pstatus(pid)
+    print("Initial status (should be 1): %d", status)
+    
+    print("Waiting for process to finish...")
+    var code = pwait(pid)
+    print("Process finished with code: %d", code)
+    
+    status = pstatus(pid)
+    print("Final status (should be 0): %d", status)
+    
+    print("Testing pterminate...")
+    pid = spawn("sleep", ["10"])
+    status = pstatus(pid)
+    print("Sleep 10 status: %d", status)
+    
+    print("Terminating process...")
+    pterminate(pid)
+    
+    # Wait a tiny bit for OS signal handling
+    system("sleep 0.1")
+    
+    status = pstatus(pid)
+    print("Sleep 10 status after terminate (should be 0): %d", status)
+    print("=== Spawn functions test passed ===")
+}

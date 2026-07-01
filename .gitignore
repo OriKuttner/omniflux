@@ -1,6 +1,8 @@
 # Test and cache directories
 test/
 .omniflux_cache/
+regressiontest/*
+!regressiontest/*.of
 sandbox.of
 sandbox.js
 db.json

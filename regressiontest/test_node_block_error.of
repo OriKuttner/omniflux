@@ -1,0 +1,11 @@
+on start {
+    print("Testing node block error mapping")
+    cause_error()
+}
+
+define task cause_error() {
+    @{
+        const x = null;
+        console.log(x.non_existent);
+    @}
+}

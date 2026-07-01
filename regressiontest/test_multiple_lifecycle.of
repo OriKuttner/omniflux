@@ -1,0 +1,53 @@
+include "test_multiple_lifecycle_inc.of"
+
+on start {
+    print("Main on start 1");
+}
+
+on start {
+    print("Main on start 2");
+}
+
+on shutdown {
+    print("Main on shutdown");
+}
+
+on error (err) {
+    print("Main on error: %s", err.message);
+}
+
+# Start server to test request hooks
+listen on port 3000
+
+GET "/" (req, res) {
+    print("Handling GET /");
+    respond html "<h1>Hello World</h1>"
+}
+
+GET "/api" (req, res) {
+    respond json {"status": "ok"}
+}
+
+GET "/tpl1" (req, res) {
+    respond template("views/index.html", {"title": "Test 1"})
+}
+
+GET "/tpl2" (req, res) {
+    respond template "views/index.html"
+}
+
+GET "/go" (req, res) {
+    redirect to "/api"
+}
+
+on start {
+    print("Main on start 3");
+    
+    # We will wait 1 second and then shut down to trigger shutdown hooks
+    wait 1 second
+    print("Initiating shutdown...");
+    # In Node.js, process.exit() won't trigger SIGTERM/SIGINT listeners directly unless we emit them, 
+    # but wait, process.on('exit') is triggered on exit. 
+    # Let's emit SIGINT to simulate Ctrl+C so that __shutdown_wrapper is called!
+    process.emit("SIGINT");
+}

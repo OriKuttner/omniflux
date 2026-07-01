@@ -1,0 +1,57 @@
+// test_validator.of
+// Tests for the OmniFlux bootstrap compiler validator.
+
+include "compiler/validator.of"
+
+var passed = 0
+var failed = 0
+
+define task check(description, result, expected_ok) {
+    if result.ok == expected_ok {
+        print("[PASS] %s", description)
+        passed = passed + 1
+    } else {
+        print("[FAIL] %s", description)
+        if !result.ok {
+            print("       Error: %s", result.error)
+        }
+        failed = failed + 1
+    }
+}
+
+on start {
+    // Test 1: valid simple task
+    var r1 = validate("define task foo() {\n    var x = 1\n}\n", "test1.of")
+    check with "Valid simple task", r1, true
+
+    // Test 2: valid nested if inside task
+    var r2 = validate("define task foo() {\n    if x {\n        var y = 2\n    }\n}\n", "test2.of")
+    check with "Valid if block inside task", r2, true
+
+    // Test 3: valid deeply nested if/while
+    var r3 = validate("define task foo() {\n    while x {\n        if y {\n            var z = 3\n        }\n    }\n}\n", "test3.of")
+    check with "Valid nested while/if inside task", r3, true
+
+    // Test 4: unclosed brace
+    var r4 = validate("define task foo() {\n    if x {\n}\n", "test4.of")
+    check with "Unclosed brace is detected", r4, false
+
+    // Test 5: extra closing brace
+    var r5 = validate("define task foo() {\n}\n}\n", "test5.of")
+    check with "Extra closing brace is detected", r5, false
+
+    // Test 6: unclosed parenthesis
+    var r6 = validate("define task foo() {\n    print(\"hello\"\n}\n", "test6.of")
+    check with "Unclosed parenthesis is detected", r6, false
+
+    // Test 7: unclosed bracket
+    var r7 = validate("define task foo() {\n    var arr = [1, 2\n}\n", "test7.of")
+    check with "Unclosed bracket is detected", r7, false
+
+    // Test 8: braces inside string are ignored
+    var r8 = validate("define task foo() {\n    var s = \"hello { world }\"\n}\n", "test8.of")
+    check with "Braces inside strings are ignored", r8, true
+
+    print("\n%d passed, %d failed", passed, failed)
+    exit(0)
+}

@@ -1,0 +1,15 @@
+on start {
+    print("Include on start");
+}
+
+on shutdown {
+    print("Include on shutdown");
+}
+
+on error (err) {
+    print("Include on error: %s", err.message);
+}
+
+on request (req, res) {
+    print("Include on request for path: %s", req.path);
+}
