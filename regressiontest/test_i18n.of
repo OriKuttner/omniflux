@@ -1,0 +1,52 @@
+include "stdlib/i18n.of"
+
+on start {
+    print("=== Testing i18n Standard Library ===")
+
+    if fileexists("db.json") {
+        filedelete("db.json")
+    }
+    if fileexists("test_translations.txt") {
+        filedelete("test_translations.txt")
+    }
+
+    filewrite("test_translations.txt", "שלום %s | Hello %s\nשמירה | Save\nמפתח ישן | \n")
+
+    i18n_init("he")
+
+    var val1 = _("שמירה")
+    print("Primary lang check: %s (expected: שמירה)", val1)
+
+    i18n_load("test_translations.txt")
+
+    i18n_set_lang("en")
+
+    var val2 = _("שמירה")
+    print("Secondary lang check: %s (expected: Save)", val2)
+
+    var val3 = _("שלום %s", "אורי")
+    print("Parameterized check: %s (expected: Hello אורי)", val3)
+
+    i18n_update("ביטול", "Cancel")
+    var val4 = _("ביטול")
+    print("Dynamic update check: %s (expected: Cancel)", val4)
+
+    i18n_delete("ביטול")
+    var val5 = _("ביטול")
+    print("Dynamic delete check: %s (expected: ביטול)", val5)
+
+    var scan_code = "var x = _('שמירה'); var y = _('חדש');"
+    var scan_results = i18n_scan(scan_code, "all")
+    print("Scan count: %d (expected: 2)", len(scan_results))
+    print("Scan result 1: key=%s, translation=%s", scan_results[0].key, scan_results[0].translation)
+    print("Scan result 2: key=%s, translation=%s", scan_results[1].key, scan_results[1].translation)
+
+    if fileexists("db.json") {
+        filedelete("db.json")
+    }
+    if fileexists("test_translations.txt") {
+        filedelete("test_translations.txt")
+    }
+
+    print("=== i18n Standard Library Test Passed ===")
+}

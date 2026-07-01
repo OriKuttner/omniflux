@@ -895,6 +895,48 @@ on start {
 }
 ```
 
+### 7.6 Internationalization Library (`stdlib/i18n.of`)
+Provides tasks for dynamic internationalization (i18n) and translation management:
+* `i18n_init(primary_lang)`: Initializes the translation system with the specified primary language (e.g., `"he"`). Automatically creates the `omniflux_translations` table in the database and caches all existing translations in memory.
+* `i18n_set_lang(lang)`: Sets the active language for the current context (e.g., `"en"`).
+* `i18n_update(key, translation)`: Dynamically adds or updates a translation for the given key in the database and runtime cache.
+* `i18n_delete(key)`: Deletes the translation key and its values from the database and runtime cache.
+* `i18n_scan(source_or_file, mode)`: Scans the provided OmniFlux code string or file path for `_("...")` calls. Returns an array of objects `{ key, translation }` based on the filter mode (`"all"`, `"missing"`, or `"translated"`).
+* `i18n_load(filename)`: Loads a simple pipe-separated (` | `) translation text file, calling `i18n_update` or `i18n_delete` in the database based on the file content.
+* `_(key, ...params)`: Translates the given key based on the active language. Supports `%s` and `%d` format placeholder replacements. Automatically performs background auto-discovery/insertion of new translation keys.
+
+```omniflux
+include "stdlib/mysql.of"
+include "stdlib/i18n.of"
+
+define task run_i18n_demo() {
+    # 1. Connect to database
+    mysqlconnect("mysql://root:secret@localhost/production_db")
+    
+    # 2. Initialize i18n (Primary Language: "he")
+    i18n_init("he")
+    
+    # 3. Load translations from a text file (using simple " | " format)
+    # The file "translations.txt" has lines like:
+    # שלום %s | Hello %s
+    # שמירה | Save
+    i18n_load("translations.txt")
+    
+    # 4. Use the translation helper task
+    print(_("שמירה")) # Prints "שמירה" (since language is primary "he")
+    
+    # Change language to secondary "en"
+    i18n_set_lang("en")
+    
+    print(_("שמירה")) # Prints "Save"
+    print(_("שלום %s", "אורי")) # Prints "Hello אורי"
+}
+
+on start {
+    run_i18n_demo()
+}
+```
+
 ## 8. Using NPM Packages 📦
 
 OmniFlux runs on top of the Node.js runtime and utilizes `esbuild` for its compilation and bundling steps. This makes it incredibly easy to use any package from the npm registry directly in your OmniFlux code!
