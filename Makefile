@@ -1,4 +1,4 @@
-.PHONY: all vsix compiler deb releases clean test
+.PHONY: all vsix compiler deb releases clean test test-ai
 
 all: vsix deb releases
 
@@ -27,6 +27,9 @@ releases: deb
 
 test: compiler
 	./omniflux regressiontest/runner.of
+
+test-ai: compiler
+	./omniflux regressiontest/runner_ai.of --strict --force
 
 clean:
 	rm -rf editors/vscode/assets

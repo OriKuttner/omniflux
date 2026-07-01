@@ -1,0 +1,150 @@
+# runner_ai.of - Regression Test Suite for OmniFlux AI Self-Healing & Directives
+
+define task run_cmd(cmd, args) {
+    @{
+        const { spawn } = require('child_process');
+        return new Promise((resolve) => {
+            const child = spawn(cmd, args || [], { shell: true });
+            let output = '';
+            if (child.stdout) {
+                child.stdout.on('data', (data) => { output += data.toString(); });
+            }
+            if (child.stderr) {
+                child.stderr.on('data', (data) => { output += data.toString(); });
+            }
+            child.on('close', (code) => {
+                resolve({ code: code !== null ? code : 0, output: output });
+            });
+            child.on('error', (err) => {
+                resolve({ code: 1, output: output + (err ? err.message : '') });
+            });
+        });
+    @}
+}
+
+on start {
+    print("\n\u001b[1m=== Starting OmniFlux AI Regression Test Suite ===\u001b[0m\n")
+    
+    var passed = 0
+    var failed = 0
+    
+    # -------------------------------------------------------------------------
+    # Test Case 1: AI Line-level Directive (>>>)
+    # -------------------------------------------------------------------------
+    var file1 = "regressiontest/temp_ai_directive.of"
+    var content1 = "on start {\n    >>> print the number 987654\n}\n"
+    
+    printf("Running AI Directive (>>>) Test... ")
+    
+    # Clean previous run if left over
+    if fileexists(file1) { filedelete(file1) }
+    filewrite(file1, content1)
+    
+    # Run the compiler (without --strict to allow AI to execute)
+    var res1 = run_cmd("./omniflux", [file1, "--force"])
+    
+    var ok1 = true
+    if res1.code != 0 {
+        ok1 = false
+    } else {
+        # 1. Verify output contains expected printed number
+        var found_out = strindexof(res1.output, "987654")
+        if found_out < 0 {
+            ok1 = false
+        }
+        
+        # 2. Verify source file was modified and contains the generated number
+        var updated_src = fileread(file1)
+        var found_num = strindexof(updated_src, "987654")
+        var found_closing = strindexof(updated_src, "}")
+        
+        # Make sure it wasn't truncated and closing brace exists
+        if found_num < 0 || found_closing < 0 {
+            ok1 = false
+        }
+    }
+    
+    if ok1 {
+        print("\u001b[32m[ PASS ]\u001b[0m")
+        passed = passed + 1
+    } else {
+        print("\u001b[31m[ FAIL ]\u001b[0m")
+        print("----------------------------------------")
+        print("Exit code: %d", res1.code)
+        print("Output:\n%s", res1.output)
+        if fileexists(file1) {
+            print("File Content after compilation:\n%s", fileread(file1))
+        }
+        print("----------------------------------------")
+        failed = failed + 1
+    }
+    if fileexists(file1) { filedelete(file1) }
+    var binary1 = "regressiontest/temp_ai_directive"
+    if fileexists(binary1) { filedelete(binary1) }
+    
+    # -------------------------------------------------------------------------
+    # Test Case 2: Missing Include Self-healing
+    # -------------------------------------------------------------------------
+    var file2 = "regressiontest/temp_ai_include.of"
+    var content2 = "on start {\n    var out = system(\"echo 'hello_system_test'\")\n    print(\"System output: %s\", out)\n}\n"
+    
+    printf("Running Missing Include Self-Healing Test... ")
+    
+    if fileexists(file2) { filedelete(file2) }
+    filewrite(file2, content2)
+    
+    # Run the compiler
+    var res2 = run_cmd("./omniflux", [file2, "--force"])
+    
+    var ok2 = true
+    if res2.code != 0 {
+        ok2 = false
+    } else {
+        # 1. Verify output contains system call output
+        var found_sys = strindexof(res2.output, "hello_system_test")
+        if found_sys < 0 {
+            ok2 = false
+        }
+        
+        # 2. Verify source file was modified to prepend include
+        var updated_src2 = fileread(file2)
+        var found_inc = strindexof(updated_src2, "include \"stdlib/system.of\"")
+        var found_closing2 = strindexof(updated_src2, "}")
+        
+        if found_inc < 0 || found_closing2 < 0 {
+            ok2 = false
+        }
+    }
+    
+    if ok2 {
+        print("\u001b[32m[ PASS ]\u001b[0m")
+        passed = passed + 1
+    } else {
+        print("\u001b[31m[ FAIL ]\u001b[0m")
+        print("----------------------------------------")
+        print("Exit code: %d", res2.code)
+        print("Output:\n%s", res2.output)
+        if fileexists(file2) {
+            print("File Content after compilation:\n%s", fileread(file2))
+        }
+        print("----------------------------------------")
+        failed = failed + 1
+    }
+    if fileexists(file2) { filedelete(file2) }
+    var binary2 = "regressiontest/temp_ai_include"
+    if fileexists(binary2) { filedelete(binary2) }
+    
+    # -------------------------------------------------------------------------
+    # Test Run Summary
+    # -------------------------------------------------------------------------
+    print("\n\u001b[1m=== AI Test Run Summary ===\u001b[0m")
+    print("Passed: \u001b[32m%d\u001b[0m", passed)
+    print("Failed: \u001b[31m%d\u001b[0m", failed)
+    
+    if failed > 0 {
+        exit(1)
+    } else {
+        print("\n\u001b[32;1mAll AI regression tests passed successfully!\u001b[0m\n")
+        exit(0)
+    }
+}
