@@ -272,7 +272,7 @@ define task detect_missing_includes(source_code) {
     }
     
     // Check network
-    if match(source_code, "/\\b(networkget|networkpost|uploadfile|upload_file)\\b/") {
+    if match(source_code, "/\\b(networkget|network_get|networkpost|network_post|uploadfile|upload_file)\\b/") {
         if !match(source_code, "/stdlib\\/network\\.of/") {
             arraypush(missing, "stdlib/network.of")
         }

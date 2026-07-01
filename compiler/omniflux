@@ -13155,7 +13155,7 @@ async function detect_missing_includes(source_code) {
     //! OF_LINE: omniflux.of:272
     //! OF_LINE: omniflux.of:273
     //! OF_LINE: omniflux.of:274
-    if (match(source_code, "/\\b(networkget|networkpost|uploadfile|upload_file)\\b/")) {
+    if (match(source_code, "/\\b(networkget|network_get|networkpost|network_post|uploadfile|upload_file)\\b/")) {
       //! OF_LINE: omniflux.of:275
       if (!match(source_code, "/stdlib\\/network\\.of/")) {
         //! OF_LINE: omniflux.of:276
