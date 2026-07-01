@@ -5,9 +5,9 @@ define task i18n_init(primary_lang) {
     if primary_lang != null {
         p_lang = primary_lang
     }
-    $__i18n_primary_lang = p_lang
-    $__i18n_current_lang = p_lang
-    $__i18n_cache = {}
+    var $__i18n_primary_lang = p_lang
+    var $__i18n_current_lang = p_lang
+    var $__i18n_cache = {}
 
     var rows = dbselect("omniflux_translations")
     for row of rows {
