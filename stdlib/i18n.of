@@ -1,130 +1,135 @@
 # stdlib/i18n.of - OmniFlux Internationalization (i18n) Standard Library
 
 define task i18n_init(primary_lang) {
-    @{
-        global.__i18n_primary_lang = primary_lang || 'he';
-        global.__i18n_current_lang = global.__i18n_primary_lang;
-        global.__i18n_cache = {};
+    var p_lang = "he"
+    if primary_lang != null {
+        p_lang = primary_lang
+    }
+    $__i18n_primary_lang = p_lang
+    $__i18n_current_lang = p_lang
+    $__i18n_cache = {}
 
-        try {
-            // Load all existing translations into the cache from the built-in DB
-            const rows = global.dbselect("omniflux_translations");
-            if (rows && Array.isArray(rows)) {
-                for (const row of rows) {
-                    if (row.key !== undefined && row.key !== null) {
-                        global.__i18n_cache[row.key] = row.translation || "";
-                    }
-                }
+    var rows = dbselect("omniflux_translations")
+    for row of rows {
+        if row.key != null {
+            var trans = ""
+            if row.translation != null {
+                trans = row.translation
             }
-            return true;
-        } catch (err) {
-            throw new Error("Failed to initialize i18n: " + err.message);
+            $__i18n_cache[row.key] = trans
         }
-    @}
+    }
+    return true
+} on error (err) {
+    print("Failed to initialize i18n: %s", err.message)
+    return false
 }
 
 define task i18n_set_lang(lang) {
-    @{
-        global.__i18n_current_lang = lang;
-        return true;
-    @}
+    $__i18n_current_lang = lang
+    return true
 }
 
 define task i18n_update(key, translation) {
-    @{
-        try {
-            const val = translation || "";
-            const count = global.dbupdate("omniflux_translations", { key: key }, { translation: val });
-            if (count === 0) {
-                global.dbinsert("omniflux_translations", { key: key, translation: val });
-            }
-            if (global.__i18n_cache) {
-                global.__i18n_cache[key] = val;
-            }
-            return true;
-        } catch (err) {
-            throw new Error("Failed to update translation: " + err.message);
-        }
-    @}
+    var val = ""
+    if translation != null {
+        val = translation
+    }
+
+    var count = dbupdate("omniflux_translations", { key: key }, { translation: val })
+    if count == 0 {
+        dbinsert("omniflux_translations", { key: key, translation: val })
+    }
+    if $__i18n_cache != null {
+        $__i18n_cache[key] = val
+    }
+    return true
+} on error (err) {
+    print("Failed to update translation: %s", err.message)
+    return false
 }
 
 define task i18n_delete(key) {
-    @{
-        try {
-            global.dbdelete("omniflux_translations", { key: key });
-            if (global.__i18n_cache) {
-                delete global.__i18n_cache[key];
-            }
-            return true;
-        } catch (err) {
-            throw new Error("Failed to delete translation: " + err.message);
-        }
-    @}
+    dbdelete("omniflux_translations", { key: key })
+    if $__i18n_cache != null {
+        delete $__i18n_cache[key]
+    }
+    return true
+} on error (err) {
+    print("Failed to delete translation: %s", err.message)
+    return false
 }
 
 define task i18n_scan(source_or_file, mode) {
-    @{
-        const fs = require('fs');
-        let code = source_or_file;
-
-        if (typeof source_or_file === 'string' && source_or_file.length < 1000) {
-            try {
-                if (fs.existsSync(source_or_file)) {
-                    code = fs.readFileSync(source_or_file, 'utf8');
-                }
-            } catch (e) {}
+    var code = source_or_file
+    if len(source_or_file) < 1000 {
+        if fileexists(source_or_file) {
+            code = fileread(source_or_file)
         }
+    }
 
-        const regex = new RegExp("\\b_\\(\\s*(['\"`])((?:\\\\.|[^\\\\])*?)\\1", "g");
-        const keys = new Set();
+    var keys = []
+    @{
+        const pattern = "\\b_\\(\\s*(['\"`])((?:\\\\.|[^\\\\])*?)\\1";
+        const regex = new RegExp(pattern, "g");
         let matchObj;
         while ((matchObj = regex.exec(code)) !== null) {
-            let key = matchObj[2];
-            // Unescape string quotes
-            key = key.replace(/\\(.)/g, '$1');
-            keys.add(key);
+            let key = matchObj[2].replace(/\\(.)/g, '$1');
+            if (!keys.includes(key)) {
+                keys.push(key);
+            }
         }
+    @}
 
-        const results = [];
-        const filterMode = mode || 'all';
+    var results = []
+    var filter_mode = "all"
+    if mode != null {
+        filter_mode = mode
+    }
 
-        for (const key of keys) {
-            let translation = "";
-            let hasTranslation = false;
-            
-            if (global.__i18n_cache && global.__i18n_cache[key] !== undefined) {
-                translation = global.__i18n_cache[key];
-                hasTranslation = translation !== "";
-            } else {
-                const rows = global.dbselect("omniflux_translations", { key: key });
-                if (rows && rows.length > 0) {
-                    translation = rows[0].translation || "";
-                    hasTranslation = translation !== "";
+    for key of keys {
+        var translation = ""
+        var has_translation = false
+
+        if $__i18n_cache != null && $__i18n_cache[key] != null {
+            translation = $__i18n_cache[key]
+            if translation != "" {
+                has_translation = true
+            }
+        } else {
+            var db_rows = dbselect("omniflux_translations", { key: key })
+            if len(db_rows) > 0 {
+                translation = db_rows[0].translation
+                if translation != null && translation != "" {
+                    has_translation = true
+                } else {
+                    translation = ""
                 }
             }
-
-            if (filterMode === 'all') {
-                results.push({ key: key, translation: translation });
-            } else if (filterMode === 'missing' && !hasTranslation) {
-                results.push({ key: key, translation: "" });
-            } else if (filterMode === 'translated' && hasTranslation) {
-                results.push({ key: key, translation: translation });
-            }
         }
 
-        return results;
-    @}
+        if filter_mode == "all" {
+            arraypush(results, { key: key, translation: translation })
+        } else if filter_mode == "missing" && !has_translation {
+            arraypush(results, { key: key, translation: "" })
+        } else if filter_mode == "translated" && has_translation {
+            arraypush(results, { key: key, translation: translation })
+        }
+    }
+
+    return results
 }
 
 define task i18n_load(filename) {
-    @{
-        const fs = require('fs');
-        if (!fs.existsSync(filename)) {
-            throw new Error("Translation file not found: " + filename);
-        }
-        const content = fs.readFileSync(filename, 'utf8');
-        const lines = content.split(/\r?\n/);
+    if !fileexists(filename) {
+        print("Translation file not found: %s", filename)
+        return false
+    }
 
+    var content = fileread(filename)
+    
+    @{
+        const lines = content.split(/\r?\n/);
         for (let line of lines) {
             line = line.trim();
             if (line === "" || line.startsWith("#")) {
@@ -146,55 +151,59 @@ define task i18n_load(filename) {
                 }
             }
         }
-        return true;
     @}
+    return true
 }
 
-# The short translation helper task '_'
+define task i18n_register_key(key) {
+    dbinsert("omniflux_translations", { key: key, translation: "" })
+    return true
+} on error (err) {
+    return false
+}
+
 define task _(key) {
-    @{
-        const currentLang = global.__i18n_current_lang || global.__i18n_primary_lang || 'he';
-        const primaryLang = global.__i18n_primary_lang || 'he';
-        
-        let translation = key;
-        
-        if (currentLang !== primaryLang) {
-            const cachedVal = global.__i18n_cache && global.__i18n_cache[key];
-            if (cachedVal !== undefined) {
-                translation = cachedVal || key;
-            } else {
-                if (global.__i18n_cache) {
-                    global.__i18n_cache[key] = "";
-                }
-                try {
-                    global.dbinsert("omniflux_translations", { key: key, translation: "" });
-                } catch (e) {}
+    var current_lang = "he"
+    if $__i18n_current_lang != null {
+        current_lang = $__i18n_current_lang
+    } else if $__i18n_primary_lang != null {
+        current_lang = $__i18n_primary_lang
+    }
+
+    var primary_lang = "he"
+    if $__i18n_primary_lang != null {
+        primary_lang = $__i18n_primary_lang
+    }
+
+    var translation = key
+
+    if current_lang != primary_lang {
+        if $__i18n_cache != null && $__i18n_cache[key] != null {
+            var cached_val = $__i18n_cache[key]
+            if cached_val != "" {
+                translation = cached_val
             }
         } else {
-            if (global.__i18n_cache && global.__i18n_cache[key] === undefined) {
-                global.__i18n_cache[key] = "";
-                try {
-                    global.dbinsert("omniflux_translations", { key: key, translation: "" });
-                } catch (e) {}
+            if $__i18n_cache != null {
+                $__i18n_cache[key] = ""
             }
+            i18n_register_key(key)
         }
-        
+    } else {
+        if $__i18n_cache != null && $__i18n_cache[key] == null {
+            $__i18n_cache[key] = ""
+            i18n_register_key(key)
+        }
+    }
+
+    @{
         if (arguments.length > 1) {
-            let i = 1;
+            let idx = 1;
             translation = translation.replace(new RegExp("%[sd]", "g"), () => {
-                return arguments[i++] !== undefined ? arguments[i - 1] : '';
+                return arguments[idx++] !== undefined ? arguments[idx - 1] : '';
             });
         }
-        
-        return translation;
     @}
-}
 
-# Expose tasks to the global scope for JS block access
-global.i18n_init = i18n_init;
-global.i18n_set_lang = i18n_set_lang;
-global.i18n_update = i18n_update;
-global.i18n_delete = i18n_delete;
-global.i18n_scan = i18n_scan;
-global.i18n_load = i18n_load;
-global._ = _;
+    return translation
+}

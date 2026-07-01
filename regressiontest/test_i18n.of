@@ -1,4 +1,4 @@
-include "stdlib/i18n.of"
+include "stdlib/i18n.of" # Fixed: Replaced invalid require() with standard include directive
 
 on start {
     print("=== Testing i18n Standard Library ===")
