@@ -607,6 +607,11 @@ define task build_once(input_file, compile_only, strict, cfg, force) {
     // Load runtime once
     var runtime_js = read_runtime()
 
+    // Write runtime.js to the cache directory so it can be required relatively
+    var cache_runtime_path = pathjoin(pathresolve("."), ".omniflux_cache", "runtime.js")
+    dircreate(pathdirname(cache_runtime_path))
+    filewrite(cache_runtime_path, runtime_js)
+
     var rebuild_needed = true
     var compiled_map = {}
     var ok = true

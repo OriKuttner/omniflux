@@ -722,11 +722,19 @@ define task transpile(content, filename, user_tasks, runtime_js) {
     var output_lines = []
     var deferred_stmts = []
 
-    // Prepend the runtime library
-    var runtime_lines = strsplit(runtime_js, "\n")
-    for rtl of runtime_lines {
-        arraypush(output_lines, rtl)
-    }
+    // Add relative require to the runtime.js in the cache root
+    var current_cache = get_cache_path(filename)
+    var root_cache_runtime = pathjoin(pathresolve("."), ".omniflux_cache", "runtime.js")
+    var rel_runtime_path = ""
+    @{
+        const path = require('path');
+        let rel = path.relative(path.dirname(current_cache), root_cache_runtime);
+        if (!rel.startsWith('.')) {
+            rel = './' + rel;
+        }
+        rel_runtime_path = rel;
+    @}
+    arraypush(output_lines, "require('" + rel_runtime_path + "');")
     arraypush(output_lines, "")
 
     var source_lines = strsplit(content_with_placeholders, "\n")

@@ -1,4 +1,4 @@
-# runner.of - Automated Regression Test Suite for OmniFlux
+include "stdlib/system.of" # Fixed: Added missing system library include
 
 define task run_cmd(cmd, args) {
     @{
@@ -28,7 +28,6 @@ on start {
     var passed = 0
     var failed = 0
     
-    # Define test cases
     var test_files = [
         "regressiontest/01_hello_world.of",
         "regressiontest/test_main.of",
@@ -43,37 +42,20 @@ on start {
         "regressiontest/test_syntax_errors_closure.of"
     ]
     
-    # Define expected failure status:
-    # 0: expected to compile and run successfully
-    # 1: expected to fail at compile-time
-    # 2: expected to compile successfully but fail at run-time
-    var test_behavior = [
-        0, # 01_hello_world.of
-        0, # test_main.of
-        0, # test_multiple_lifecycle.of
-        0, # test_validator.of
-        0, # test_new_helpers.of
-        0, # test_system.of
-        0, # test_local_db.of
-        0, # test_spawn_functions.of
-        0, # test_node_block.of
-        2, # test_node_block_error.of (runtime error)
-        1  # test_syntax_errors_closure.of (compile error)
-    ]
+    var test_behavior = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1]
     
-    # Define expected substrings to find in either compilation or execution output
     var test_expected_substrings = [
-        "Hello, Alice!",                              # 01_hello_world.of
-        "No newline: 42 -> Now newline!",              # test_main.of
-        "Main on start 2",                            # test_multiple_lifecycle.of
-        "8 passed, 0 failed",                         # test_validator.of
-        "=== All tests completed successfully ===",   # test_new_helpers.of
-        "=== System Test Passed ===",                 # test_system.of
-        "=== Local JSON Database Test Passed ===",    # test_local_db.of
-        "=== Spawn functions test passed ===",        # test_spawn_functions.of
-        "Node block test completed successfully!",    # test_node_block.of
-        "test_node_block_error.of:9",                 # test_node_block_error.of
-        "SyntaxError"                                 # test_syntax_errors_closure.of
+        "Hello, Alice!",                              
+        "No newline: 42 -> Now newline!",              
+        "Main on start 2",                            
+        "8 passed, 0 failed",                         
+        "=== All tests completed successfully ===",   
+        "=== System Test Passed ===",                 
+        "=== Local JSON Database Test Passed ===",    
+        "=== Spawn functions test passed ===",        
+        "Node block test completed successfully!",    
+        "test_node_block_error.of:9",                 
+        "SyntaxError"                                 
     ]
     
     var i = 0
@@ -86,37 +68,31 @@ on start {
         
         printf("Running %s... ", file_path)
         
-        # Step 1: Compile the script with strict mode
-        var comp_res = run_cmd("./omniflux", [file_path, "--compile-only", "--strict", "--force"])
+        var comp_res = await run_cmd("./omniflux", [file_path, "--compile-only", "--strict", "--force"]) # Fixed: Added await for task call
         
         var is_ok = true
         var actual_output = comp_res.output
         var stage = "Compilation"
         
         if behavior == 1 {
-            # Expected to fail compilation
             if comp_res.code == 0 {
                 is_ok = false
             } else {
-                # Verify that the expected error message is present
                 var found = strindexof(comp_res.output, expected_sub)
                 if found < 0 {
                     is_ok = false
                 }
             }
         } else {
-            # Expected to compile successfully
             if comp_res.code != 0 {
                 is_ok = false
             } else {
-                # Step 2: Run the compiled binary directly
                 stage = "Execution"
                 var binary_path = strreplace(file_path, ".of", "")
-                var run_res = run_cmd("./" + binary_path, [])
+                var run_res = await run_cmd("./" + binary_path, []) # Fixed: Added await for task call
                 actual_output = run_res.output
                 
                 if behavior == 2 {
-                    # Expected to fail at runtime
                     if run_res.code == 0 {
                         is_ok = false
                     } else {
@@ -126,7 +102,6 @@ on start {
                         }
                     }
                 } else {
-                    # Expected to succeed at runtime
                     if run_res.code != 0 {
                         is_ok = false
                     } else {

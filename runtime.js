@@ -275,19 +275,21 @@ let cachedDbMtime = 0;
 
 function dbsetfile(path) {
     if (typeof path !== 'string') throw new Error('Database file path must be a string');
+    global.__db_file_path = path;
     dbFilePath = path;
     cachedDb = null;
     cachedDbMtime = 0;
 }
 
 function loadDb() {
+    const activePath = global.__db_file_path || dbFilePath;
     try {
-        if (fs.existsSync(dbFilePath)) {
-            const stats = fs.statSync(dbFilePath);
+        if (fs.existsSync(activePath)) {
+            const stats = fs.statSync(activePath);
             if (cachedDb && stats.mtimeMs === cachedDbMtime) {
                 return cachedDb;
             }
-            const content = fs.readFileSync(dbFilePath, 'utf8');
+            const content = fs.readFileSync(activePath, 'utf8');
             cachedDb = JSON.parse(content || '{}');
             cachedDbMtime = stats.mtimeMs;
             return cachedDb;
@@ -303,11 +305,12 @@ function loadDb() {
 }
 
 function saveDb(data) {
+    const activePath = global.__db_file_path || dbFilePath;
     cachedDb = data;
-    fs.writeFileSync(dbFilePath, JSON.stringify(data, null, 2), 'utf8');
+    fs.writeFileSync(activePath, JSON.stringify(data, null, 2), 'utf8');
     try {
-        if (fs.existsSync(dbFilePath)) {
-            cachedDbMtime = fs.statSync(dbFilePath).mtimeMs;
+        if (fs.existsSync(activePath)) {
+            cachedDbMtime = fs.statSync(activePath).mtimeMs;
         }
     } catch (e) {
         cachedDbMtime = Date.now();
@@ -1179,6 +1182,8 @@ function errorinfo(err) {
 }
 global.errorinfo = errorinfo;
 global.error_info = errorinfo;
+global.formatRuntimeError = formatRuntimeError;
+global.format_runtime_error = formatRuntimeError;
 
 function formatRuntimeError(err, label = 'OmniFlux Runtime Error') {
     console.error('\n\x1b[1m\x1b[31m' + label + ':\x1b[0m');
