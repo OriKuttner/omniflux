@@ -2012,122 +2012,124 @@ var require_preprocessor = __commonJS({
           //! OF_LINE: preprocessor.of:270
           pathjoin(cwd, inc_path),
           //! OF_LINE: preprocessor.of:271
-          pathjoin(scriptdir(), inc_path),
+          pathjoin(pathdirname(scriptdir()), inc_path),
           //! OF_LINE: preprocessor.of:272
-          pathjoin("/usr/local/share/omniflux", inc_path),
+          pathjoin(scriptdir(), inc_path),
           //! OF_LINE: preprocessor.of:273
-          pathjoin("/usr/share/omniflux", inc_path)
+          pathjoin("/usr/local/share/omniflux", inc_path),
           //! OF_LINE: preprocessor.of:274
+          pathjoin("/usr/share/omniflux", inc_path)
+          //! OF_LINE: preprocessor.of:275
         ];
-        //! OF_LINE: preprocessor.of:275
         //! OF_LINE: preprocessor.of:276
+        //! OF_LINE: preprocessor.of:277
         for (let candidate of candidates) {
-          //! OF_LINE: preprocessor.of:277
+          //! OF_LINE: preprocessor.of:278
           if (fileexists(candidate)) {
-            //! OF_LINE: preprocessor.of:278
-            return pathresolve(candidate);
             //! OF_LINE: preprocessor.of:279
+            return pathresolve(candidate);
+            //! OF_LINE: preprocessor.of:280
           }
-          //! OF_LINE: preprocessor.of:280
+          //! OF_LINE: preprocessor.of:281
         }
-        //! OF_LINE: preprocessor.of:281
         //! OF_LINE: preprocessor.of:282
-        return null;
         //! OF_LINE: preprocessor.of:283
+        return null;
+        //! OF_LINE: preprocessor.of:284
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:284
     //! OF_LINE: preprocessor.of:285
     //! OF_LINE: preprocessor.of:286
     //! OF_LINE: preprocessor.of:287
+    //! OF_LINE: preprocessor.of:288
     async function load_source(filepath) {
       try {
-        //! OF_LINE: preprocessor.of:288
-        let raw = fileread(filepath);
         //! OF_LINE: preprocessor.of:289
-        return await strip_comments2(raw);
+        let raw = fileread(filepath);
         //! OF_LINE: preprocessor.of:290
+        return await strip_comments2(raw);
+        //! OF_LINE: preprocessor.of:291
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:291
     //! OF_LINE: preprocessor.of:292
     //! OF_LINE: preprocessor.of:293
     //! OF_LINE: preprocessor.of:294
     //! OF_LINE: preprocessor.of:295
     //! OF_LINE: preprocessor.of:296
+    //! OF_LINE: preprocessor.of:297
     async function get_all_dependencies2(filepath, visited) {
       try {
-        //! OF_LINE: preprocessor.of:297
-        let abs_path = pathresolve(filepath);
         //! OF_LINE: preprocessor.of:298
+        let abs_path = pathresolve(filepath);
         //! OF_LINE: preprocessor.of:299
+        //! OF_LINE: preprocessor.of:300
         if (!visited) {
-          //! OF_LINE: preprocessor.of:300
-          visited = {};
           //! OF_LINE: preprocessor.of:301
+          visited = {};
+          //! OF_LINE: preprocessor.of:302
         }
-        //! OF_LINE: preprocessor.of:302
         //! OF_LINE: preprocessor.of:303
         //! OF_LINE: preprocessor.of:304
+        //! OF_LINE: preprocessor.of:305
         if (visited[abs_path]) {
-          //! OF_LINE: preprocessor.of:305
-          return [];
           //! OF_LINE: preprocessor.of:306
+          return [];
+          //! OF_LINE: preprocessor.of:307
         }
-        //! OF_LINE: preprocessor.of:307
-        visited[abs_path] = true;
         //! OF_LINE: preprocessor.of:308
+        visited[abs_path] = true;
         //! OF_LINE: preprocessor.of:309
-        let content = await load_source(abs_path);
         //! OF_LINE: preprocessor.of:310
-        let lines = strsplit(content, "\n");
+        let content = await load_source(abs_path);
         //! OF_LINE: preprocessor.of:311
-        let deps = [];
+        let lines = strsplit(content, "\n");
         //! OF_LINE: preprocessor.of:312
+        let deps = [];
         //! OF_LINE: preprocessor.of:313
+        //! OF_LINE: preprocessor.of:314
         for (let line of lines) {
-          //! OF_LINE: preprocessor.of:314
-          let trimmed = strtrim(line);
           //! OF_LINE: preprocessor.of:315
-          let m = match(trimmed, `/^include\\s+["']?([^"'\\s;]+)["']?/i`);
+          let trimmed = strtrim(line);
           //! OF_LINE: preprocessor.of:316
+          let m = match(trimmed, `/^include\\s+["']?([^"'\\s;]+)["']?/i`);
+          //! OF_LINE: preprocessor.of:317
           if (m) {
-            //! OF_LINE: preprocessor.of:317
-            let inc_path = m[0];
             //! OF_LINE: preprocessor.of:318
-            let resolved = await resolve_include2(inc_path, abs_path);
+            let inc_path = m[0];
             //! OF_LINE: preprocessor.of:319
+            let resolved = await resolve_include2(inc_path, abs_path);
+            //! OF_LINE: preprocessor.of:320
             if (resolved) {
-              //! OF_LINE: preprocessor.of:320
-              let sub_deps = await get_all_dependencies2(resolved, visited);
               //! OF_LINE: preprocessor.of:321
+              let sub_deps = await get_all_dependencies2(resolved, visited);
+              //! OF_LINE: preprocessor.of:322
               for (let dep of sub_deps) {
-                //! OF_LINE: preprocessor.of:322
-                arraypush(deps, dep);
                 //! OF_LINE: preprocessor.of:323
+                arraypush(deps, dep);
+                //! OF_LINE: preprocessor.of:324
               }
-              //! OF_LINE: preprocessor.of:324
+              //! OF_LINE: preprocessor.of:325
             }
-            //! OF_LINE: preprocessor.of:325
+            //! OF_LINE: preprocessor.of:326
           }
-          //! OF_LINE: preprocessor.of:326
+          //! OF_LINE: preprocessor.of:327
         }
-        //! OF_LINE: preprocessor.of:327
         //! OF_LINE: preprocessor.of:328
-        arraypush(deps, abs_path);
         //! OF_LINE: preprocessor.of:329
-        return deps;
+        arraypush(deps, abs_path);
         //! OF_LINE: preprocessor.of:330
+        return deps;
+        //! OF_LINE: preprocessor.of:331
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: preprocessor.of:331
     //! OF_LINE: preprocessor.of:332
+    //! OF_LINE: preprocessor.of:333
     global.preprocess_ai_directives = preprocess_ai_directives;
     global.strip_comments = strip_comments2;
     global.resolve_include = resolve_include2;
@@ -4098,7 +4100,7 @@ var require_transpiler = __commonJS({
             //! OF_LINE: transpiler.of:482
           } else if (rs_type == "file") {
             //! OF_LINE: transpiler.of:483
-            arraypush(out, "res.status(" + rs_status + ").sendFile(path.resolve(global.__app_root, " + rs_content + "));");
+            arraypush(out, "res.status(" + rs_status + ").sendFile(require('path').resolve(global.__app_root, " + rs_content + "), { dotfiles: 'allow' });");
             //! OF_LINE: transpiler.of:484
           } else if (rs_type == "template") {
             //! OF_LINE: transpiler.of:485
@@ -4151,7 +4153,7 @@ var require_transpiler = __commonJS({
             //! OF_LINE: transpiler.of:511
           } else if (r_type == "file") {
             //! OF_LINE: transpiler.of:512
-            arraypush(out, "res.sendFile(path.resolve(global.__app_root, " + r_content + "));");
+            arraypush(out, "res.sendFile(require('path').resolve(global.__app_root, " + r_content + "), { dotfiles: 'allow' });");
             //! OF_LINE: transpiler.of:513
           } else if (r_type == "template") {
             //! OF_LINE: transpiler.of:514

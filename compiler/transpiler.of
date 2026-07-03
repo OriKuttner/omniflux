@@ -481,7 +481,7 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         if rs_type == "json" {
             arraypush(out, "res.status(" + rs_status + ").json(" + rs_content + ");")
         } else if (rs_type == "file") {
-            arraypush(out, "res.status(" + rs_status + ").sendFile(path.resolve(global.__app_root, " + rs_content + "));")
+            arraypush(out, "res.status(" + rs_status + ").sendFile(require('path').resolve(global.__app_root, " + rs_content + "), { dotfiles: 'allow' });")
         } else if (rs_type == "template") {
             var cleaned_expr = clean_template_args(rs_content)
             arraypush(out, "res.status(" + rs_status + ").send(await template(" + cleaned_expr + "));")
@@ -510,7 +510,7 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         if r_type == "json" {
             arraypush(out, "res.json(" + r_content + ");")
         } else if (r_type == "file") {
-            arraypush(out, "res.sendFile(path.resolve(global.__app_root, " + r_content + "));")
+            arraypush(out, "res.sendFile(require('path').resolve(global.__app_root, " + r_content + "), { dotfiles: 'allow' });")
         } else if (r_type == "template") {
             var cleaned_expr = clean_template_args(r_content)
             arraypush(out, "res.send(await template(" + cleaned_expr + "));")

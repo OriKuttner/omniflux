@@ -15,7 +15,7 @@ vsix:
 
 compiler: omniflux
 
-omniflux: compiler/omniflux.of compiler/bundler.of compiler/validator.of compiler/transpiler.of compiler/symbols.of stdlib/system.of stdlib/network.of
+omniflux: compiler/omniflux.of compiler/bundler.of compiler/validator.of compiler/transpiler.of compiler/preprocessor.of compiler/symbols.of stdlib/system.of stdlib/network.of
 	omniflux compiler/omniflux.of --compile-only --force
 	cp compiler/omniflux .
 

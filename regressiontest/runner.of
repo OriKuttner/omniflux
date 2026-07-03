@@ -39,23 +39,30 @@ on start {
         "regressiontest/test_spawn_functions.of",
         "regressiontest/test_node_block.of",
         "regressiontest/test_node_block_error.of",
-        "regressiontest/test_syntax_errors_closure.of"
+        "regressiontest/test_syntax_errors_closure.of",
+        "regressiontest/test_respond_file.of"
     ]
     
-    var test_behavior = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1]
+    # Behavior types:
+    #   0 = compile + run, expect success, check output substring
+    #   1 = compile fail expected, check compiler output substring
+    #   2 = compile + run fail expected, check run output substring
+    #   3 = compile-only, check compiled .js content for substring (regression)
+    var test_behavior = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 3]
     
     var test_expected_substrings = [
-        "Hello, Alice!",                              
-        "No newline: 42 -> Now newline!",              
-        "Main on start 2",                            
-        "8 passed, 0 failed",                         
-        "=== All tests completed successfully ===",   
-        "=== System Test Passed ===",                 
-        "=== Local JSON Database Test Passed ===",    
-        "=== Spawn functions test passed ===",        
-        "Node block test completed successfully!",    
-        "test_node_block_error.of:9",                 
-        "SyntaxError"                                 
+        "Hello, Alice!",                                                                       
+        "No newline: 42 -> Now newline!",                                                      
+        "Main on start 2",                                                                     
+        "8 passed, 0 failed",                                                                  
+        "=== All tests completed successfully ===",                                            
+        "=== System Test Passed ===",                                                          
+        "=== Local JSON Database Test Passed ===",                                             
+        "=== Spawn functions test passed ===",                                                 
+        "Node block test completed successfully!",                                             
+        "test_node_block_error.of:9",                                                         
+        "SyntaxError",                                                                         
+        "sendFile(require('path').resolve(global.__app_root, \"public/index.html\"), { dotfiles: 'allow' })"                                  
     ]
     
     var i = 0
@@ -80,6 +87,23 @@ on start {
             } else {
                 var found = strindexof(comp_res.output, expected_sub)
                 if found < 0 {
+                    is_ok = false
+                }
+            }
+        } else if behavior == 3 {
+            # Compile-only: check compiled JS content for expected substring
+            stage = "Compiled JS content"
+            if comp_res.code != 0 {
+                is_ok = false
+            } else {
+                var js_path = strreplace(file_path, "/", "-")
+                var cache_dir = ".omniflux_cache"
+                # Derive the cache path: .omniflux_cache/<file_path_no_ext>.js
+                var js_file = cache_dir + "/" + strreplace(file_path, ".of", ".js")
+                var cat_res = await run_cmd("cat", [js_file])
+                actual_output = cat_res.output
+                var found_js = strindexof(cat_res.output, expected_sub)
+                if found_js < 0 {
                     is_ok = false
                 }
             }

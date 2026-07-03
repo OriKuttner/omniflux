@@ -1,0 +1,14 @@
+# test_respond_file.of
+# Regression test: 'respond file' and 'respond with status N and file'
+# must emit res.sendFile(require('path').resolve(global.__app_root, ...))
+# A bare path (without path.resolve) causes sendFile to throw an error.
+
+listen on port 19991
+
+GET "/file" (req, res) {
+    respond file "public/index.html"
+}
+
+GET "/file-with-status" (req, res) {
+    respond with status 200 and file "public/index.html"
+}
