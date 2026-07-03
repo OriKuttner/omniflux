@@ -476,8 +476,10 @@ OmniFlux provides simple, procedural statements for sending HTTP responses, full
   * `redirect to "/login" with status 301` (for permanent redirects)
 
 * **Template Responses (renders and sends HTML templates):**
-  * `respond template("views/index.html", { "title": "Home" })`
+  * `respond template("views/index.html", { "title": "Home" })` (Parenthesized syntax)
   * `respond status 200 and template("views/index.html")`
+  * `respond template "views/index.html" { "title": "Home" }` (Natural block syntax; the separating comma between path and object is optional and automatically completed by the compiler if omitted).
+  * `respond with template "views/index.html", { "title": "Home" }`
 
   The template engine reads the `.html` file and processes `{{ variable }}` interpolation and `@if`/`@else`/`@for` control blocks. It also recursively resolves `@include("path/to/partial.html")` directives. Like `respond file`, all paths are resolved relative to the startup working directory, ensuring correct behavior under Passenger.
 
@@ -825,8 +827,20 @@ on start {
 Provides tasks for secure hashing, symmetric encryption, and Base64 conversion:
 * `encrypt(text, key)`: Encrypts `text` using the `key` via the secure AES-256-CBC algorithm. Generates a unique, random initialization vector (IV) for each call to ensure identical inputs result in different ciphertexts, and returns the result packed as `iv:ciphertext`.
 * `decrypt(encryptedText, key)`: Decrypts `encryptedText` (in the `iv:ciphertext` format) using the provided `key`. Returns the original decrypted string, or `null` if decryption fails (e.g., due to an incorrect key or corrupted input).
-* `base64_encode(text)` (alias `base64encode`): Takes a string and returns its Base64 encoded representation.
-* `base64_decode(text)` (alias `base64decode`): Takes a Base64 string and decodes it back to its original UTF-8 string format.
+* `base64_encode(text)` (aliases `base64encode`, `encodebase64`): Takes a string and returns its Base64 encoded representation (UTF-8 safe).
+* `base64_decode(text)` (aliases `base64decode`, `decodebase64`): Takes a Base64 string and decodes it back to its original UTF-8 string format.
+
+> [!TIP]
+> **Interoperability with Browser JavaScript:**
+> Because OmniFlux uses standard UTF-8 bytes for Base64 encoding/decoding, you can easily decode and encode these values in your client-side JavaScript (browser-side) without adding any extra JS library files, using the built-in `TextEncoder` and `TextDecoder` APIs:
+> ```javascript
+> // Decode Base64 string (including Hebrew/UTF-8) in browser JS:
+> const decoded = new TextDecoder().decode(Uint8Array.from(atob(base64Str), c => c.charCodeAt(0)));
+>
+> // Encode string to Base64 (including Hebrew/UTF-8) in browser JS:
+> const encoded = btoa(Array.from(new TextEncoder().encode(str), b => String.fromCharCode(b)).join(""));
+> ```
+
 
 ```omniflux
 include "stdlib/encrypt.of"

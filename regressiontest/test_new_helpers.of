@@ -124,6 +124,13 @@ on start {
     
     var decrypted_wrong = decrypt(encrypted_res, "wrongpassword")
     print("decrypted wrong key: %j (expected: null)", decrypted_wrong)
+
+    # 10.8. Test encodebase64 & decodebase64
+    var utf8_text = "שלום עולם!"
+    var base64_utf8 = encodebase64(utf8_text)
+    var decoded_utf8 = decodebase64(base64_utf8)
+    print("decodebase64 output: '%s' (expected: 'שלום עולם!')", decoded_utf8)
+
     # 10.9. Test setcookie
     var mock_res = @{ {
         cookie: function(name, val, opts) {

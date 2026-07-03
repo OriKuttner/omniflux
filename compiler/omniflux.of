@@ -265,7 +265,7 @@ define task detect_missing_includes(source_code) {
     var missing = []
     
     // Check encrypt/base64
-    if match(source_code, "/\\b(encrypt|decrypt|base64_encode|base64encode|base64_decode|base64decode)\\b/") {
+    if match(source_code, "/\\b(encrypt|decrypt|base64_encode|base64encode|encodebase64|base64_decode|base64decode|decodebase64)\\b/") {
         if !match(source_code, "/stdlib\\/encrypt\\.of/") {
             arraypush(missing, "stdlib/encrypt.of")
         }

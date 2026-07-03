@@ -28,6 +28,17 @@ define task clean_template_args(content) {
         var m = match(cleaned, "/^\\((.*)\\)$/")
         cleaned = m[0]
     }
+    @{
+        // Automatically insert a comma between the template path expression and the context object if missing.
+        // e.g. "public/file-viewer.html" { content: content } -> "public/file-viewer.html", { content: content }
+        const dq = String.fromCharCode(34);
+        const sq = String.fromCharCode(39);
+        const pat = "((?:" + dq + "[^" + dq + "]*" + dq + "|" + sq + "[^" + sq + "]*" + sq + "|[\\w$.)]+))\\s*(\\{)";
+        const re = new RegExp(pat);
+        cleaned = cleaned.replace(re, (match, p1, p2) => {
+            return p1 + ", " + p2;
+        });
+    @}
     return cleaned
 }
 

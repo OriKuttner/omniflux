@@ -42,6 +42,10 @@ define task base64encode(text) {
     return base64_encode(text)
 }
 
+define task encodebase64(text) {
+    return base64_encode(text)
+}
+
 define task base64_decode(text) {
     @{
         if (text === null || text === undefined) return '';
@@ -50,5 +54,9 @@ define task base64_decode(text) {
 }
 
 define task base64decode(text) {
+    return base64_decode(text)
+}
+
+define task decodebase64(text) {
     return base64_decode(text)
 }
