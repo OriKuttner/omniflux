@@ -832,14 +832,15 @@ Provides tasks for secure hashing, symmetric encryption, and Base64 conversion:
 
 > [!TIP]
 > **Interoperability with Browser JavaScript:**
-> Because OmniFlux uses standard UTF-8 bytes for Base64 encoding/decoding, you can easily decode and encode these values in your client-side JavaScript (browser-side) without adding any extra JS library files, using the built-in `TextEncoder` and `TextDecoder` APIs:
+> Because OmniFlux uses standard UTF-8 bytes for Base64 encoding/decoding, you can easily decode and encode these values in your client-side JavaScript (browser-side) in a single line using the built-in browser functions `escape`/`unescape`:
 > ```javascript
 > // Decode Base64 string (including Hebrew/UTF-8) in browser JS:
-> const decoded = new TextDecoder().decode(Uint8Array.from(atob(base64Str), c => c.charCodeAt(0)));
+> const decoded = decodeURIComponent(escape(atob(base64Str)));
 >
 > // Encode string to Base64 (including Hebrew/UTF-8) in browser JS:
-> const encoded = btoa(Array.from(new TextEncoder().encode(str), b => String.fromCharCode(b)).join(""));
+> const encoded = btoa(unescape(encodeURIComponent(str)));
 > ```
+
 
 
 ```omniflux
