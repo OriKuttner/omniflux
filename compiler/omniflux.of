@@ -279,7 +279,7 @@ define task detect_missing_includes(source_code) {
     }
 
     // Check datetime
-    if match(source_code, "/\\b(datetime_now|datetime_format)\\b/") {
+    if match(source_code, "/\\b(datetime_now|datetime_format|datetimeparse|datetime_parse)\\b/") {
         if !match(source_code, "/stdlib\\/datetime\\.of/") {
             arraypush(missing, "stdlib/datetime.of")
         }

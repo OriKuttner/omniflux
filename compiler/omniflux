@@ -5714,7 +5714,7 @@ async function detect_missing_includes(source_code) {
     //! OF_LINE: omniflux.of:279
     //! OF_LINE: omniflux.of:280
     //! OF_LINE: omniflux.of:281
-    if (match(source_code, "/\\b(datetime_now|datetime_format)\\b/")) {
+    if (match(source_code, "/\\b(datetime_now|datetime_format|datetimeparse|datetime_parse)\\b/")) {
       //! OF_LINE: omniflux.of:282
       if (!match(source_code, "/stdlib\\/datetime\\.of/")) {
         //! OF_LINE: omniflux.of:283

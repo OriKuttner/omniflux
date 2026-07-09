@@ -47,3 +47,20 @@ define task datetime_format(ts, fmt) {
     
     return res
 }
+
+define task datetimeparse(str) {
+    var ts = 0
+    @{
+        if (str) {
+            const parsed = Date.parse(str);
+            if (!isNaN(parsed)) {
+                ts = Math.floor(parsed / 1000);
+            }
+        }
+    @}
+    return ts
+}
+
+define task datetime_parse(str) {
+    return datetimeparse(str)
+}

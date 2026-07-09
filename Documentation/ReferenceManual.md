@@ -750,6 +750,7 @@ include "stdlib/system.of"
 Provides simplified tasks for reading and formatting dates:
 * `datetime_now()`: Returns the current Unix timestamp.
 * `datetime_format(timestamp, format_string)`: Formats a Unix timestamp. Supported tokens are `YYYY` (year), `MM` (month), `DD` (day), `HH` (hour), `mm` (minute), and `ss` (seconds).
+* `datetimeparse(date_string)` / `datetime_parse(date_string)`: Parses a date string (e.g. `"YYYY-MM-DD"`, `"YYYY-MM-DD HH:mm:ss"`, or any other standard format) and returns its Unix timestamp in seconds. Returns `0` if the string is empty or invalid.
 ```omniflux
 include "stdlib/datetime.of"
 
@@ -757,6 +758,9 @@ on start {
     var now = datetime_now()
     var pretty_date = datetime_format(now, "YYYY-MM-DD HH:mm:ss")
     print("Current time: %s", pretty_date)
+    
+    var ts = datetimeparse("2026-07-07 12:00:00")
+    print("Parsed timestamp: %d", ts)
 }
 ```
 
