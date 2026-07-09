@@ -1,0 +1,23 @@
+# test_logging.of
+# Regression test for OmniFlux built-in logging system.
+
+on start {
+    # Set logging format explicitly to text and level to info
+    setenv("LOG_FORMAT", "text")
+    setenv("LOG_LEVEL", "info")
+
+    log_info("Test info log")
+    log("Test default log") # defaults to warn, which is >= info, so it will print
+    
+    # Debug log should NOT print since LOG_LEVEL is info
+    log_debug("This debug log should not appear")
+
+    # Set level to debug and print debug log
+    setenv("LOG_LEVEL", "debug")
+    log_debug("Test debug log")
+
+    # Test generic log with level and context
+    log("Custom log with context", "info", { "status": "active" })
+
+    print("=== Logging Test Completed ===")
+}

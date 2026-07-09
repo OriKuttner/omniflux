@@ -25,7 +25,7 @@ define task mysqlquery(query, params) {
 define task mysqlconnect(config) {
     @{
         try {
-            const mysql = require('mysql2/promise');
+            const mysql = global.safeRequire('mysql2/promise');
             let options = {};
             if (typeof config === 'string') {
                 options = { uri: config };

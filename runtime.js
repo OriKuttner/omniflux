@@ -2,6 +2,155 @@ const fs = require('fs');
 const util = require('util');
 const path = require('path');
 
+// Check Node.js version compatibility (requires Node.js >= 16)
+const [major] = process.versions.node.split('.').map(Number);
+if (major < 16) {
+    console.error(`\x1b[1;31m[OmniFlux Runtime Error]: Incompatible Node.js version detected (v${process.versions.node}).\x1b[0m`);
+    console.error(`\x1b[1;31mOmniFlux requires Node.js version 16.0.0 or higher. Please upgrade your Node.js runtime.\x1b[0m`);
+    process.exit(1);
+}
+
+function safeRequire(moduleName) {
+    try {
+        return require(moduleName);
+    } catch (err) {
+        if (err.code === 'MODULE_NOT_FOUND') {
+            const parts = moduleName.split('/');
+            const pkgName = moduleName.startsWith('@') ? parts.slice(0, 2).join('/') : parts[0];
+            
+            const { execSync } = require('child_process');
+            // Verify npm is available
+            try {
+                execSync('npm -v', { stdio: 'ignore' });
+            } catch (npmErr) {
+                throw new Error(`Failed to automatically install dependency '${pkgName}': npm command is not installed or not in PATH.`);
+            }
+
+            console.log(`[OmniFlux Runtime]: Installing missing dependency '${pkgName}' automatically...`);
+            try {
+                const path = require('path');
+                const cwd = require.main ? path.dirname(require.main.filename) : process.cwd();
+                execSync(`npm install ${pkgName}`, { cwd, stdio: 'inherit' });
+                return require(moduleName);
+            } catch (installErr) {
+                throw new Error(`Failed to automatically install dependency '${pkgName}': ${installErr.message}`);
+            }
+        }
+        throw err;
+    }
+}
+
+
+// --- Logging System ---
+function getFormattedTime() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function formatLog(levelName, message, context, mode) {
+    const timestamp = new Date().toISOString();
+    const displayLevel = levelName.toUpperCase();
+    
+    let errData = null;
+    if (context instanceof Error) {
+        errData = { message: context.message, stack: context.stack };
+    } else if (context && typeof context === 'object' && (context.message && context.stack)) {
+        errData = { message: context.message, stack: context.stack };
+    }
+    
+    if (mode === 'json' || mode === 'json_plain') {
+        const logObj = {
+            timestamp,
+            level: displayLevel,
+            message: String(message)
+        };
+        if (errData) {
+            logObj.error = errData;
+        } else if (context !== undefined && context !== null) {
+            logObj.context = context;
+        }
+        return JSON.stringify(logObj);
+    }
+    
+    const localTime = getFormattedTime();
+    let colorStart = '';
+    let colorEnd = '\x1b[0m';
+    
+    if (mode === true) {
+        const colors = {
+            DEBUG: '\x1b[90m',
+            INFO: '\x1b[32m',
+            WARN: '\x1b[33m',
+            ERROR: '\x1b[31m',
+            FATAL: '\x1b[1;31m'
+        };
+        colorStart = colors[displayLevel] || '';
+    } else {
+        colorEnd = '';
+    }
+    
+    let suffix = '';
+    if (errData) {
+        suffix = `: ${errData.message}\n${errData.stack}`;
+    } else if (context !== undefined && context !== null) {
+        try {
+            suffix = ' ' + JSON.stringify(context);
+        } catch (e) {
+            suffix = ' [Object]';
+        }
+    }
+    
+    return `[${localTime}] ${colorStart}[${displayLevel}]${colorEnd} ${message}${suffix}`;
+}
+
+function _log_write(levelName, message, context) {
+    const levels = { debug: 0, info: 1, warn: 2, error: 3, fatal: 4 };
+    const currentLevel = levels[levelName.toLowerCase()] !== undefined ? levels[levelName.toLowerCase()] : 2;
+    
+    const configLevelName = process.env.LOG_LEVEL || 'info';
+    const configLevel = levels[configLevelName.toLowerCase()] !== undefined ? levels[configLevelName.toLowerCase()] : 1;
+    
+    if (currentLevel < configLevel) return;
+    
+    const logFormat = process.env.LOG_FORMAT || (process.stdout.isTTY ? 'text' : 'json');
+    const logFile = process.env.LOG_FILE || null;
+    
+    const consoleOutput = formatLog(levelName, message, context, logFormat === 'text' && process.stdout.isTTY);
+    process.stdout.write(consoleOutput + '\n');
+    
+    if (logFile) {
+        const fileOutput = formatLog(levelName, message, context, logFormat === 'text' ? false : 'json');
+        try {
+            fs.appendFileSync(logFile, fileOutput + '\n', 'utf8');
+        } catch (err) {
+            // Fail silently on write errors
+        }
+    }
+}
+
+function log(message, level = 'warn', context = null) {
+    const levels = ['debug', 'info', 'warn', 'error', 'fatal'];
+    let finalLevel = 'warn';
+    let finalContext = context;
+    
+    if (typeof level === 'string' && levels.includes(level.toLowerCase())) {
+        finalLevel = level;
+    } else {
+        finalContext = level;
+        finalLevel = 'warn';
+    }
+    
+    _log_write(finalLevel, message, finalContext);
+}
+
+function log_debug(message, context = null) { _log_write('debug', message, context); }
+function log_info(message, context = null) { _log_write('info', message, context); }
+function log_warn(message, context = null) { _log_write('warn', message, context); }
+function log_error(message, context = null) { _log_write('error', message, context); }
+function log_fatal(message, context = null) { _log_write('fatal', message, context); }
+
+
 // Initialize global args
 global.args = global.args || process.argv.slice(2);
 
@@ -432,7 +581,7 @@ let redisModule = null;
 let redisClient = null;
 async function getRedisClient() {
     if (!redisModule) {
-        redisModule = require('redis');
+        redisModule = safeRequire('redis');
     }
     if (!redisClient) {
         const url = process.env.REDIS_URL || 'redis://localhost:6379';
@@ -948,6 +1097,27 @@ document.addEventListener('click', async (e) => {
 }
 
 // Bind helper functions to global scope
+global.safeRequire = safeRequire;
+global.safe_require = safeRequire;
+global.saferequire = safeRequire;
+
+global.log = log;
+
+global.log_debug = log_debug;
+global.logdebug = log_debug;
+
+global.log_info = log_info;
+global.loginfo = log_info;
+
+global.log_warn = log_warn;
+global.logwarn = log_warn;
+
+global.log_error = log_error;
+global.logerror = log_error;
+
+global.log_fatal = log_fatal;
+global.logfatal = log_fatal;
+
 global.sprintf = sprintf;
 global.print = print;
 global.printf = printf;

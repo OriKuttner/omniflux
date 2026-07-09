@@ -12,6 +12,9 @@ var BUILTINS = [
     // I/O
     "print", "printf", "sprintf", "fprint", "fprintf",
     "input", "readchar", "read_char",
+    // Logging
+    "log", "log_debug", "log_info", "log_warn", "log_error", "log_fatal",
+    "logdebug", "loginfo", "logwarn", "logerror", "logfatal",
     // File system
     "fileread", "file_read",
     "filewrite", "file_write",

@@ -151,6 +151,40 @@ Supported format specifiers include:
 * `%j`: JSON serialization of objects
 * `%%`: A single percent sign (`%`)
 
+### 1.4.1 Structured Logging System 🪵
+OmniFlux provides a production-grade, zero-friction structured logging utility. It supports procedural logging, structured context, and environment-based configuration.
+
+* **`log(message, level?, context?)`**: Generic logging helper. The `level` is optional (defaults to `"warn"`). The `context` is optional and can be a data object or an `Error` object. If `level` is not a string or a valid level name, it is treated as the `context` parameter, defaulting the level to `"warn"`.
+* **`log_debug(message, context?)`** / **`logdebug`**: Log a message with debug level.
+* **`log_info(message, context?)`** / **`loginfo`**: Log a message with info level.
+* **`log_warn(message, context?)`** / **`logwarn`**: Log a message with warn level.
+* **`log_error(message, context?)`** / **`logerror`**: Log a message with error level.
+* **`log_fatal(message, context?)`** / **`logfatal`**: Log a message with fatal level.
+
+#### Configuration & Behavior
+The logging system reads the following environment variables (which can be configured externally or dynamically using `setenv`):
+- **`LOG_LEVEL`**: Filters out logs below the configured level (hierarchy: `debug` < `info` < `warn` < `error` < `fatal`). Defaults to `"info"`.
+- **`LOG_FORMAT`**: Controls log serialization format:
+  - `"text"` (default for TTY consoles): Logs are printed with local timestamps and color-coded level tags, with the `context` JSON appended to the end of the line. If the context is an `Error` object, a readable multi-line stack trace is printed.
+  - `"json"` (default when stdout is redirected/non-TTY): Logs are structured as single-line JSON objects, containing `timestamp`, `level`, `message`, and `context`/`error` properties.
+- **`LOG_FILE`**: If set, copies the formatted logs directly to the specified file path. In `"text"` format, ANSI color escape codes are automatically stripped from file writes to keep log files clean.
+
+```omniflux
+# Enable text format and debug logs
+setenv("LOG_FORMAT", "text")
+setenv("LOG_LEVEL", "debug")
+
+log_info("Application starting")
+log_debug("Loading database connection pool", { "poolSize": 10 })
+
+define task trigger_error() {
+    var x = null
+    var y = x.foo
+} on error (err) {
+    log_error("Failed to query database", err)
+}
+```
+
 ### 1.5 Input & CLI Arguments 📥
 OmniFlux provides simple tools to read input and arguments when building command line interfaces:
 

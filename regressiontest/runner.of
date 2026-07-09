@@ -40,7 +40,8 @@ on start {
         "regressiontest/test_node_block.of",
         "regressiontest/test_node_block_error.of",
         "regressiontest/test_syntax_errors_closure.of",
-        "regressiontest/test_respond_file.of"
+        "regressiontest/test_respond_file.of",
+        "regressiontest/test_logging.of"
     ]
     
     # Behavior types:
@@ -48,7 +49,7 @@ on start {
     #   1 = compile fail expected, check compiler output substring
     #   2 = compile + run fail expected, check run output substring
     #   3 = compile-only, check compiled .js content for substring (regression)
-    var test_behavior = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 3]
+    var test_behavior = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 3, 0]
     
     var test_expected_substrings = [
         "Hello, Alice!",                                                                       
@@ -62,7 +63,8 @@ on start {
         "Node block test completed successfully!",                                             
         "test_node_block_error.of:9",                                                         
         "SyntaxError",                                                                         
-        "sendFile(require('path').resolve(global.__app_root, \"public/index.html\"), { dotfiles: 'allow' })"                                  
+        "sendFile(require('path').resolve(global.__app_root, \"public/index.html\"), { dotfiles: 'allow' })",
+        "=== Logging Test Completed ==="
     ]
     
     var i = 0

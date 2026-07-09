@@ -1115,408 +1115,422 @@ var require_symbols = __commonJS({
       "read_char",
       //! OF_LINE: symbols.of:14
       //! OF_LINE: symbols.of:15
+      "log",
+      "log_debug",
+      "log_info",
+      "log_warn",
+      "log_error",
+      "log_fatal",
+      //! OF_LINE: symbols.of:16
+      "logdebug",
+      "loginfo",
+      "logwarn",
+      "logerror",
+      "logfatal",
+      //! OF_LINE: symbols.of:17
+      //! OF_LINE: symbols.of:18
       "fileread",
       "file_read",
-      //! OF_LINE: symbols.of:16
+      //! OF_LINE: symbols.of:19
       "filewrite",
       "file_write",
-      //! OF_LINE: symbols.of:17
+      //! OF_LINE: symbols.of:20
       "fileexists",
       "file_exists",
-      //! OF_LINE: symbols.of:18
+      //! OF_LINE: symbols.of:21
       "fileappend",
       "file_append",
-      //! OF_LINE: symbols.of:19
+      //! OF_LINE: symbols.of:22
       "filedelete",
       "file_delete",
-      //! OF_LINE: symbols.of:20
+      //! OF_LINE: symbols.of:23
       "filecopy",
       "file_copy",
-      //! OF_LINE: symbols.of:21
+      //! OF_LINE: symbols.of:24
       "filerename",
       "file_rename",
-      //! OF_LINE: symbols.of:22
+      //! OF_LINE: symbols.of:25
       "filestat",
       "file_stat",
-      //! OF_LINE: symbols.of:23
+      //! OF_LINE: symbols.of:26
       "dirlist",
       "dir_list",
-      //! OF_LINE: symbols.of:24
+      //! OF_LINE: symbols.of:27
       "dircreate",
       "dir_create",
-      //! OF_LINE: symbols.of:25
+      //! OF_LINE: symbols.of:28
       "scriptdir",
       "script_dir",
-      //! OF_LINE: symbols.of:26
-      //! OF_LINE: symbols.of:27
+      //! OF_LINE: symbols.of:29
+      //! OF_LINE: symbols.of:30
       "dbsetfile",
       "db_set_file",
-      //! OF_LINE: symbols.of:28
+      //! OF_LINE: symbols.of:31
       "dbinsert",
       "db_insert",
-      //! OF_LINE: symbols.of:29
+      //! OF_LINE: symbols.of:32
       "dbselect",
       "db_select",
-      //! OF_LINE: symbols.of:30
+      //! OF_LINE: symbols.of:33
       "dbupdate",
       "db_update",
-      //! OF_LINE: symbols.of:31
+      //! OF_LINE: symbols.of:34
       "dbdelete",
       "db_delete",
-      //! OF_LINE: symbols.of:32
+      //! OF_LINE: symbols.of:35
       "mysqlconnect",
       "mysql_connect",
-      //! OF_LINE: symbols.of:33
+      //! OF_LINE: symbols.of:36
       "mysqlquery",
       "mysql_query",
-      //! OF_LINE: symbols.of:34
+      //! OF_LINE: symbols.of:37
       "mysqlclose",
       "mysql_close",
-      //! OF_LINE: symbols.of:35
-      //! OF_LINE: symbols.of:36
-      "cacheset",
-      "cache_set",
-      //! OF_LINE: symbols.of:37
-      "cacheget",
-      "cache_get",
       //! OF_LINE: symbols.of:38
       //! OF_LINE: symbols.of:39
-      "setenv",
-      "set_env",
+      "cacheset",
+      "cache_set",
       //! OF_LINE: symbols.of:40
-      "getenv",
-      "get_env",
+      "cacheget",
+      "cache_get",
       //! OF_LINE: symbols.of:41
       //! OF_LINE: symbols.of:42
-      "exit",
+      "setenv",
+      "set_env",
       //! OF_LINE: symbols.of:43
+      "getenv",
+      "get_env",
       //! OF_LINE: symbols.of:44
-      "sha256",
       //! OF_LINE: symbols.of:45
+      "exit",
+      //! OF_LINE: symbols.of:46
+      //! OF_LINE: symbols.of:47
+      "sha256",
+      //! OF_LINE: symbols.of:48
       "encrypt",
       "decrypt",
-      //! OF_LINE: symbols.of:46
+      //! OF_LINE: symbols.of:49
       "base64encode",
       "base64_encode",
-      //! OF_LINE: symbols.of:47
+      //! OF_LINE: symbols.of:50
       "base64decode",
       "base64_decode",
-      //! OF_LINE: symbols.of:48
-      //! OF_LINE: symbols.of:49
+      //! OF_LINE: symbols.of:51
+      //! OF_LINE: symbols.of:52
       "getcookie",
       "get_cookie",
-      //! OF_LINE: symbols.of:50
+      //! OF_LINE: symbols.of:53
       "setcookie",
       "set_cookie",
-      //! OF_LINE: symbols.of:51
+      //! OF_LINE: symbols.of:54
       "networkget",
       "network_get",
-      //! OF_LINE: symbols.of:52
+      //! OF_LINE: symbols.of:55
       "networkpost",
       "network_post",
-      //! OF_LINE: symbols.of:53
+      //! OF_LINE: symbols.of:56
       "uploadfile",
       "upload_file",
-      //! OF_LINE: symbols.of:54
-      //! OF_LINE: symbols.of:55
-      "template",
-      //! OF_LINE: symbols.of:56
       //! OF_LINE: symbols.of:57
-      "len",
       //! OF_LINE: symbols.of:58
-      "keys",
+      "template",
       //! OF_LINE: symbols.of:59
+      //! OF_LINE: symbols.of:60
+      "len",
+      //! OF_LINE: symbols.of:61
+      "keys",
+      //! OF_LINE: symbols.of:62
       "errorinfo",
       "error_info",
-      //! OF_LINE: symbols.of:60
+      //! OF_LINE: symbols.of:63
       "match",
-      //! OF_LINE: symbols.of:61
+      //! OF_LINE: symbols.of:64
       "strsplit",
       "str_split",
-      //! OF_LINE: symbols.of:62
+      //! OF_LINE: symbols.of:65
       "strtrim",
       "str_trim",
-      //! OF_LINE: symbols.of:63
+      //! OF_LINE: symbols.of:66
       "strsub",
       "str_sub",
-      //! OF_LINE: symbols.of:64
+      //! OF_LINE: symbols.of:67
       "strindexof",
       "str_index_of",
-      //! OF_LINE: symbols.of:65
+      //! OF_LINE: symbols.of:68
       "strlastindexof",
       "str_last_index_of",
-      //! OF_LINE: symbols.of:66
+      //! OF_LINE: symbols.of:69
       "strrepeat",
       "str_repeat",
-      //! OF_LINE: symbols.of:67
+      //! OF_LINE: symbols.of:70
       "strreplace",
       "str_replace",
-      //! OF_LINE: symbols.of:68
+      //! OF_LINE: symbols.of:71
       "strupper",
       "str_upper",
-      //! OF_LINE: symbols.of:69
+      //! OF_LINE: symbols.of:72
       "strlower",
       "str_lower",
-      //! OF_LINE: symbols.of:70
-      //! OF_LINE: symbols.of:71
+      //! OF_LINE: symbols.of:73
+      //! OF_LINE: symbols.of:74
       "arraypush",
       "array_push",
-      //! OF_LINE: symbols.of:72
+      //! OF_LINE: symbols.of:75
       "arrayunshift",
       "array_unshift",
-      //! OF_LINE: symbols.of:73
+      //! OF_LINE: symbols.of:76
       "arraypop",
       "array_pop",
-      //! OF_LINE: symbols.of:74
+      //! OF_LINE: symbols.of:77
       "arrayshift",
       "array_shift",
-      //! OF_LINE: symbols.of:75
+      //! OF_LINE: symbols.of:78
       "arraycontains",
       "array_contains",
-      //! OF_LINE: symbols.of:76
+      //! OF_LINE: symbols.of:79
       "arrayjoin",
       "array_join",
-      //! OF_LINE: symbols.of:77
+      //! OF_LINE: symbols.of:80
       "arrayslice",
       "array_slice",
-      //! OF_LINE: symbols.of:78
+      //! OF_LINE: symbols.of:81
       "arrayreverse",
       "array_reverse",
-      //! OF_LINE: symbols.of:79
+      //! OF_LINE: symbols.of:82
       "arraysort",
       "array_sort",
-      //! OF_LINE: symbols.of:80
+      //! OF_LINE: symbols.of:83
       "arraymap",
       "array_map",
-      //! OF_LINE: symbols.of:81
+      //! OF_LINE: symbols.of:84
       "arrayfilter",
       "array_filter",
-      //! OF_LINE: symbols.of:82
+      //! OF_LINE: symbols.of:85
       "arrayfind",
       "array_find",
-      //! OF_LINE: symbols.of:83
-      //! OF_LINE: symbols.of:84
+      //! OF_LINE: symbols.of:86
+      //! OF_LINE: symbols.of:87
       "pathjoin",
       "path_join",
-      //! OF_LINE: symbols.of:85
+      //! OF_LINE: symbols.of:88
       "pathresolve",
       "path_resolve",
-      //! OF_LINE: symbols.of:86
+      //! OF_LINE: symbols.of:89
       "pathdirname",
       "path_dir_name",
-      //! OF_LINE: symbols.of:87
+      //! OF_LINE: symbols.of:90
       "pathbasename",
       "path_base_name",
-      //! OF_LINE: symbols.of:88
+      //! OF_LINE: symbols.of:91
       "pathextension",
       "path_extension",
-      //! OF_LINE: symbols.of:89
+      //! OF_LINE: symbols.of:92
       "pathisabsolute",
       "path_is_absolute",
-      //! OF_LINE: symbols.of:90
-      //! OF_LINE: symbols.of:91
+      //! OF_LINE: symbols.of:93
+      //! OF_LINE: symbols.of:94
       "time",
       "microtime",
       "micro_time",
-      //! OF_LINE: symbols.of:92
+      //! OF_LINE: symbols.of:95
       "dateyear",
       "date_year",
-      //! OF_LINE: symbols.of:93
+      //! OF_LINE: symbols.of:96
       "datemonth",
       "date_month",
-      //! OF_LINE: symbols.of:94
+      //! OF_LINE: symbols.of:97
       "dateday",
       "date_day",
-      //! OF_LINE: symbols.of:95
+      //! OF_LINE: symbols.of:98
       "datehour",
       "date_hour",
-      //! OF_LINE: symbols.of:96
+      //! OF_LINE: symbols.of:99
       "dateminute",
       "date_minute",
-      //! OF_LINE: symbols.of:97
+      //! OF_LINE: symbols.of:100
       "datesecond",
       "date_second",
-      //! OF_LINE: symbols.of:98
+      //! OF_LINE: symbols.of:101
       "dateweekday",
       "date_weekday",
-      //! OF_LINE: symbols.of:99
-      //! OF_LINE: symbols.of:100
-      "describe",
-      //! OF_LINE: symbols.of:101
       //! OF_LINE: symbols.of:102
+      //! OF_LINE: symbols.of:103
+      "describe",
+      //! OF_LINE: symbols.of:104
+      //! OF_LINE: symbols.of:105
       "jsonparse",
       "json_parse",
-      //! OF_LINE: symbols.of:103
+      //! OF_LINE: symbols.of:106
       "jsondecode",
       "json_decode",
-      //! OF_LINE: symbols.of:104
+      //! OF_LINE: symbols.of:107
       "jsonencode",
       "json_encode",
-      //! OF_LINE: symbols.of:105
-      //! OF_LINE: symbols.of:106
+      //! OF_LINE: symbols.of:108
+      //! OF_LINE: symbols.of:109
       "args",
       "global",
       "console",
       "require",
       "module",
       "process",
-      //! OF_LINE: symbols.of:107
+      //! OF_LINE: symbols.of:110
       "Math",
       "JSON",
       "Array",
       "Object",
       "String",
       "Number",
-      //! OF_LINE: symbols.of:108
+      //! OF_LINE: symbols.of:111
       "Boolean",
       "Error",
       "setTimeout",
       "setInterval",
-      //! OF_LINE: symbols.of:109
+      //! OF_LINE: symbols.of:112
       "clearTimeout",
       "clearInterval",
       "NaN"
-      //! OF_LINE: symbols.of:110
+      //! OF_LINE: symbols.of:113
     ];
-    //! OF_LINE: symbols.of:111
-    //! OF_LINE: symbols.of:112
-    //! OF_LINE: symbols.of:113
     //! OF_LINE: symbols.of:114
+    //! OF_LINE: symbols.of:115
+    //! OF_LINE: symbols.of:116
+    //! OF_LINE: symbols.of:117
     var ASYNC_BUILTINS = [
-      //! OF_LINE: symbols.of:115
+      //! OF_LINE: symbols.of:118
       "input",
-      //! OF_LINE: symbols.of:116
+      //! OF_LINE: symbols.of:119
       "cacheset",
       "cache_set",
-      //! OF_LINE: symbols.of:117
+      //! OF_LINE: symbols.of:120
       "cacheget",
       "cache_get",
-      //! OF_LINE: symbols.of:118
+      //! OF_LINE: symbols.of:121
       "mysqlconnect",
       "mysql_connect",
-      //! OF_LINE: symbols.of:119
+      //! OF_LINE: symbols.of:122
       "mysqlquery",
       "mysql_query",
-      //! OF_LINE: symbols.of:120
+      //! OF_LINE: symbols.of:123
       "mysqlclose",
       "mysql_close",
-      //! OF_LINE: symbols.of:121
+      //! OF_LINE: symbols.of:124
       "networkget",
       "network_get",
-      //! OF_LINE: symbols.of:122
+      //! OF_LINE: symbols.of:125
       "networkpost",
       "network_post",
-      //! OF_LINE: symbols.of:123
+      //! OF_LINE: symbols.of:126
       "uploadfile",
       "upload_file",
-      //! OF_LINE: symbols.of:124
+      //! OF_LINE: symbols.of:127
       "arraymap",
       "array_map",
-      //! OF_LINE: symbols.of:125
+      //! OF_LINE: symbols.of:128
       "arrayfilter",
       "array_filter",
-      //! OF_LINE: symbols.of:126
+      //! OF_LINE: symbols.of:129
       "arrayfind",
       "array_find",
-      //! OF_LINE: symbols.of:127
+      //! OF_LINE: symbols.of:130
       "arraysort",
       "array_sort"
-      //! OF_LINE: symbols.of:128
+      //! OF_LINE: symbols.of:131
     ];
-    //! OF_LINE: symbols.of:129
-    //! OF_LINE: symbols.of:130
-    //! OF_LINE: symbols.of:131
     //! OF_LINE: symbols.of:132
     //! OF_LINE: symbols.of:133
     //! OF_LINE: symbols.of:134
+    //! OF_LINE: symbols.of:135
+    //! OF_LINE: symbols.of:136
+    //! OF_LINE: symbols.of:137
     async function prescan_tasks2(content) {
       try {
-        //! OF_LINE: symbols.of:135
-        let tasks = {};
-        //! OF_LINE: symbols.of:136
-        //! OF_LINE: symbols.of:137
-        let lines = strsplit(content, "\n");
         //! OF_LINE: symbols.of:138
+        let tasks = {};
+        //! OF_LINE: symbols.of:139
+        //! OF_LINE: symbols.of:140
+        let lines = strsplit(content, "\n");
+        //! OF_LINE: symbols.of:141
         for (let line of lines) {
-          //! OF_LINE: symbols.of:139
-          let clean = strreplace(line, "/#[^\n]*/", "");
-          //! OF_LINE: symbols.of:140
-          clean = strtrim(clean);
-          //! OF_LINE: symbols.of:141
           //! OF_LINE: symbols.of:142
-          let m1 = match(clean, "/^define\\s+task\\s+(\\w+)/i");
+          let clean = strreplace(line, "/#[^\n]*/", "");
           //! OF_LINE: symbols.of:143
-          if (m1) {
-            //! OF_LINE: symbols.of:144
-            tasks[m1[0]] = true;
-            //! OF_LINE: symbols.of:145
-          }
+          clean = strtrim(clean);
+          //! OF_LINE: symbols.of:144
+          //! OF_LINE: symbols.of:145
+          let m1 = match(clean, "/^define\\s+task\\s+(\\w+)/i");
           //! OF_LINE: symbols.of:146
-          //! OF_LINE: symbols.of:147
-          let m2 = match(clean, "/^fn\\s+(\\w+)/i");
-          //! OF_LINE: symbols.of:148
-          if (m2) {
-            //! OF_LINE: symbols.of:149
-            tasks[m2[0]] = true;
-            //! OF_LINE: symbols.of:150
+          if (m1) {
+            //! OF_LINE: symbols.of:147
+            tasks[m1[0]] = true;
+            //! OF_LINE: symbols.of:148
           }
+          //! OF_LINE: symbols.of:149
+          //! OF_LINE: symbols.of:150
+          let m2 = match(clean, "/^fn\\s+(\\w+)/i");
           //! OF_LINE: symbols.of:151
+          if (m2) {
+            //! OF_LINE: symbols.of:152
+            tasks[m2[0]] = true;
+            //! OF_LINE: symbols.of:153
+          }
+          //! OF_LINE: symbols.of:154
         }
-        //! OF_LINE: symbols.of:152
-        //! OF_LINE: symbols.of:153
+        //! OF_LINE: symbols.of:155
+        //! OF_LINE: symbols.of:156
         return tasks;
-        //! OF_LINE: symbols.of:154
+        //! OF_LINE: symbols.of:157
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:155
-    //! OF_LINE: symbols.of:156
-    //! OF_LINE: symbols.of:157
     //! OF_LINE: symbols.of:158
+    //! OF_LINE: symbols.of:159
+    //! OF_LINE: symbols.of:160
+    //! OF_LINE: symbols.of:161
     async function is_builtin(name) {
       try {
-        //! OF_LINE: symbols.of:159
+        //! OF_LINE: symbols.of:162
         return arraycontains(BUILTINS, name);
-        //! OF_LINE: symbols.of:160
+        //! OF_LINE: symbols.of:163
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:161
-    //! OF_LINE: symbols.of:162
-    //! OF_LINE: symbols.of:163
     //! OF_LINE: symbols.of:164
     //! OF_LINE: symbols.of:165
+    //! OF_LINE: symbols.of:166
+    //! OF_LINE: symbols.of:167
+    //! OF_LINE: symbols.of:168
     async function is_async(name, user_tasks) {
       try {
-        //! OF_LINE: symbols.of:166
-        if (arraycontains(ASYNC_BUILTINS, name)) {
-          //! OF_LINE: symbols.of:167
-          return true;
-          //! OF_LINE: symbols.of:168
-        }
         //! OF_LINE: symbols.of:169
-        if (user_tasks[name]) {
+        if (arraycontains(ASYNC_BUILTINS, name)) {
           //! OF_LINE: symbols.of:170
           return true;
           //! OF_LINE: symbols.of:171
         }
         //! OF_LINE: symbols.of:172
+        if (user_tasks[name]) {
+          //! OF_LINE: symbols.of:173
+          return true;
+          //! OF_LINE: symbols.of:174
+        }
+        //! OF_LINE: symbols.of:175
         return false;
-        //! OF_LINE: symbols.of:173
+        //! OF_LINE: symbols.of:176
       } catch (err) {
         throw err;
       }
     }
-    //! OF_LINE: symbols.of:174
-    //! OF_LINE: symbols.of:175
-    global.BUILTINS = BUILTINS;
-    //! OF_LINE: symbols.of:176
-    global.ASYNC_BUILTINS = ASYNC_BUILTINS;
     //! OF_LINE: symbols.of:177
     //! OF_LINE: symbols.of:178
+    global.BUILTINS = BUILTINS;
     //! OF_LINE: symbols.of:179
+    global.ASYNC_BUILTINS = ASYNC_BUILTINS;
+    //! OF_LINE: symbols.of:180
+    //! OF_LINE: symbols.of:181
+    //! OF_LINE: symbols.of:182
     global.prescan_tasks = prescan_tasks2;
     global.is_builtin = is_builtin;
     global.is_async = is_async;
