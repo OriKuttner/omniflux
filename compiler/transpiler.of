@@ -460,9 +460,20 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
     }
 
     // --- serve "dir" directive (The World's Simplest Directive) ---
-    var serve_dir_m = match(route_line, "/^serve\\s+[\"']([^\"']+)[\"']/i")
+    var serve_dir_m = match(line, "/^serve\\s+__STR_PLACEHOLDER_(\\d+)__/i")
+    var dir_name = ""
     if serve_dir_m {
-        var dir_name = serve_dir_m[0]
+        var idx = serve_dir_m[0] as int
+        var raw_str = state.strings_list[idx]
+        dir_name = strreplace(raw_str, "/^[\"']+|[\"']+/g", "")
+    } else {
+        var serve_raw_m = match(route_line, "/^serve\\s+[\"']?([^\"'\\s;]+)[\"']?/i")
+        if serve_raw_m {
+            dir_name = strreplace(serve_raw_m[0], "/^[\"']+|[\"']+/g", "")
+        }
+    }
+
+    if dir_name != "" {
         var mount_path = "/" + strreplace(dir_name, "/^\\//", "")
         arraypush(out, "app.use(\"" + mount_path + "\", express.static(require('path').join(global.__app_root, \"" + dir_name + "\")));")
         arraypush(out, "app.use(express.static(require('path').join(global.__app_root, \"" + dir_name + "\")));")
