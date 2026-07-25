@@ -10,6 +10,7 @@ mkdir -p "$BUILD_DIR/DEBIAN"
 mkdir -p "$BUILD_DIR/usr/local/bin"
 mkdir -p "$BUILD_DIR/usr/local/share/omniflux/compiler"
 mkdir -p "$BUILD_DIR/usr/share/omniflux/extensions"
+chmod 755 "$BUILD_DIR" "$BUILD_DIR/DEBIAN"
 
 # 1. Extract version from compiler/omniflux.of
 VERSION=$(grep '\$VERSION\s*=\s*' compiler/omniflux.of | cut -d'"' -f2 || echo "1.0.1")
@@ -173,7 +174,9 @@ if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
   rm -rf /usr/local/share/omniflux
 fi
 EOF
-chmod +x "$BUILD_DIR/DEBIAN/postrm"
+chmod 755 "$BUILD_DIR/DEBIAN/postrm"
+chmod 755 "$BUILD_DIR/DEBIAN/postinst"
+chmod 644 "$BUILD_DIR/DEBIAN/control"
 
 # 9. Build the debian package
 dpkg-deb --build "$BUILD_DIR" omniflux.deb
