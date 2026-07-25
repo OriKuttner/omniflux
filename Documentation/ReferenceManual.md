@@ -520,8 +520,27 @@ OmniFlux provides simple, procedural statements for sending HTTP responses, full
 > **Deployment Note (Apache + Phusion Passenger):**
 > When running an OmniFlux server behind Apache with Passenger, Apache's document root is typically set to the `public/` directory. This means any static assets placed in `public/` (CSS, images, JS) are served **directly by Apache** and never reach the OmniFlux application. This is more efficient than serving them through Node.js. Dynamic routes (`GET "/"`, `POST "/api/..."`, etc.) are transparently proxied by Passenger to the OmniFlux process.
 >
-> To serve static assets when running **standalone** (without Apache), define a single wildcard route:
+> [!IMPORTANT]
+> **Static Asset URL Conventions:**
+> Because Apache/Passenger sets `public/` as the web Document Root, all HTML references to static assets (images, CSS, JS) must be written relative to the domain root **without** the `/public/` prefix:
+> - **Correct:** `<link rel="stylesheet" href="/style.css">`, `<img src="/logo.png">`
+> - **Incorrect:** `<link rel="stylesheet" href="/public/style.css">`, `<img src="/public/logo.png">`
+> Writing `/public/...` in HTML templates will fail in production deployment under Passenger.
+>
+> [!NOTE]
+> **Static `index.html` Precedence & Routing:**
+> Web servers (Apache/Nginx/Passenger) automatically check for `public/index.html` first when handling root requests (`GET "/"`).
+> - **For Dynamic OmniFlux Applications (using `GET "/"` in `main.of`):** If a static `index.html` exists in `public/`, web servers will serve it directly, bypassing OmniFlux dynamic template rendering (`main.of`). For dynamic applications, store template files in `views/` (e.g. `views/index.of.html`) rather than `public/index.html`.
+> - **For Pure Static Sites / Front-End SPAs:** Placing `index.html` inside `public/` is standard and will be served directly by the web server as the entry point.
+>
+> To serve static assets when running **standalone** (without Apache), use the single-line `serve` directive:
+> ```omniflux
+> serve "public"
 > ```
+> This directive instructs the OmniFlux engine to automatically serve all static files inside `public/` transparently.
+> 
+> Alternatively, you can define a custom wildcard route:
+> ```omniflux
 > GET "/public/*file" (req, res) {
 >     var file_path = req.params.file.join("/")
 >     respond with file "public/" + file_path
@@ -630,11 +649,128 @@ OmniFlux provides native bindings to common backend services, making setups extr
     filewrite("settings.json", jsonencode(data, true))
     ```
 * **Template Engine:** HTML template rendering and layout generation:
+  *(For the dedicated, complete guide with function calls, syntax warnings, and `of-target` SPA interceptors, see [TemplateEngine.md](file:///home/ori/work/omniflux/Documentation/TemplateEngine.md))*
   * `template(source, context)`: Parses, compiles, and renders an HTML template. Automatically detects if `source` is a file path (loading it from disk) or a raw HTML string. Supports:
-    * **Dynamic Expressions:** `{{ user.name }}`
-    * **Control Flow:** `@if (cond) { ... @else { ... @}` and `@for (item of list) { ... @}`
+    * **Dynamic Expressions:** `{{ variable }}` or `{{ user.name }}`
+    * **Control Flow Directives:** `@if (cond) { ... }`, `@else if (cond2) { ... }`, `@else { ... }`, `@for (item of list) { ... }`, and `@}`
     * **Static Inclusions:** `@include("templates/header.html")`
-    * **SPA Interceptors:** Automatically injects a lightweight client-side script before `</body>` to intercept links and forms with `of-target="selector"`, enabling flicker-free SPA updates and server-driven script execution.
+    * **SPA Interceptors (`of-target`):** Automatically injects a lightweight client-side script before `</body>` to intercept links and forms with `of-target="selector"`, enabling flicker-free SPA updates and server-driven script execution.
+
+> [!WARNING]
+> **Template Control Flow Syntax Rules:**
+> In OmniFlux templates, `@else` and `@else if` directives **automatically emit the closing brace** `}` for the preceding `@if` block.
+> **DO NOT** place `@}` before `@else` or `@else if` (e.g. writing `@} else {` or `@} @else {` is invalid and will cause duplicate closing brace syntax errors `}} else {`, resulting in a `<!-- Template Error -->` blank screen).
+> 
+> **Correct Control Flow Structure:**
+> ```html
+> @if (isLoggedIn) {
+>     <p>Welcome {{ name }}</p>
+> @else if (isGuest) {
+>     <p>Welcome Guest</p>
+> @else {
+>     <p>Please log in</p>
+> @}
+> ```
+
+#### Complete Real-World HTML Template Example (`views/index.of.html`)
+
+```html
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <!-- 1. Include header partial -->
+    @include("views/partials/header.html")
+
+    <main class="container">
+        <h1>{{ title }}</h1>
+
+        <!-- 2. Conditional rendering with @if / @else if / @else -->
+        @if (user.role == "admin") {
+            <div class="badge badge-admin">מנהל מערכת</div>
+            <p>שלום {{ user.name }}, יש לך הרשאות ניהול מלאות.</p>
+        @else if (user.role == "editor") {
+            <div class="badge badge-editor">עורך תוכן</div>
+            <p>שלום {{ user.name }}, באפשרותך לערוך ולהעלות תכנים.</p>
+        @else {
+            <div class="badge badge-user">משתמש רגיל</div>
+            <p>שלום {{ user.name }}, ברוך הבא למערכת.</p>
+        @}
+
+        <!-- 3. SPA Form Submission using of-target attribute -->
+        <section class="card">
+            <h2>חיפוש מוצרים (סריקה אסינכרונית ללא רענון דף)</h2>
+            <form action="/api/search" method="POST" of-target="#resultsContainer">
+                <div class="form-group">
+                    <label for="query">מילת חיפוש:</label>
+                    <input type="text" id="query" name="query" placeholder="הזן מילת חיפוש...">
+                </div>
+                <button type="submit" class="btn">חפש מוצרים</button>
+            </form>
+        </section>
+
+        <!-- 4. Dynamic List Iteration with @for -->
+        <section class="card" id="resultsContainer">
+            <h2>תוצאות חיפוש</h2>
+            @if (hasProducts) {
+                <ul class="products-list">
+                    @for (prod of products) {
+                        <li>
+                            <strong>{{ prod.name }}</strong> - {{ prod.price }} ₪
+                            <!-- SPA Link using of-target attribute -->
+                            <a href="/product/{{ prod.id }}" of-target="#productDetail" class="btn-sm">פרטים</a>
+                        </li>
+                    @}
+                </ul>
+            @else {
+                <p class="muted">טרם נמצאו מוצרים לתצוגה</p>
+            @}
+        </section>
+
+        <div id="productDetail"></div>
+    </main>
+</body>
+</html>
+```
+
+#### SPA Interceptors & Partial Updates (`of-target`) ⚡
+
+OmniFlux provides built-in Single Page Application (SPA) functionality without requiring client-side frameworks like React or Angular.
+
+When `template()` renders an HTML template containing a `</body>` tag, OmniFlux automatically injects a lightweight client-side script that intercepts HTML `<form>` submissions and `<a>` link clicks containing the `of-target` attribute.
+
+##### How `of-target` Works:
+
+1. **Form Interceptor (`<form action="..." method="POST" of-target="#targetSelector">`)**:
+   - Intercepts the standard browser form `submit` event.
+   - Prevents full page reload (`e.preventDefault()`).
+   - Sends an asynchronous HTTP request (`fetch`) with the form's `FormData`.
+   - Replaces the inner HTML of the target element (`document.querySelector(targetSelector).innerHTML = htmlResult`).
+   - Automatically executes any inline `<script>` tags inside the returned HTML content.
+
+2. **Link Interceptor (`<a href="..." of-target="#targetSelector">`)**:
+   - Intercepts the browser `click` event on `<a>` tags containing `of-target`.
+   - Prevents full page navigation.
+   - Fetches the target URL asynchronously.
+   - Injects the server response directly into the specified target selector.
+
+##### Example Usage:
+```html
+<!-- Form submission that updates only #invoicesContainer -->
+<form action="/api/scan" method="POST" of-target="#invoicesContainer">
+    <input type="date" name="startDate">
+    <button type="submit">בצע סריקה</button>
+</form>
+
+<!-- Container element updated asynchronously by the form submission -->
+<div id="invoicesContainer">
+    <!-- Server-rendered partial HTML will be injected here -->
+</div>
+```
 * **Error & Diagnostic Utilities:**
   * `error_info(err)` (alias `errorinfo`): Returns an object containing original OmniFlux file and line details for a given error object: `{ file, line, message }`.
 

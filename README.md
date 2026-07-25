@@ -138,8 +138,8 @@ OmniFlux includes a VS Code extension for syntax highlighting and code snippets.
 3. Click the **`...`** (More Actions / Views) menu button at the top-right corner of the Extensions panel.
 4. Select **Install from VSIX...** from the dropdown.
 5. Locate and select the `.vsix` package:
-   * **If installed via the Debian package:** `/usr/share/omniflux/extensions/omniflux-support/omniflux-support-1.1.3.vsix`
-   * **If cloned from the Git repository:** `editors/vscode/omniflux-support-1.1.3.vsix` inside the cloned directory.
+   * **If installed via the Debian package:** `/usr/share/omniflux/extensions/omniflux-support/omniflux-support-1.1.4.vsix`
+   * **If cloned from the Git repository:** `editors/vscode/omniflux-support-1.1.4.vsix` inside the cloned directory.
 6. Click **Install**.
 
 ### Option 2: Command Line (CLI) Installation
@@ -195,6 +195,18 @@ When you compile `main.of`, OmniFlux automatically transpiles both files, links 
 ```
 Welcome to OmniFlux App
 ```
+
+---
+
+## 📚 Documentation & Guides
+
+Explore the detailed guides in the `Documentation/` directory:
+
+- 🚀 **[Template Engine & SPA Interceptors (`of-target`)](Documentation/TemplateEngine.md)**: In-depth guide to HTML rendering, function calls inside `{{ ... }}`, control flow syntax rules (`@if`, `@else if`, `@else`), loop directives, and the zero-dependency `of-target` SPA mechanism.
+- 📖 **[Reference Manual](Documentation/ReferenceManual.md)**: Full language specification, syntax grammar, standard library functions, database API, and passenger deployment notes.
+- 🎓 **[Tutorial](Documentation/Tutorial.md)**: Step-by-step introduction to OmniFlux language constructs and HTTP servers.
+- 🌐 **[Running on Apache](Documentation/RunningOnApache.md)**: Guide to deploying OmniFlux applications behind Apache and Phusion Passenger.
+- 🎨 **[HTML Editor Guidance](Documentation/HtmlEditor.md)**: Best practices for integrating visual editors with OmniFlux.
 
 ---
 

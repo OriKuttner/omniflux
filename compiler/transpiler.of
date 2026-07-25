@@ -459,6 +459,16 @@ define task transpile_line_core(raw_line, filename, user_tasks, line_num, state)
         return out
     }
 
+    // --- serve "dir" directive (The World's Simplest Directive) ---
+    var serve_dir_m = match(route_line, "/^serve\\s+[\"']([^\"']+)[\"']/i")
+    if serve_dir_m {
+        var dir_name = serve_dir_m[0]
+        var mount_path = "/" + strreplace(dir_name, "/^\\//", "")
+        arraypush(out, "app.use(\"" + mount_path + "\", express.static(require('path').join(global.__app_root, \"" + dir_name + "\")));")
+        arraypush(out, "app.use(express.static(require('path').join(global.__app_root, \"" + dir_name + "\")));")
+        return out
+    }
+
     // --- redirect to ---
     var redir_m = match(route_line, "/^redirect\\s+to\\s+(.*?)(?:\\s+with\\s+status\\s+(\\d+))?$/i")
     if redir_m {

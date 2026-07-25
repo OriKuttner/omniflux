@@ -123,6 +123,9 @@ on start {
 Building web pages with HTML templating is extremely straightforward:
 
 ```omniflux
+# Serve static assets transparently in one line
+serve "public"
+
 # Register an HTTP GET route
 on request GET "/" {
     var data = {
@@ -134,6 +137,13 @@ on request GET "/" {
     var html = template("views/index.html", data)
     respond html
 }
+
+# Template Engine & SPA Interceptor (of-target)
+# OmniFlux templates support interpolation {{ var }}, control flow directives:
+# @if (cond) { ... } @else if (cond2) { ... } @else { ... } @}
+# @for (item of list) { ... } @} and partial inclusions @include("path.html").
+# Forms and links with `of-target="#elementId"` perform flicker-free SPA updates automatically.
+# For full HTML examples and rules, see ReferenceManual.md.
 
 on start {
     # Start the server on port 3000

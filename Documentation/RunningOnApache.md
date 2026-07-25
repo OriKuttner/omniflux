@@ -78,6 +78,13 @@ By pointing Apache's `DocumentRoot` to the `public` subdirectory, Passenger auto
 > [!WARNING]
 > **Rigid Directory Naming Convention**
 > Phusion Passenger's automatic root detection strictly expects the public folder to be named exactly `public`. If you name this folder anything else (such as `www`, `static`, or `public_html`), Passenger will not automatically find your application root, causing compilation/startup errors.
+
+> [!TIP]
+> **Standalone Mode Static Serving (`serve` directive):**
+> When running standalone without Apache, you can serve the `public` folder in a single line in your `.of` file:
+> ```omniflux
+> serve "public"
+> ```
 > 
 > If you choose to use a custom directory name like `www`, you **must** explicitly specify the `PassengerAppRoot` directive pointing to the parent folder in your Virtual Host config:
 > ```apache

@@ -1,0 +1,9 @@
+include "stdlib/network.of"
+
+listen on port 3000
+
+serve "public"
+
+GET "/" (req, res) {
+    respond text "OK"
+}
