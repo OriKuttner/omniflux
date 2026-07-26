@@ -4210,9 +4210,9 @@ var require_transpiler = __commonJS({
           //! OF_LINE: transpiler.of:476
           let mount_path = "/" + strreplace(dir_name, "/^\\//", "");
           //! OF_LINE: transpiler.of:477
-          arraypush(out, 'app.use("' + mount_path + `", express.static(require('path').join(global.__app_root, "` + dir_name + '")));');
+          arraypush(out, 'app.use("' + mount_path + `", express.static(require('path').resolve("` + dir_name + '")));');
           //! OF_LINE: transpiler.of:478
-          arraypush(out, `app.use(express.static(require('path').join(global.__app_root, "` + dir_name + '")));');
+          arraypush(out, `app.use(express.static(require('path').resolve("` + dir_name + '")));');
           //! OF_LINE: transpiler.of:479
           return out;
           //! OF_LINE: transpiler.of:480

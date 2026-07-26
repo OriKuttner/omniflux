@@ -66,7 +66,7 @@ on start {
         "SyntaxError",                                                                         
         "sendFile(require('path').resolve(global.__app_root, \"public/index.html\"), { dotfiles: 'allow' })",
         "=== Logging Test Completed ===",
-        "express.static(require('path').join(global.__app_root, \"public\"))"
+        "express.static(require('path').resolve(\"public\"))"
     ]
     
     var i = 0
