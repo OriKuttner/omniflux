@@ -1122,6 +1122,38 @@ on start {
 }
 ```
 
+### 7.7 XML Parsing Library (`stdlib/xml.of`)
+Provides tasks for parsing XML strings and extracting data from element trees:
+* `xml_parse(xml_string)` (alias `xmlparse`): Parses an XML string and returns a root node object (`{ tag, attributes, text, children }`), or `null` if parsing fails.
+* `xml_find(node, tag_name)` (alias `xmlfind`): Recursively searches the node tree and returns an array of all nodes matching `tag_name`.
+* `xml_find_one(node, tag_name)` (alias `xmlfindone`): Recursively searches the node tree and returns the first node matching `tag_name`, or `null` if not found.
+* `xml_attr(node, attr_name)` (alias `xmlattr`): Returns the string value of `attr_name` from the node's attributes, or an empty string `""` if not present.
+* `xml_text(node)` (alias `xmltext`): Returns the concatenated inner text content of the node and its descendants.
+
+```omniflux
+include "stdlib/xml.of"
+
+on start {
+    var opf_content = readfile("content.opf")
+    var doc = xml_parse(opf_content)
+    
+    # 1. Find all item tags in the document tree
+    var items = xml_find(doc, "item")
+    for item of items {
+        var id = xml_attr(item, "id")
+        var href = xml_attr(item, "href")
+        print("Item ID: %s, Href: %s", id, href)
+    }
+    
+    # 2. Find the first title tag and extract its text
+    var title_node = xml_find_one(doc, "title")
+    if title_node != null {
+        var book_title = xml_text(title_node)
+        print("Book Title: %s", book_title)
+    }
+}
+```
+
 ## 8. Using NPM Packages 📦
 
 OmniFlux runs on top of the Node.js runtime and utilizes `esbuild` for its compilation and bundling steps. This makes it incredibly easy to use any package from the npm registry directly in your OmniFlux code!

@@ -42,7 +42,8 @@ on start {
         "regressiontest/test_syntax_errors_closure.of",
         "regressiontest/test_respond_file.of",
         "regressiontest/test_logging.of",
-        "regressiontest/test_serve_directive.of"
+        "regressiontest/test_serve_directive.of",
+        "regressiontest/test_xml.of"
     ]
     
     # Behavior types:
@@ -50,7 +51,7 @@ on start {
     #   1 = compile fail expected, check compiler output substring
     #   2 = compile + run fail expected, check run output substring
     #   3 = compile-only, check compiled .js content for substring (regression)
-    var test_behavior = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 3, 0, 3]
+    var test_behavior = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 1, 3, 0, 3, 0]
     
     var test_expected_substrings = [
         "Hello, Alice!",                                                                       
@@ -66,7 +67,8 @@ on start {
         "SyntaxError",                                                                         
         "sendFile(require('path').resolve(global.__app_root, \"public/index.html\"), { dotfiles: 'allow' })",
         "=== Logging Test Completed ===",
-        "express.static(require('path').resolve(\"public\"))"
+        "express.static(require('path').resolve(\"public\"))",
+        "=== XML Test Passed ==="
     ]
     
     var i = 0

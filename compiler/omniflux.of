@@ -13,7 +13,7 @@
 //   7. Bundle with esbuild
 //   8. Run the output (unless --compile-only)
 
-$VERSION = "1.1.4"
+$VERSION = "1.1.5"
 
 include "compiler/bundler.of"
 include "compiler/validator.of"
@@ -96,6 +96,9 @@ define task print_usage() {
 // config_path: returns path to ~/.omnifluxrc
 // ---------------------------------------------------------------------------
 define task config_path() {
+    if fileexists(".omnifluxrc") {
+        return ".omnifluxrc"
+    }
     var home = getenv("HOME")
     return home + "/.omnifluxrc"
 }
@@ -296,6 +299,13 @@ define task detect_missing_includes(source_code) {
     if match(source_code, "/\\b(system|exec|spawn|pterminate|pwait|pstatus)\\b/") {
         if !match(source_code, "/stdlib\\/system\\.of/") {
             arraypush(missing, "stdlib/system.of")
+        }
+    }
+
+    // Check xml
+    if match(source_code, "/\\b(xml_parse|xmlparse|xml_find|xmlfind|xml_find_one|xmlfindone|xml_attr|xmlattr|xml_text|xmltext)\\b/") {
+        if !match(source_code, "/stdlib\\/xml\\.of/") {
+            arraypush(missing, "stdlib/xml.of")
         }
     }
 

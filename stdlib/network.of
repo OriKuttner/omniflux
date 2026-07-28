@@ -29,10 +29,13 @@
     global.myFetch = myFetch;
 @}
 
-define task networkget(url) {
+define task networkget(url, headers = {}) {
     @{
         try {
-            const res = await myFetch(url);
+            const res = await myFetch(url, {
+                method: 'GET',
+                headers: headers || {}
+            });
             const text = await res.text();
             try {
                 return JSON.parse(text);
@@ -45,8 +48,8 @@ define task networkget(url) {
     @}
 }
 
-define task network_get(url) {
-    return networkget(url)
+define task network_get(url, headers = {}) {
+    return networkget(url, headers)
 }
 
 define task networkpost(url, data, headers = {}) {

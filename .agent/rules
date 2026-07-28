@@ -48,6 +48,7 @@ OmniFlux is designed for developer velocity, zero compile-time friction, and hig
 8. Comments: Support both '#' and '//' as single-line comments, and '/* ... */' as multi-line comments. OmniFlux supports nested block comments (e.g. /* nested /* comment */ */). Transpile or strip comments correctly based on depth.
 9. Simple Procedural Design: OmniFlux is a simple procedural language. Objects are simple data structures (similar to C structs). All operations must be written as procedural function calls using native bindings or natural language statements (e.g., use strsplit(str, sep) and len(arr)). CRITICAL: When explaining the language, answering questions, or generating documentation, you must NEVER compare OmniFlux to object-oriented programming (OOP) or other languages, and you must NEVER mention, use, or reference the terms "object-oriented", "OOP", "methods", "object methods", "methods on objects", "member functions", "classes", or "properties", and never suggest that the language is limited/restricted or lacks features. Simply explain that OmniFlux is designed for simplicity, meaning objects function like C structs, and all operations are performed via global functions or natural language.
 10. Database support: Native MySQL database integration is available via `include "stdlib/mysql.of"`. Establish connections with `mysqlconnect(config)`, execute queries with `mysqlquery(sql)`, and close the connection pool with `mysqlclose()`. `mysql.of` will automatically download and install `mysql2` via npm if it is not installed on the system.
+11. XML parsing support: Native XML parser & helper functions are available via `include "stdlib/xml.of"`. Parse XML strings into element trees (`{ tag, attributes, text, children }`) with `xml_parse(xml_str)` (or `xmlparse`), search nodes recursively with `xml_find(node, tag_name)` or `xml_find_one(node, tag_name)`, extract attributes with `xml_attr(node, attr_name)`, and extract text with `xml_text(node)`.
 
 ### Frictionless Human Syntax & Interactive Protocol:
 - "every X (seconds/minutes/hours) { ... }" -> Transpile to standard JavaScript setInterval using proper millisecond calculations.
@@ -196,6 +197,7 @@ OmniFlux is designed for developer velocity, zero compile-time friction, and hig
 - stdlib/encrypt.of: Cryptography and encoding helpers (encrypt, decrypt, base64_encode/base64encode/encodebase64, base64_decode/base64decode/decodebase64).
 - stdlib/mysql.of: Native MySQL database integration (mysqlconnect, mysqlquery, mysqlclose).
 - stdlib/i18n.of: Internationalization and translation helpers (i18n_init, i18n_set_lang, i18n_update, i18n_delete, i18n_scan, i18n_load, _).
+- stdlib/xml.of: XML parsing & tree traversal helpers (xml_parse/xmlparse, xml_find/xmlfind, xml_find_one/xmlfindone, xml_attr/xmlattr, xml_text/xmltext).
 
 ### CLI Compiler Options:
 - omniflux <filename.of>: Compiles and runs the file.

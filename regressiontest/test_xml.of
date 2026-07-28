@@ -1,0 +1,43 @@
+include "stdlib/xml.of"
+
+on start {
+    var xml_data = "<package xmlns=\"http://www.idpf.org/2007/opf\" version=\"3.0\"><metadata><title>Test Book</title></metadata><manifest><item id=\"cover-image\" href=\"images/cover.jpg\" media-type=\"image/jpeg\"/><item id=\"chapter1\" href=\"text/ch1.xhtml\" media-type=\"application/xhtml+xml\"/></manifest></package>"
+
+    var doc = xml_parse(xml_data)
+
+    if doc == null {
+        print("XML Parse Failed")
+        exit(1)
+    }
+
+    var manifest = xml_find_one(doc, "manifest")
+    if manifest == null {
+        print("Manifest node not found")
+        exit(1)
+    }
+
+    var items = xml_find(doc, "item")
+    if len(items) != 2 {
+        print("Expected 2 items, got: " + len(items))
+        exit(1)
+    }
+
+    var cover_item = items[0]
+    var cover_id = xml_attr(cover_item, "id")
+    var cover_href = xml_attr(cover_item, "href")
+
+    if cover_id != "cover-image" || cover_href != "images/cover.jpg" {
+        print("Attribute match failed: " + cover_id + ", " + cover_href)
+        exit(1)
+    }
+
+    var title_node = xml_find_one(doc, "title")
+    var title_text = xml_text(title_node)
+
+    if title_text != "Test Book" {
+        print("Text extraction failed, expected 'Test Book', got: " + title_text)
+        exit(1)
+    }
+
+    print("=== XML Test Passed ===")
+}

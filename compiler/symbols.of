@@ -117,6 +117,7 @@ var BUILTINS = [
 // User-defined tasks are added at compile time by prescan_tasks().
 var ASYNC_BUILTINS = [
     "input",
+    "system", "exec",
     "cacheset", "cache_set",
     "cacheget", "cache_get",
     "mysqlconnect", "mysql_connect",

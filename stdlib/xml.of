@@ -1,0 +1,166 @@
+# stdlib/xml.of - OmniFlux XML Parsing & Handling Standard Library
+
+define task xml_parse(xml_string) {
+    @{
+        if (!xml_string || typeof xml_string !== 'string') return null;
+        try {
+            const parser = global.safeRequire ? global.safeRequire('fast-xml-parser') : require('fast-xml-parser');
+            const fxp = new parser.XMLParser({
+                ignoreAttributes: false,
+                attributeNamePrefix: "",
+                preserveOrder: true,
+                trimValues: true
+            });
+            const parsed = fxp.parse(xml_string);
+            
+            function convertNode(rawNode) {
+                if (!rawNode) return null;
+                let tagName = "";
+                let attributes = {};
+                let text = "";
+                let children = [];
+
+                for (const key of Object.keys(rawNode)) {
+                    if (key === ':@') {
+                        attributes = rawNode[':@'] || {};
+                    } else if (key === '#text') {
+                        text = String(rawNode['#text'] || "").trim();
+                    } else {
+                        tagName = key;
+                        const content = rawNode[key];
+                        if (Array.isArray(content)) {
+                            for (const child of content) {
+                                const converted = convertNode(child);
+                                if (converted) children.push(converted);
+                            }
+                        }
+                    }
+                }
+                return {
+                    tag: tagName,
+                    attributes: attributes,
+                    text: text,
+                    children: children
+                };
+            }
+
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                return convertNode(parsed[0]);
+            }
+            return null;
+        } catch (e) {
+            return null;
+        }
+    @}
+}
+
+define task xmlparse(xml_string) {
+    return xml_parse(xml_string)
+}
+
+define task xml_find(node, tag_name) {
+    @{
+        const results = [];
+        if (!node || typeof node !== 'object') return results;
+        
+        function search(curr) {
+            if (!curr || typeof curr !== 'object') return;
+            if (curr.tag === tag_name) {
+                results.push(curr);
+            }
+            if (Array.isArray(curr.children)) {
+                for (const child of curr.children) {
+                    search(child);
+                }
+            }
+        }
+        
+        if (Array.isArray(node.children)) {
+            for (const child of node.children) {
+                search(child);
+            }
+        }
+        return results;
+    @}
+}
+
+define task xmlfind(node, tag_name) {
+    return xml_find(node, tag_name)
+}
+
+define task xml_find_one(node, tag_name) {
+    @{
+        if (!node || typeof node !== 'object') return null;
+        
+        function search(curr) {
+            if (!curr || typeof curr !== 'object') return null;
+            if (curr.tag === tag_name) return curr;
+            if (Array.isArray(curr.children)) {
+                for (const child of curr.children) {
+                    const found = search(child);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+        
+        if (Array.isArray(node.children)) {
+            for (const child of node.children) {
+                const found = search(child);
+                if (found) return found;
+            }
+        }
+        return null;
+    @}
+}
+
+define task xmlfindone(node, tag_name) {
+    return xml_find_one(node, tag_name)
+}
+
+define task xml_attr(node, attr_name) {
+    @{
+        if (!node || !node.attributes || typeof node.attributes !== 'object') return "";
+        const val = node.attributes[attr_name];
+        return val !== undefined && val !== null ? String(val) : "";
+    @}
+}
+
+define task xmlattr(node, attr_name) {
+    return xml_attr(node, attr_name)
+}
+
+define task xml_text(node) {
+    @{
+        if (!node) return "";
+        function extractText(curr) {
+            if (!curr) return "";
+            let text = curr.text || "";
+            if (Array.isArray(curr.children)) {
+                for (const child of curr.children) {
+                    const childText = extractText(child);
+                    if (childText) {
+                        text += (text ? " " : "") + childText;
+                    }
+                }
+            }
+            return text.trim();
+        }
+        return extractText(node);
+    @}
+}
+
+define task xmltext(node) {
+    return xml_text(node)
+}
+
+global.xml_parse = xml_parse;
+global.xmlparse = xmlparse;
+global.xml_find = xml_find;
+global.xmlfind = xmlfind;
+global.xml_find_one = xml_find_one;
+global.xmlfindone = xmlfindone;
+global.xml_attr = xml_attr;
+global.xmlattr = xmlattr;
+global.xml_text = xml_text;
+global.xmltext = xmltext;
