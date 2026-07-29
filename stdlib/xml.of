@@ -1,4 +1,4 @@
-# stdlib/xml.of - OmniFlux XML Parsing & Handling Standard Library
+# stdlib/xml.of - OmniFlux XML Parsing & Handling Standard Library using fast-xml-parser
 
 define task xml_parse(xml_string) {
     @{
@@ -45,6 +45,12 @@ define task xml_parse(xml_string) {
             }
 
             if (Array.isArray(parsed) && parsed.length > 0) {
+                for (const item of parsed) {
+                    const nodeKey = Object.keys(item).find(k => k !== ':@' && k !== '#text');
+                    if (nodeKey && !nodeKey.startsWith('?') && !nodeKey.startsWith('!')) {
+                        return convertNode(item);
+                    }
+                }
                 return convertNode(parsed[0]);
             }
             return null;
@@ -63,10 +69,15 @@ define task xml_find(node, tag_name) {
         const results = [];
         if (!node || typeof node !== 'object') return results;
         
+        const cleanTag = tag_name.includes(':') ? tag_name.split(':')[1] : tag_name;
+
         function search(curr) {
             if (!curr || typeof curr !== 'object') return;
-            if (curr.tag === tag_name) {
-                results.push(curr);
+            if (curr.tag) {
+                const currClean = curr.tag.includes(':') ? curr.tag.split(':')[1] : curr.tag;
+                if (curr.tag === tag_name || currClean === cleanTag) {
+                    results.push(curr);
+                }
             }
             if (Array.isArray(curr.children)) {
                 for (const child of curr.children) {
@@ -75,11 +86,7 @@ define task xml_find(node, tag_name) {
             }
         }
         
-        if (Array.isArray(node.children)) {
-            for (const child of node.children) {
-                search(child);
-            }
-        }
+        search(node);
         return results;
     @}
 }
@@ -92,9 +99,14 @@ define task xml_find_one(node, tag_name) {
     @{
         if (!node || typeof node !== 'object') return null;
         
+        const cleanTag = tag_name.includes(':') ? tag_name.split(':')[1] : tag_name;
+
         function search(curr) {
             if (!curr || typeof curr !== 'object') return null;
-            if (curr.tag === tag_name) return curr;
+            if (curr.tag) {
+                const currClean = curr.tag.includes(':') ? curr.tag.split(':')[1] : curr.tag;
+                if (curr.tag === tag_name || currClean === cleanTag) return curr;
+            }
             if (Array.isArray(curr.children)) {
                 for (const child of curr.children) {
                     const found = search(child);
@@ -104,13 +116,7 @@ define task xml_find_one(node, tag_name) {
             return null;
         }
         
-        if (Array.isArray(node.children)) {
-            for (const child of node.children) {
-                const found = search(child);
-                if (found) return found;
-            }
-        }
-        return null;
+        return search(node);
     @}
 }
 
